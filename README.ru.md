@@ -4,7 +4,12 @@
 
 Приложение в строке меню macOS, которое исправляет текст, набранный не в той раскладке. Набрали `ghbdtn? rfr ltkf&` вместо `привет, как дела?` — нажмите `⇧⇧` (Shift дважды), и текст сконвертируется на месте.
 
-![Набор ghbdtn, двойной Shift, результат привет](docs/demo.gif)
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/demo-dark.gif">
+    <img alt="Набор ghbdtn, двойной Shift, результат привет" src="docs/demo.gif" width="640">
+  </picture>
+</p>
 
 Inverso — неофициальный форк LangSwitcher, см. [О форке](#о-форке). Изменения: [CHANGELOG.md](CHANGELOG.md). Сборка, участие в разработке и выпуск релизов: [CONTRIBUTING.md](CONTRIBUTING.md) (на английском).
 

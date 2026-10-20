@@ -4,7 +4,12 @@
 
 A menu bar app for macOS that fixes text typed in the wrong keyboard layout. Typed `ghbdtn? rfr ltkf&` instead of `привет, как дела?` — press `⇧⇧` (Shift twice) and the text is converted in place.
 
-![Typing ghbdtn, pressing Shift twice, getting привет](docs/demo.gif)
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/demo-dark.gif">
+    <img alt="Typing ghbdtn, pressing Shift twice, getting привет" src="docs/demo.gif" width="640">
+  </picture>
+</p>
 
 Inverso is an unofficial fork of LangSwitcher, see [About this fork](#about-this-fork). Changes: [CHANGELOG.md](CHANGELOG.md). Building, contributing and releasing: [CONTRIBUTING.md](CONTRIBUTING.md).
 
