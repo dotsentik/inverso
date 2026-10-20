@@ -299,6 +299,38 @@ final class TextConverterTests: XCTestCase {
         XCTAssertEqual(result, "q")
     }
 
+    // MARK: - ISO section key (tables)
+
+    func testConvert_SectionKeyWord() {
+        XCTAssertEqual(converter.convert("§krf")?.text, "ёлка")
+        XCTAssertEqual(converter.convert("±KRF")?.text, "ЁЛКА")
+        XCTAssertEqual(converter.convert("`krf")?.text, "ёлка")
+        XCTAssertEqual(converter.convert("ghbdtn §krf")?.text, "привет ёлка")
+        // The tables have ё on the grave key too; on ANSI keyboards that is the key it comes from.
+        XCTAssertEqual(converter.convert("ёлка")?.text, "`krf")
+    }
+
+    func testConvert_SectionKeyAloneTypesALetter() {
+        // "§" is the ё key: like "`", it converts alone because the key types a letter.
+        XCTAssertEqual(converter.convert("§")?.text, "ё")
+        XCTAssertEqual(converter.convert("`")?.text, "ё")
+    }
+
+    func testConvertLineGreedy_SectionKeyWord() {
+        XCTAssertEqual(converter.convertLineGreedily("§krf")?.text, "ёлка")
+        XCTAssertEqual(converter.convertLineGreedily("ghbdtn §krf")?.text, "привет ёлка")
+    }
+
+    func testFindBoundary_PunctuationAttachedToConvertedWord() {
+        let boundary = converter.findWrongLayoutBoundary(in: "2025 §krf")
+        XCTAssertEqual(boundary?.keep, "2025 ")
+        XCTAssertEqual(boundary?.convert, "§krf")
+        XCTAssertEqual(converter.convertLineGreedily("2025 §krf")?.text, "2025 ёлка")
+        XCTAssertEqual(converter.convertLineGreedily("2025 `krf")?.text, "2025 ёлка")
+        // Punctuation that is not a letter key stays as typed.
+        XCTAssertEqual(converter.convertLineGreedily("2025 (ghbdtn")?.text, "2025 (привет")
+    }
+
     // MARK: - Greedy with 70% threshold
 
     func testFindBoundary_ThresholdMet() {

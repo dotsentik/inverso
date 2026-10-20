@@ -7,8 +7,10 @@ enum LayoutCharacterMap {
 
     static let qwertyUS = table(String(PhysicalKeys.qwerty))
 
+    /// Russian – PC: ё is on the key left of 1 (the grave key on ANSI keyboards, the section
+    /// key on ISO ones).
     static let russian = table(
-        "ё1234567890-=йцукенгшщзхъ\\фывапролджэячсмитьбю.Ё!\"№;%:?*()_+ЙЦУКЕНГШЩЗХЪ/ФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,")
+        "ё1234567890-=йцукенгшщзхъ\\фывапролджэячсмитьбю.ёЁ!\"№;%:?*()_+ЙЦУКЕНГШЩЗХЪ/ФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,Ё")
 
     /// QWERTZ.
     static let german = table(
@@ -48,11 +50,18 @@ enum LayoutCharacterMap {
         return nil
     }
 
-    /// `layoutKeys` lists what the layout types on the keys of `PhysicalKeys.qwerty`, in order.
+    /// `layoutKeys` lists what the layout types on the keys of `PhysicalKeys.qwerty`, in order:
+    /// unshifted row, then shifted row. A table may end its rows before the section key.
     private static func table(_ layoutKeys: String) -> [Character: Character] {
+        let chars = Array(layoutKeys)
+        let rowLength = chars.count / 2
+        let keyCount = PhysicalKeys.keyCodes.count
+        precondition(
+            chars.count % 2 == 0 && rowLength <= keyCount, "rows of different length, or longer than PhysicalKeys")
         var map: [Character: Character] = [:]
-        for (qwertyChar, layoutChar) in zip(PhysicalKeys.qwerty, layoutKeys) {
-            map[qwertyChar] = layoutChar
+        for index in 0..<rowLength {
+            map[PhysicalKeys.qwerty[index]] = chars[index]
+            map[PhysicalKeys.qwerty[keyCount + index]] = chars[rowLength + index]
         }
         return map
     }

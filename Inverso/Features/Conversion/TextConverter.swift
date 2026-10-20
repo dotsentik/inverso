@@ -129,7 +129,8 @@ final class TextConverter {
     /// work here: many wrong-layout words ("lheu" = "друг") look like valid English.
     ///
     /// Pass 2 scans words right to left and stops at the first one that does not switch
-    /// script, for mixed lines like "Привет ghbdtn rfr".
+    /// script, for mixed lines like "Привет ghbdtn rfr". Punctuation attached to the first
+    /// converted word ("123 §krf") converts with it.
     func findWrongLayoutBoundary(in text: String) -> (keep: String, convert: String)? {
         guard settingsManager.enabledLayouts.count >= 2 else { return nil }
 
@@ -180,8 +181,15 @@ final class TextConverter {
             return nil
         }
 
-        let keep = tokens[..<wrongStartIndex].joined()
-        let convert = tokens[wrongStartIndex...].joined()
+        var keep = tokens[..<wrongStartIndex].joined()
+        var convert = tokens[wrongStartIndex...].joined()
+        // Characters typed right before the word belong to it ("§krf" = "ёлка", ",f,eirf" =
+        // "бабушка"); LayoutMapper keeps them as typed unless their key types a letter.
+        let attached = keep.reversed().prefix { !$0.isWhitespace && !$0.isLetter && !$0.isNumber }
+        if !attached.isEmpty {
+            keep.removeLast(attached.count)
+            convert = String(attached.reversed()) + convert
+        }
         Log.conversion.debug(
             "findWrongLayoutBoundary: keep='\(keep, privacy: .private)' convert='\(convert, privacy: .private)'")
 

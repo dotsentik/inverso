@@ -1,10 +1,12 @@
 import Carbon
 
-/// The 47 ANSI character keys that layout maps are keyed by.
+/// The 48 character keys that layout maps are keyed by: the 47 ANSI keys and the ISO section
+/// key (left of 1 on ISO keyboards, where Russian – PC types ё).
 enum PhysicalKeys {
-    /// US-QWERTY characters of the keys: unshifted row, then shifted row.
+    /// US-QWERTY characters of the keys: unshifted row, then shifted row. The section key is
+    /// last in each row, as "§" and "±" (what ABC types on it).
     static let qwerty = Array(
-        "`1234567890-=qwertyuiop[]\\asdfghjkl;'zxcvbnm,./~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:\"ZXCVBNM<>?")
+        "`1234567890-=qwertyuiop[]\\asdfghjkl;'zxcvbnm,./§~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:\"ZXCVBNM<>?±")
 
     /// Virtual key codes of the keys, in the order of the unshifted row of `qwerty`.
     static let keyCodes: [UInt16] = [
@@ -16,5 +18,14 @@ enum PhysicalKeys {
         kVK_ANSI_K, kVK_ANSI_L, kVK_ANSI_Semicolon, kVK_ANSI_Quote,
         kVK_ANSI_Z, kVK_ANSI_X, kVK_ANSI_C, kVK_ANSI_V, kVK_ANSI_B, kVK_ANSI_N, kVK_ANSI_M,
         kVK_ANSI_Comma, kVK_ANSI_Period, kVK_ANSI_Slash,
+        kVK_ISO_Section,
     ].map { UInt16($0) }
+
+    /// US-QWERTY characters of the section key.
+    private static let isoKeys: Set<Character> = ["§", "±"]
+
+    /// `qwerty` in the order a reverse lookup prefers keys: the ANSI keys (unshifted, then
+    /// shifted) before the section key. A character the section key repeats (">" in
+    /// Russian – Phonetic, ё in Russian – PC on ANSI keyboards) keeps its ANSI key.
+    static let lookupOrder = qwerty.filter { !isoKeys.contains($0) } + qwerty.filter { isoKeys.contains($0) }
 }

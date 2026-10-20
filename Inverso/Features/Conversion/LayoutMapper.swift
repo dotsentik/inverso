@@ -60,10 +60,11 @@ enum LayoutMapper {
     }
 
     /// Layout character → US-QWERTY character of its key. If a character sits on several keys
-    /// (common in system layouts), the first in QWERTY order wins, so unshifted keys are preferred.
+    /// (common in system layouts), the first in `PhysicalKeys.lookupOrder` wins: unshifted keys
+    /// are preferred, and the ANSI keys over the ISO section key.
     static func reverseMap(_ map: [Character: Character]) -> [Character: Character] {
         var reverse: [Character: Character] = [:]
-        for qwertyChar in PhysicalKeys.qwerty {
+        for qwertyChar in PhysicalKeys.lookupOrder {
             if let layoutChar = map[qwertyChar], reverse[layoutChar] == nil {
                 reverse[layoutChar] = qwertyChar
             }
