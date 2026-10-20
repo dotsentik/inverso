@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.8] - 2026-10-20
+
+### Fixed
+
+- Fixed ё (and other keys) on ISO keyboards: the key left of 1 was missing from the layout
+  maps. In Russian – PC it types ё and Ё, so “§krf” now converts to “ёлка” and “ёлка” back
+  to “§krf”. Other layouts get their characters on that key too: ^ and ° in German, @ and #
+  in French, º and ª in Spanish – ISO, \ and / in Ukrainian – PC.
+- Characters on that key that another key also types keep converting through that other key,
+  as before (ё through the grave key on ANSI keyboards, > in Russian – Phonetic).
+- Greedy Line: a character typed right before the first converted word converts with it
+  (“2025 §krf” → “2025 ёлка”, not “2025 §лка”).
+
 ## [1.2.7] - 2026-10-20 (formerly LangSwitcher)
 
 Renamed from LangSwitcher to Inverso. New bundle identifier: install manually; updates
@@ -69,6 +82,7 @@ The history of the LangSwitcher repository starts with this version.
   Greedy Line).
 - Update errors are logged with the error domain, code and the feed's HTTP status.
 
-[Unreleased]: https://github.com/dotsentik/inverso/compare/v1.2.7...HEAD
+[Unreleased]: https://github.com/dotsentik/inverso/compare/v1.2.8...HEAD
+[1.2.8]: https://github.com/dotsentik/inverso/releases/tag/v1.2.8
 [1.2.7]: https://github.com/dotsentik/inverso/releases/tag/v1.2.7
 [1.2.6]: https://github.com/dotsentik/LangSwitcher/releases/tag/v1.2.6
