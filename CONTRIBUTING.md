@@ -71,19 +71,69 @@ code signing certificate outside the repository and back them up
 (`generate_keys -x <file>`, export as `.p12`). Without the key no update can be published
 for copies that are already installed.
 
-## Migrating from LangSwitcher
+## Building
 
-Inverso was called LangSwitcher up to version 1.2.6. The bundle identifier changed
-(`com.dotsentik.inverso`), so LangSwitcher builds cannot update to Inverso through
-Sparkle. To test or use Inverso on a Mac with LangSwitcher:
+```bash
+xcodebuild build \
+  -project Inverso.xcodeproj \
+  -scheme Inverso \
+  -configuration Release \
+  -destination 'platform=macOS' \
+  -derivedDataPath build \
+  CODE_SIGN_IDENTITY="-"
+```
 
-1. Quit LangSwitcher and delete the old copy from `/Applications`.
-2. Remove LangSwitcher from System Settings → Privacy & Security → Accessibility (“−”).
-3. Install Inverso manually from the GitHub Release.
-4. Grant Inverso Accessibility access.
-5. Optional: copy the old log, `~/Library/Application Support/LangSwitcher/conversion_log.sqlite`,
-   to `~/Library/Application Support/Inverso/`. Inverso copies it by itself on the first
-   launch if its own directory does not exist yet.
+The app is at `build/Build/Products/Release/Inverso.app`. Xcode fetches [Sparkle](https://github.com/sparkle-project/Sparkle) 2.10.0 through Swift Package Manager and embeds `Sparkle.framework` in `Contents/Frameworks`. Requires Xcode 26 or later (Swift 6; the app icon is an Icon Composer `.icon` file).
+
+Setup notes:
+
+- Swift 6 with complete strict concurrency checking; deployment target macOS 15.0. The project setting is `ARCHS = arm64` for local builds; `scripts/release.sh` builds universal (`arm64 x86_64`).
+- No App Sandbox: reading and replacing text in other apps needs Accessibility and synthetic keystrokes.
+- Hardened Runtime is on. `Inverso/Inverso.entitlements` has `com.apple.security.cs.disable-library-validation`: without an Apple Team ID (ad hoc or self-signed certificate), library validation refuses to load the embedded `Sparkle.framework`.
+
+## Project layout
+
+```
+Inverso/
+├── App/                       entry point, AppDelegate (startup only)
+├── Features/
+│   ├── Conversion/            conversion pipeline, layout mapping, target layout choice
+│   ├── HUD/                   overlay shown after a conversion
+│   ├── MenuBar/               menu bar menu, About panel
+│   └── Settings/              Settings window and its sections
+├── Services/
+│   ├── Layouts/               system input sources, character maps (UCKeyTranslate)
+│   ├── TextAccess/            Accessibility, clipboard, keystrokes, focus detection
+│   ├── Updates/               Sparkle updater and its configuration (UpdateConfig)
+│   └── ...                    settings, hotkey, localization, log store, logging
+├── Models/
+└── Resources/                 Localizable.xcstrings (en, ru), icon, assets
+InversoTests/                  XCTest unit tests
+scripts/release.sh             release build, signing, archive, appcast entry
+scripts/apply-appcast.sh       publishes the feed entry after the GitHub Release
+scripts/check-feed.sh          checks the published update feed and archive
+scripts/verify-ed-signature.swift  EdDSA check with SUPublicEDKey (used by the scripts)
+docs/                          README media
+CHANGELOG.md, CONTRIBUTING.md  changes per version; branches, commits, releasing
+appcast.xml                    Sparkle update feed
+```
+
+## Troubleshooting updates
+
+Sparkle shows “Update Error” when it can't load the update feed or the archive, or the archive fails verification:
+
+- **the repository is private:** the feed on `raw.githubusercontent.com` and the release download answer 404 to anonymous requests;
+- **no release or feed yet:** the GitHub Release has no zip, or `appcast.xml` with the entry is not in `main`;
+- **wrong signature:** the archive is not signed with the key whose public part is in the app (`SUPublicEDKey`); Sparkle refuses to install it;
+- **cache:** `raw.githubusercontent.com` caches files for up to ~5 minutes, so a just-published feed may still be the old one; try again later.
+
+To see which of these it is, run in a clone of the repository:
+
+```bash
+scripts/check-feed.sh --installed-build <your build>
+```
+
+Your build is the number in parentheses in the update dialog, and is equal to the last number of the version (“Version 1.2.7” is build 7). The app also logs the error domain, code and the feed's HTTP status: `log show --last 10m --predicate 'subsystem == "com.inverso.app"'`.
 
 ## Never commit
 
