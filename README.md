@@ -7,7 +7,7 @@ A menu bar app for macOS that fixes text typed in the wrong keyboard layout. Typ
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/demo-dark.gif">
-    <img alt="Typing ghbdtn, pressing Shift twice, getting привет" src="docs/demo.gif" width="640">
+    <img alt="Typing in the wrong layout, pressing Shift twice and getting the text in Russian, Ukrainian, Spanish, Arabic and Greek" src="docs/demo.gif" width="640">
   </picture>
 </p>
 

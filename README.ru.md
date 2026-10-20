@@ -7,7 +7,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/demo-dark.gif">
-    <img alt="Набор ghbdtn, двойной Shift, результат привет" src="docs/demo.gif" width="640">
+    <img alt="Набор в неверной раскладке, двойной Shift и результат на русском, украинском, испанском, арабском и греческом" src="docs/demo.gif" width="640">
   </picture>
 </p>
 
