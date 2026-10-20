@@ -1,6 +1,6 @@
 # Inverso
 
-[English](README.md) | [Русский](README.ru.md)
+[English](README.md) | [Русский](README.ru.md) | [Українська](README.uk.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [हिन्दी](README.hi.md) | [العربية](README.ar.md)
 
 Приложение в строке меню macOS, которое исправляет текст, набранный не в той раскладке. Набрали `ghbdtn? rfr ltkf&` вместо `привет, как дела?` — нажмите `⇧⇧` (Shift дважды), и текст сконвертируется на месте.
 

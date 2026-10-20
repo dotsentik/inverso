@@ -1,6 +1,6 @@
 # Inverso
 
-[English](README.md) | [Русский](README.ru.md)
+[English](README.md) | [Русский](README.ru.md) | [Українська](README.uk.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [हिन्दी](README.hi.md) | [العربية](README.ar.md)
 
 A menu bar app for macOS that fixes text typed in the wrong keyboard layout. Typed `ghbdtn? rfr ltkf&` instead of `привет, как дела?` — press `⇧⇧` (Shift twice) and the text is converted in place.
 
