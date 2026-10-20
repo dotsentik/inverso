@@ -5,5 +5,14 @@
         <link>https://raw.githubusercontent.com/dotsentik/inverso/main/appcast.xml</link>
         <description>Inverso updates</description>
         <language>en</language>
+        <item>
+            <title>Version 1.2.7</title>
+            <pubDate>Tue, 20 Oct 2026 17:10:05 +0000</pubDate>
+            <sparkle:version>7</sparkle:version>
+            <sparkle:shortVersionString>1.2.7</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <sparkle:releaseNotesLink>https://github.com/dotsentik/inverso/releases/tag/v1.2.7</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/dotsentik/inverso/releases/download/v1.2.7/Inverso-1.2.7.zip" sparkle:edSignature="wl/15uEj6c5pM0iFluUhn6Vi5SLoj4833qeDk4iaMzp5DbNv1dyPnZeGXB1O9ugm6MCxxB/jNSpH3sVJcVrZDQ==" length="2988494" type="application/octet-stream"/>
+        </item>
     </channel>
 </rss>
