@@ -1,0 +1,904 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		E10000010000000000000013 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000013 /* Assets.xcassets */; };
+		E10000010000000000000101 /* LayoutMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000101 /* LayoutMapperTests.swift */; };
+		E10000010000000000000102 /* TextConverterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000102 /* TextConverterTests.swift */; };
+		E10000010000000000000103 /* LoggingPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000103 /* LoggingPolicyTests.swift */; };
+		E10000010000000000000104 /* LaunchAtLoginHelperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000104 /* LaunchAtLoginHelperTests.swift */; };
+		E10000010000000000000105 /* AccessibilityServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000105 /* AccessibilityServiceTests.swift */; };
+		E10000010000000000000106 /* SystemPasteboardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000106 /* SystemPasteboardTests.swift */; };
+		E10000010000000000000112 /* KeyboardFocusOwnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000112 /* KeyboardFocusOwnerTests.swift */; };
+		E10000010000000000000107 /* SystemLayoutMapsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000107 /* SystemLayoutMapsTests.swift */; };
+		E10000010000000000000118 /* ConversionLogMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000118 /* ConversionLogMigrationTests.swift */; };
+		E10000010000000000000108 /* ConversionLogTableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000108 /* ConversionLogTableTests.swift */; };
+		E10000010000000000000109 /* MenuShortcutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000109 /* MenuShortcutTests.swift */; };
+		E10000010000000000000110 /* ConversionHUDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000110 /* ConversionHUDTests.swift */; };
+		E10000010000000000000029 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000029 /* Localizable.xcstrings */; };
+		E10000010000000000000111 /* LocalizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000111 /* LocalizationTests.swift */; };
+		E10000010000000000000030 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000030 /* AppIcon.icon */; };
+		E10000010000000000000201 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000201 /* AppDelegate.swift */; };
+		E10000010000000000000202 /* InversoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000202 /* InversoApp.swift */; };
+		E10000010000000000000203 /* Notification.Name+App.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000203 /* Notification.Name+App.swift */; };
+		E10000010000000000000204 /* ConversionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000204 /* ConversionCoordinator.swift */; };
+		E10000010000000000000205 /* LayoutMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000205 /* LayoutMapper.swift */; };
+		E10000010000000000000206 /* LayoutScript.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000206 /* LayoutScript.swift */; };
+		E10000010000000000000207 /* TargetLayoutResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000207 /* TargetLayoutResolver.swift */; };
+		E10000010000000000000208 /* TextConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000208 /* TextConverter.swift */; };
+		E10000010000000000000209 /* ConversionHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000209 /* ConversionHUD.swift */; };
+		E10000010000000000000210 /* ConversionHUDContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000210 /* ConversionHUDContent.swift */; };
+		E10000010000000000000211 /* ConversionHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000211 /* ConversionHUDView.swift */; };
+		E10000010000000000000212 /* HUDBackgroundStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000212 /* HUDBackgroundStyle.swift */; };
+		E10000010000000000000213 /* AboutPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000213 /* AboutPanel.swift */; };
+		E10000010000000000000214 /* InputSourceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000214 /* InputSourceMonitor.swift */; };
+		E10000010000000000000215 /* MenuBarContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000215 /* MenuBarContent.swift */; };
+		E10000010000000000000216 /* MenuBarLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000216 /* MenuBarLabel.swift */; };
+		E10000010000000000000217 /* MenuShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000217 /* MenuShortcut.swift */; };
+		E10000010000000000000218 /* ConversionLog+Table.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000218 /* ConversionLog+Table.swift */; };
+		E10000010000000000000219 /* ConversionLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000219 /* ConversionLogView.swift */; };
+		E10000010000000000000220 /* GeneralSettingsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000220 /* GeneralSettingsTab.swift */; };
+		E10000010000000000000221 /* HotkeyRecorderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000221 /* HotkeyRecorderView.swift */; };
+		E10000010000000000000222 /* HotkeySettingsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000222 /* HotkeySettingsTab.swift */; };
+		E10000010000000000000223 /* LayoutsSettingsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000223 /* LayoutsSettingsTab.swift */; };
+		E10000010000000000000224 /* PermissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000224 /* PermissionsView.swift */; };
+		E10000010000000000000225 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000225 /* SettingsView.swift */; };
+		E10000010000000000000226 /* View+SettingsFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000226 /* View+SettingsFrame.swift */; };
+		E10000010000000000000227 /* KeyboardLayoutDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000227 /* KeyboardLayoutDetector.swift */; };
+		E10000010000000000000228 /* LayoutMaps.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000228 /* LayoutMaps.swift */; };
+		E10000010000000000000229 /* PhysicalKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000229 /* PhysicalKeys.swift */; };
+		E10000010000000000000230 /* SystemLayoutMapBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000230 /* SystemLayoutMapBuilder.swift */; };
+		E10000010000000000000231 /* AccessibilityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000231 /* AccessibilityService.swift */; };
+		E10000010000000000000232 /* AXReplaceResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000232 /* AXReplaceResult.swift */; };
+		E10000010000000000000233 /* AXReplaceVerifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000233 /* AXReplaceVerifier.swift */; };
+		E10000010000000000000234 /* AXSelectedTextAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000234 /* AXSelectedTextAccess.swift */; };
+		E10000010000000000000235 /* CGEventKeystrokeSender.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000235 /* CGEventKeystrokeSender.swift */; };
+		E10000010000000000000236 /* ClipboardOnlyApps.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000236 /* ClipboardOnlyApps.swift */; };
+		E10000010000000000000237 /* Keystroke.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000237 /* Keystroke.swift */; };
+		E10000010000000000000238 /* KeystrokeSender.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000238 /* KeystrokeSender.swift */; };
+		E10000010000000000000239 /* NSPasteboard.PasteboardType+Markers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000239 /* NSPasteboard.PasteboardType+Markers.swift */; };
+		E10000010000000000000240 /* PasteboardAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000240 /* PasteboardAccess.swift */; };
+		E10000010000000000000241 /* PasteboardSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000241 /* PasteboardSnapshot.swift */; };
+		E10000010000000000000242 /* SelectedTextAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000242 /* SelectedTextAccess.swift */; };
+		E10000010000000000000243 /* SystemPasteboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000243 /* SystemPasteboard.swift */; };
+		E10000010000000000000257 /* KeyboardFocusOwner.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000257 /* KeyboardFocusOwner.swift */; };
+		E10000010000000000000261 /* TerminalApps.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000261 /* TerminalApps.swift */; };
+		E10000010000000000000262 /* OverlayTextSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000262 /* OverlayTextSelection.swift */; };
+		E10000010000000000000115 /* TerminalAppsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000115 /* TerminalAppsTests.swift */; };
+		E10000010000000000000116 /* OverlayTextSelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000116 /* OverlayTextSelectionTests.swift */; };
+		E10000010000000000000117 /* AboutPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000117 /* AboutPanelTests.swift */; };
+		E10000010000000000000244 /* ConversionLogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000244 /* ConversionLogStore.swift */; };
+		E10000010000000000000245 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000245 /* HotkeyManager.swift */; };
+		E10000010000000000000246 /* LaunchAtLoginHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000246 /* LaunchAtLoginHelper.swift */; };
+		E10000010000000000000247 /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000247 /* LocalizationManager.swift */; };
+		E10000010000000000000248 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000248 /* Log.swift */; };
+		E10000010000000000000249 /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000249 /* LoginItemService.swift */; };
+		E10000010000000000000250 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000250 /* SettingsManager.swift */; };
+		E10000010000000000000251 /* ConversionFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000251 /* ConversionFeedback.swift */; };
+		E10000010000000000000252 /* ConversionLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000252 /* ConversionLog.swift */; };
+		E10000010000000000000253 /* KeyboardLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000253 /* KeyboardLayout.swift */; };
+		E10000010000000000000254 /* LayoutCharacterMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000254 /* LayoutCharacterMap.swift */; };
+		E10000010000000000000255 /* LayoutSwitchMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000255 /* LayoutSwitchMode.swift */; };
+		E10000010000000000000256 /* SmartConversionMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000256 /* SmartConversionMode.swift */; };
+		E10000010000000000000258 /* UpdateConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000258 /* UpdateConfig.swift */; };
+		E10000010000000000000259 /* UpdaterSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000259 /* UpdaterSettings.swift */; };
+		E10000010000000000000260 /* UpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000260 /* UpdateController.swift */; };
+		E10000010000000000000113 /* UpdateConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000113 /* UpdateConfigTests.swift */; };
+		E10000010000000000000114 /* UpdateControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000114 /* UpdateControllerTests.swift */; };
+		E10000010000000000000301 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = E1000000D000000000000001 /* Sparkle */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E1000000A000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E10000070000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E10000060000000000000001;
+			remoteInfo = Inverso;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		E10000020000000000000013 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E10000020000000000000101 /* LayoutMapperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutMapperTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000102 /* TextConverterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextConverterTests.swift; sourceTree = "<group>"; };
+		E10000030000000000000001 /* Inverso.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Inverso.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E10000030000000000000002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E10000030000000000000003 /* Inverso.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Inverso.entitlements; sourceTree = "<group>"; };
+		E10000030000000000000101 /* InversoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = InversoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E10000020000000000000103 /* LoggingPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggingPolicyTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000104 /* LaunchAtLoginHelperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginHelperTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000105 /* AccessibilityServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityServiceTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000106 /* SystemPasteboardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemPasteboardTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000112 /* KeyboardFocusOwnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardFocusOwnerTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000107 /* SystemLayoutMapsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemLayoutMapsTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000118 /* ConversionLogMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionLogMigrationTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000108 /* ConversionLogTableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionLogTableTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000109 /* MenuShortcutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuShortcutTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000110 /* ConversionHUDTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionHUDTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000029 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		E10000020000000000000111 /* LocalizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000030 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
+		E10000020000000000000201 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		E10000020000000000000202 /* InversoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InversoApp.swift; sourceTree = "<group>"; };
+		E10000020000000000000203 /* Notification.Name+App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Notification.Name+App.swift"; sourceTree = "<group>"; };
+		E10000020000000000000204 /* ConversionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionCoordinator.swift; sourceTree = "<group>"; };
+		E10000020000000000000205 /* LayoutMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutMapper.swift; sourceTree = "<group>"; };
+		E10000020000000000000206 /* LayoutScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutScript.swift; sourceTree = "<group>"; };
+		E10000020000000000000207 /* TargetLayoutResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetLayoutResolver.swift; sourceTree = "<group>"; };
+		E10000020000000000000208 /* TextConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextConverter.swift; sourceTree = "<group>"; };
+		E10000020000000000000209 /* ConversionHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionHUD.swift; sourceTree = "<group>"; };
+		E10000020000000000000210 /* ConversionHUDContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionHUDContent.swift; sourceTree = "<group>"; };
+		E10000020000000000000211 /* ConversionHUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionHUDView.swift; sourceTree = "<group>"; };
+		E10000020000000000000212 /* HUDBackgroundStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDBackgroundStyle.swift; sourceTree = "<group>"; };
+		E10000020000000000000213 /* AboutPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutPanel.swift; sourceTree = "<group>"; };
+		E10000020000000000000214 /* InputSourceMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSourceMonitor.swift; sourceTree = "<group>"; };
+		E10000020000000000000215 /* MenuBarContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarContent.swift; sourceTree = "<group>"; };
+		E10000020000000000000216 /* MenuBarLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarLabel.swift; sourceTree = "<group>"; };
+		E10000020000000000000217 /* MenuShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuShortcut.swift; sourceTree = "<group>"; };
+		E10000020000000000000218 /* ConversionLog+Table.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConversionLog+Table.swift"; sourceTree = "<group>"; };
+		E10000020000000000000219 /* ConversionLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionLogView.swift; sourceTree = "<group>"; };
+		E10000020000000000000220 /* GeneralSettingsTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsTab.swift; sourceTree = "<group>"; };
+		E10000020000000000000221 /* HotkeyRecorderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyRecorderView.swift; sourceTree = "<group>"; };
+		E10000020000000000000222 /* HotkeySettingsTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeySettingsTab.swift; sourceTree = "<group>"; };
+		E10000020000000000000223 /* LayoutsSettingsTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutsSettingsTab.swift; sourceTree = "<group>"; };
+		E10000020000000000000224 /* PermissionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsView.swift; sourceTree = "<group>"; };
+		E10000020000000000000225 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		E10000020000000000000226 /* View+SettingsFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+SettingsFrame.swift"; sourceTree = "<group>"; };
+		E10000020000000000000227 /* KeyboardLayoutDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardLayoutDetector.swift; sourceTree = "<group>"; };
+		E10000020000000000000228 /* LayoutMaps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutMaps.swift; sourceTree = "<group>"; };
+		E10000020000000000000229 /* PhysicalKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeys.swift; sourceTree = "<group>"; };
+		E10000020000000000000230 /* SystemLayoutMapBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemLayoutMapBuilder.swift; sourceTree = "<group>"; };
+		E10000020000000000000231 /* AccessibilityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityService.swift; sourceTree = "<group>"; };
+		E10000020000000000000232 /* AXReplaceResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXReplaceResult.swift; sourceTree = "<group>"; };
+		E10000020000000000000233 /* AXReplaceVerifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXReplaceVerifier.swift; sourceTree = "<group>"; };
+		E10000020000000000000234 /* AXSelectedTextAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXSelectedTextAccess.swift; sourceTree = "<group>"; };
+		E10000020000000000000235 /* CGEventKeystrokeSender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGEventKeystrokeSender.swift; sourceTree = "<group>"; };
+		E10000020000000000000236 /* ClipboardOnlyApps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardOnlyApps.swift; sourceTree = "<group>"; };
+		E10000020000000000000237 /* Keystroke.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keystroke.swift; sourceTree = "<group>"; };
+		E10000020000000000000238 /* KeystrokeSender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeystrokeSender.swift; sourceTree = "<group>"; };
+		E10000020000000000000239 /* NSPasteboard.PasteboardType+Markers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSPasteboard.PasteboardType+Markers.swift"; sourceTree = "<group>"; };
+		E10000020000000000000240 /* PasteboardAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteboardAccess.swift; sourceTree = "<group>"; };
+		E10000020000000000000241 /* PasteboardSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteboardSnapshot.swift; sourceTree = "<group>"; };
+		E10000020000000000000242 /* SelectedTextAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedTextAccess.swift; sourceTree = "<group>"; };
+		E10000020000000000000243 /* SystemPasteboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemPasteboard.swift; sourceTree = "<group>"; };
+		E10000020000000000000257 /* KeyboardFocusOwner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardFocusOwner.swift; sourceTree = "<group>"; };
+		E10000020000000000000261 /* TerminalApps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalApps.swift; sourceTree = "<group>"; };
+		E10000020000000000000262 /* OverlayTextSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayTextSelection.swift; sourceTree = "<group>"; };
+		E10000020000000000000115 /* TerminalAppsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalAppsTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000116 /* OverlayTextSelectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayTextSelectionTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000117 /* AboutPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutPanelTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000244 /* ConversionLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionLogStore.swift; sourceTree = "<group>"; };
+		E10000020000000000000245 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
+		E10000020000000000000246 /* LaunchAtLoginHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginHelper.swift; sourceTree = "<group>"; };
+		E10000020000000000000247 /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
+		E10000020000000000000248 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
+		E10000020000000000000249 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemService.swift; sourceTree = "<group>"; };
+		E10000020000000000000250 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
+		E10000020000000000000251 /* ConversionFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionFeedback.swift; sourceTree = "<group>"; };
+		E10000020000000000000252 /* ConversionLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionLog.swift; sourceTree = "<group>"; };
+		E10000020000000000000253 /* KeyboardLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardLayout.swift; sourceTree = "<group>"; };
+		E10000020000000000000254 /* LayoutCharacterMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutCharacterMap.swift; sourceTree = "<group>"; };
+		E10000020000000000000255 /* LayoutSwitchMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutSwitchMode.swift; sourceTree = "<group>"; };
+		E10000020000000000000256 /* SmartConversionMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartConversionMode.swift; sourceTree = "<group>"; };
+		E10000020000000000000258 /* UpdateConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateConfig.swift; sourceTree = "<group>"; };
+		E10000020000000000000259 /* UpdaterSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdaterSettings.swift; sourceTree = "<group>"; };
+		E10000020000000000000260 /* UpdateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateController.swift; sourceTree = "<group>"; };
+		E10000020000000000000113 /* UpdateConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateConfigTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000114 /* UpdateControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateControllerTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E10000040000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E10000010000000000000301 /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10000040000000000000101 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E10000050000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				E10000050000000000000002 /* Inverso */,
+				E10000050000000000000101 /* InversoTests */,
+				E10000050000000000000010 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E10000050000000000000002 /* Inverso */ = {
+			isa = PBXGroup;
+			children = (
+				E10000050000000000000201 /* App */,
+				E10000050000000000000202 /* Features */,
+				E10000050000000000000207 /* Services */,
+				E10000050000000000000210 /* Models */,
+				E10000050000000000000009 /* Resources */,
+				E10000030000000000000002 /* Info.plist */,
+				E10000030000000000000003 /* Inverso.entitlements */,
+			);
+			path = Inverso;
+			sourceTree = "<group>";
+		};
+		E10000050000000000000009 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				E10000020000000000000013 /* Assets.xcassets */,
+				E10000020000000000000030 /* AppIcon.icon */,
+				E10000020000000000000029 /* Localizable.xcstrings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		E10000050000000000000010 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E10000030000000000000001 /* Inverso.app */,
+				E10000030000000000000101 /* InversoTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E10000050000000000000101 /* InversoTests */ = {
+			isa = PBXGroup;
+			children = (
+				E10000020000000000000101 /* LayoutMapperTests.swift */,
+				E10000020000000000000102 /* TextConverterTests.swift */,
+				E10000020000000000000103 /* LoggingPolicyTests.swift */,
+				E10000020000000000000104 /* LaunchAtLoginHelperTests.swift */,
+				E10000020000000000000105 /* AccessibilityServiceTests.swift */,
+				E10000020000000000000106 /* SystemPasteboardTests.swift */,
+				E10000020000000000000112 /* KeyboardFocusOwnerTests.swift */,
+				E10000020000000000000107 /* SystemLayoutMapsTests.swift */,
+				E10000020000000000000118 /* ConversionLogMigrationTests.swift */,
+				E10000020000000000000108 /* ConversionLogTableTests.swift */,
+				E10000020000000000000109 /* MenuShortcutTests.swift */,
+				E10000020000000000000110 /* ConversionHUDTests.swift */,
+				E10000020000000000000111 /* LocalizationTests.swift */,
+				E10000020000000000000113 /* UpdateConfigTests.swift */,
+				E10000020000000000000114 /* UpdateControllerTests.swift */,
+				E10000020000000000000115 /* TerminalAppsTests.swift */,
+				E10000020000000000000116 /* OverlayTextSelectionTests.swift */,
+				E10000020000000000000117 /* AboutPanelTests.swift */,
+			);
+			path = InversoTests;
+			sourceTree = "<group>";
+		};
+		E10000050000000000000201 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				E10000020000000000000201 /* AppDelegate.swift */,
+				E10000020000000000000202 /* InversoApp.swift */,
+				E10000020000000000000203 /* Notification.Name+App.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		E10000050000000000000203 /* Conversion */ = {
+			isa = PBXGroup;
+			children = (
+				E10000020000000000000204 /* ConversionCoordinator.swift */,
+				E10000020000000000000205 /* LayoutMapper.swift */,
+				E10000020000000000000206 /* LayoutScript.swift */,
+				E10000020000000000000207 /* TargetLayoutResolver.swift */,
+				E10000020000000000000208 /* TextConverter.swift */,
+			);
+			path = Conversion;
+			sourceTree = "<group>";
+		};
+		E10000050000000000000204 /* HUD */ = {
+			isa = PBXGroup;
+			children = (
+				E10000020000000000000209 /* ConversionHUD.swift */,
+				E10000020000000000000210 /* ConversionHUDContent.swift */,
+				E10000020000000000000211 /* ConversionHUDView.swift */,
+				E10000020000000000000212 /* HUDBackgroundStyle.swift */,
+			);
+			path = HUD;
+			sourceTree = "<group>";
+		};
+		E10000050000000000000205 /* MenuBar */ = {
+			isa = PBXGroup;
+			children = (
+				E10000020000000000000213 /* AboutPanel.swift */,
+				E10000020000000000000214 /* InputSourceMonitor.swift */,
+				E10000020000000000000215 /* MenuBarContent.swift */,
+				E10000020000000000000216 /* MenuBarLabel.swift */,
+				E10000020000000000000217 /* MenuShortcut.swift */,
+			);
+			path = MenuBar;
+			sourceTree = "<group>";
+		};
+		E10000050000000000000206 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				E10000020000000000000218 /* ConversionLog+Table.swift */,
+				E10000020000000000000219 /* ConversionLogView.swift */,
+				E10000020000000000000220 /* GeneralSettingsTab.swift */,
+				E10000020000000000000221 /* HotkeyRecorderView.swift */,
+				E10000020000000000000222 /* HotkeySettingsTab.swift */,
+				E10000020000000000000223 /* LayoutsSettingsTab.swift */,
+				E10000020000000000000224 /* PermissionsView.swift */,
+				E10000020000000000000225 /* SettingsView.swift */,
+				E10000020000000000000226 /* View+SettingsFrame.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		E10000050000000000000202 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				E10000050000000000000203 /* Conversion */,
+				E10000050000000000000204 /* HUD */,
+				E10000050000000000000205 /* MenuBar */,
+				E10000050000000000000206 /* Settings */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		E10000050000000000000208 /* Layouts */ = {
+			isa = PBXGroup;
+			children = (
+				E10000020000000000000227 /* KeyboardLayoutDetector.swift */,
+				E10000020000000000000228 /* LayoutMaps.swift */,
+				E10000020000000000000229 /* PhysicalKeys.swift */,
+				E10000020000000000000230 /* SystemLayoutMapBuilder.swift */,
+			);
+			path = Layouts;
+			sourceTree = "<group>";
+		};
+		E10000050000000000000209 /* TextAccess */ = {
+			isa = PBXGroup;
+			children = (
+				E10000020000000000000231 /* AccessibilityService.swift */,
+				E10000020000000000000232 /* AXReplaceResult.swift */,
+				E10000020000000000000233 /* AXReplaceVerifier.swift */,
+				E10000020000000000000234 /* AXSelectedTextAccess.swift */,
+				E10000020000000000000235 /* CGEventKeystrokeSender.swift */,
+				E10000020000000000000236 /* ClipboardOnlyApps.swift */,
+				E10000020000000000000237 /* Keystroke.swift */,
+				E10000020000000000000238 /* KeystrokeSender.swift */,
+				E10000020000000000000257 /* KeyboardFocusOwner.swift */,
+				E10000020000000000000239 /* NSPasteboard.PasteboardType+Markers.swift */,
+				E10000020000000000000240 /* PasteboardAccess.swift */,
+				E10000020000000000000241 /* PasteboardSnapshot.swift */,
+				E10000020000000000000242 /* SelectedTextAccess.swift */,
+				E10000020000000000000243 /* SystemPasteboard.swift */,
+				E10000020000000000000261 /* TerminalApps.swift */,
+				E10000020000000000000262 /* OverlayTextSelection.swift */,
+			);
+			path = TextAccess;
+			sourceTree = "<group>";
+		};
+		E10000050000000000000211 /* Updates */ = {
+			isa = PBXGroup;
+			children = (
+				E10000020000000000000258 /* UpdateConfig.swift */,
+				E10000020000000000000260 /* UpdateController.swift */,
+				E10000020000000000000259 /* UpdaterSettings.swift */,
+			);
+			path = Updates;
+			sourceTree = "<group>";
+		};
+		E10000050000000000000207 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				E10000050000000000000208 /* Layouts */,
+				E10000050000000000000209 /* TextAccess */,
+				E10000050000000000000211 /* Updates */,
+				E10000020000000000000244 /* ConversionLogStore.swift */,
+				E10000020000000000000245 /* HotkeyManager.swift */,
+				E10000020000000000000246 /* LaunchAtLoginHelper.swift */,
+				E10000020000000000000247 /* LocalizationManager.swift */,
+				E10000020000000000000248 /* Log.swift */,
+				E10000020000000000000249 /* LoginItemService.swift */,
+				E10000020000000000000250 /* SettingsManager.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		E10000050000000000000210 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				E10000020000000000000251 /* ConversionFeedback.swift */,
+				E10000020000000000000252 /* ConversionLog.swift */,
+				E10000020000000000000253 /* KeyboardLayout.swift */,
+				E10000020000000000000254 /* LayoutCharacterMap.swift */,
+				E10000020000000000000255 /* LayoutSwitchMode.swift */,
+				E10000020000000000000256 /* SmartConversionMode.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E10000060000000000000001 /* Inverso */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E10000080000000000000001 /* Build configuration list for PBXNativeTarget "Inverso" */;
+			buildPhases = (
+				E10000060000000000000002 /* Sources */,
+				E10000040000000000000001 /* Frameworks */,
+				E10000060000000000000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Inverso;
+			packageProductDependencies = (
+				E1000000D000000000000001 /* Sparkle */,
+			);
+			productName = Inverso;
+			productReference = E10000030000000000000001 /* Inverso.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E10000060000000000000101 /* InversoTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E10000080000000000000101 /* Build configuration list for PBXNativeTarget "InversoTests" */;
+			buildPhases = (
+				E10000060000000000000102 /* Sources */,
+				E10000040000000000000101 /* Frameworks */,
+				E10000060000000000000103 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E1000000B000000000000001 /* PBXTargetDependency */,
+			);
+			name = InversoTests;
+			productName = InversoTests;
+			productReference = E10000030000000000000101 /* InversoTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E10000070000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					E10000060000000000000001 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					E10000060000000000000101 = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = E10000060000000000000001;
+					};
+				};
+			};
+			buildConfigurationList = E10000080000000000000002 /* Build configuration list for PBXProject "Inverso" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				ru,
+			);
+			mainGroup = E10000050000000000000001;
+			packageReferences = (
+				E1000000C000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
+			productRefGroup = E10000050000000000000010 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E10000060000000000000001 /* Inverso */,
+				E10000060000000000000101 /* InversoTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E10000060000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E10000010000000000000013 /* Assets.xcassets in Resources */,
+				E10000010000000000000030 /* AppIcon.icon in Resources */,
+				E10000010000000000000029 /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10000060000000000000103 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E10000060000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E10000010000000000000201 /* AppDelegate.swift in Sources */,
+				E10000010000000000000202 /* InversoApp.swift in Sources */,
+				E10000010000000000000203 /* Notification.Name+App.swift in Sources */,
+				E10000010000000000000204 /* ConversionCoordinator.swift in Sources */,
+				E10000010000000000000205 /* LayoutMapper.swift in Sources */,
+				E10000010000000000000206 /* LayoutScript.swift in Sources */,
+				E10000010000000000000207 /* TargetLayoutResolver.swift in Sources */,
+				E10000010000000000000208 /* TextConverter.swift in Sources */,
+				E10000010000000000000209 /* ConversionHUD.swift in Sources */,
+				E10000010000000000000210 /* ConversionHUDContent.swift in Sources */,
+				E10000010000000000000211 /* ConversionHUDView.swift in Sources */,
+				E10000010000000000000212 /* HUDBackgroundStyle.swift in Sources */,
+				E10000010000000000000213 /* AboutPanel.swift in Sources */,
+				E10000010000000000000214 /* InputSourceMonitor.swift in Sources */,
+				E10000010000000000000215 /* MenuBarContent.swift in Sources */,
+				E10000010000000000000216 /* MenuBarLabel.swift in Sources */,
+				E10000010000000000000217 /* MenuShortcut.swift in Sources */,
+				E10000010000000000000218 /* ConversionLog+Table.swift in Sources */,
+				E10000010000000000000219 /* ConversionLogView.swift in Sources */,
+				E10000010000000000000220 /* GeneralSettingsTab.swift in Sources */,
+				E10000010000000000000221 /* HotkeyRecorderView.swift in Sources */,
+				E10000010000000000000222 /* HotkeySettingsTab.swift in Sources */,
+				E10000010000000000000223 /* LayoutsSettingsTab.swift in Sources */,
+				E10000010000000000000224 /* PermissionsView.swift in Sources */,
+				E10000010000000000000225 /* SettingsView.swift in Sources */,
+				E10000010000000000000226 /* View+SettingsFrame.swift in Sources */,
+				E10000010000000000000227 /* KeyboardLayoutDetector.swift in Sources */,
+				E10000010000000000000228 /* LayoutMaps.swift in Sources */,
+				E10000010000000000000229 /* PhysicalKeys.swift in Sources */,
+				E10000010000000000000230 /* SystemLayoutMapBuilder.swift in Sources */,
+				E10000010000000000000231 /* AccessibilityService.swift in Sources */,
+				E10000010000000000000232 /* AXReplaceResult.swift in Sources */,
+				E10000010000000000000233 /* AXReplaceVerifier.swift in Sources */,
+				E10000010000000000000234 /* AXSelectedTextAccess.swift in Sources */,
+				E10000010000000000000235 /* CGEventKeystrokeSender.swift in Sources */,
+				E10000010000000000000236 /* ClipboardOnlyApps.swift in Sources */,
+				E10000010000000000000237 /* Keystroke.swift in Sources */,
+				E10000010000000000000238 /* KeystrokeSender.swift in Sources */,
+				E10000010000000000000239 /* NSPasteboard.PasteboardType+Markers.swift in Sources */,
+				E10000010000000000000240 /* PasteboardAccess.swift in Sources */,
+				E10000010000000000000241 /* PasteboardSnapshot.swift in Sources */,
+				E10000010000000000000242 /* SelectedTextAccess.swift in Sources */,
+				E10000010000000000000243 /* SystemPasteboard.swift in Sources */,
+				E10000010000000000000257 /* KeyboardFocusOwner.swift in Sources */,
+				E10000010000000000000261 /* TerminalApps.swift in Sources */,
+				E10000010000000000000262 /* OverlayTextSelection.swift in Sources */,
+				E10000010000000000000244 /* ConversionLogStore.swift in Sources */,
+				E10000010000000000000245 /* HotkeyManager.swift in Sources */,
+				E10000010000000000000246 /* LaunchAtLoginHelper.swift in Sources */,
+				E10000010000000000000247 /* LocalizationManager.swift in Sources */,
+				E10000010000000000000248 /* Log.swift in Sources */,
+				E10000010000000000000249 /* LoginItemService.swift in Sources */,
+				E10000010000000000000250 /* SettingsManager.swift in Sources */,
+				E10000010000000000000251 /* ConversionFeedback.swift in Sources */,
+				E10000010000000000000252 /* ConversionLog.swift in Sources */,
+				E10000010000000000000253 /* KeyboardLayout.swift in Sources */,
+				E10000010000000000000254 /* LayoutCharacterMap.swift in Sources */,
+				E10000010000000000000255 /* LayoutSwitchMode.swift in Sources */,
+				E10000010000000000000256 /* SmartConversionMode.swift in Sources */,
+				E10000010000000000000258 /* UpdateConfig.swift in Sources */,
+				E10000010000000000000259 /* UpdaterSettings.swift in Sources */,
+				E10000010000000000000260 /* UpdateController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10000060000000000000102 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E10000010000000000000101 /* LayoutMapperTests.swift in Sources */,
+				E10000010000000000000102 /* TextConverterTests.swift in Sources */,
+				E10000010000000000000103 /* LoggingPolicyTests.swift in Sources */,
+				E10000010000000000000104 /* LaunchAtLoginHelperTests.swift in Sources */,
+				E10000010000000000000105 /* AccessibilityServiceTests.swift in Sources */,
+				E10000010000000000000106 /* SystemPasteboardTests.swift in Sources */,
+				E10000010000000000000112 /* KeyboardFocusOwnerTests.swift in Sources */,
+				E10000010000000000000107 /* SystemLayoutMapsTests.swift in Sources */,
+				E10000010000000000000118 /* ConversionLogMigrationTests.swift in Sources */,
+				E10000010000000000000108 /* ConversionLogTableTests.swift in Sources */,
+				E10000010000000000000109 /* MenuShortcutTests.swift in Sources */,
+				E10000010000000000000110 /* ConversionHUDTests.swift in Sources */,
+				E10000010000000000000111 /* LocalizationTests.swift in Sources */,
+				E10000010000000000000113 /* UpdateConfigTests.swift in Sources */,
+				E10000010000000000000114 /* UpdateControllerTests.swift in Sources */,
+				E10000010000000000000115 /* TerminalAppsTests.swift in Sources */,
+				E10000010000000000000116 /* OverlayTextSelectionTests.swift in Sources */,
+				E10000010000000000000117 /* AboutPanelTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E1000000B000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E10000060000000000000001 /* Inverso */;
+			targetProxy = E1000000A000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		E10000090000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		E10000090000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		E10000090000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Inverso/Inverso.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 7;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Inverso/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "MIT License";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.2.7;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dotsentik.inverso;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				ARCHS = arm64;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		E10000090000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Inverso/Inverso.entitlements;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 7;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Inverso/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "MIT License";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.2.7;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dotsentik.inverso;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				ARCHS = arm64;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		E10000090000000000000101 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 7;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.2.7;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dotsentik.inversoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				ARCHS = arm64;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Inverso.app/Contents/MacOS/Inverso";
+			};
+			name = Debug;
+		};
+		E10000090000000000000102 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 7;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.2.7;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dotsentik.inversoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				ARCHS = arm64;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Inverso.app/Contents/MacOS/Inverso";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E10000080000000000000001 /* Build configuration list for PBXNativeTarget "Inverso" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E10000090000000000000003 /* Debug */,
+				E10000090000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E10000080000000000000002 /* Build configuration list for PBXProject "Inverso" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E10000090000000000000001 /* Debug */,
+				E10000090000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E10000080000000000000101 /* Build configuration list for PBXNativeTarget "InversoTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E10000090000000000000101 /* Debug */,
+				E10000090000000000000102 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E1000000C000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = exactVersion;
+				version = 2.10.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E1000000D000000000000001 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E1000000C000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = E10000070000000000000001 /* Project object */;
+}

@@ -1,0 +1,42 @@
+name: Tests
+
+# CI only runs the tests. Releases are built, signed and published locally
+# (scripts/release.sh, see CONTRIBUTING.md).
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Run Tests
+    # Xcode 26 or later is required (Swift 6, Icon Composer .icon file)
+    runs-on: macos-26
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Show Xcode version
+      run: xcodebuild -version
+
+    - name: Resolve Swift packages
+      run: xcodebuild -resolvePackageDependencies -project Inverso.xcodeproj -scheme Inverso
+
+    - name: Run Tests
+      run: |
+        xcodebuild test \
+          -project Inverso.xcodeproj \
+          -scheme Inverso \
+          -destination 'platform=macOS' \
+          CODE_SIGN_IDENTITY="-" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO
