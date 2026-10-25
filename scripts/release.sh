@@ -56,7 +56,7 @@ SCHEME="Inverso"
 DERIVED="build/dist-derived"
 DIST="dist"
 # The published feed (read only here) and the one prepared for this release.
-APPCAST="appcast.xml"
+APPCAST="${APPCAST:-appcast.xml}"
 DIST_APPCAST="$DIST/appcast.xml"
 RELEASE_NOTES="$DIST/release-notes.md"
 CHANGELOG="CHANGELOG.md"
@@ -135,8 +135,9 @@ xcodebuild build \
     OTHER_CFLAGS="\$(inherited) $PREFIX_MAPS_CLANG" \
     DEBUG_INFORMATION_FORMAT=dwarf-with-dsym \
     DEPLOYMENT_POSTPROCESSING=YES \
+    DEAD_CODE_STRIPPING=YES \
     STRIP_INSTALLED_PRODUCT=YES \
-    STRIP_STYLE=non-global \
+    STRIP_STYLE=all \
     -quiet
 
 BUILT_APP="$DERIVED/Build/Products/Release/Inverso.app"
@@ -149,6 +150,23 @@ APP="$DIST/Inverso.app"
 ditto "$BUILT_APP" "$APP"
 BINARY="$APP/Contents/MacOS/Inverso"
 
+step "Optimizing bundle resources"
+SPARKLE="$APP/Contents/Frameworks/Sparkle.framework"
+[[ -d "$SPARKLE" ]] || fail "Sparkle.framework is not embedded in the app"
+SPARKLE_B="$SPARKLE/Versions/B"
+
+# Remove unused XPCServices (not needed without App Sandbox)
+rm -rf "$SPARKLE_B/XPCServices"
+
+# Prune Sparkle localizations except Base, en, ru
+for lproj in "$SPARKLE_B"/Resources/*.lproj; do
+    name="$(basename "$lproj" .lproj)"
+    case "$name" in
+        Base|en|ru) ;;
+        *) rm -rf "$lproj" ;;
+    esac
+done
+
 step "Stripping debug symbols"
 # The signature is redone below; removing it first keeps strip from warning about it.
 codesign --remove-signature "$BINARY"
@@ -159,12 +177,11 @@ strip -S -x "$BINARY"
 step "Signing with '$SIGN_IDENTITY'"
 # Inside out: Sparkle's helpers, the framework, then the app. Hardened Runtime everywhere.
 SIGN=(codesign --force --options runtime --timestamp=none --sign "$SIGN_IDENTITY")
-SPARKLE="$APP/Contents/Frameworks/Sparkle.framework"
-[[ -d "$SPARKLE" ]] || fail "Sparkle.framework is not embedded in the app"
-SPARKLE_B="$SPARKLE/Versions/B"
-for xpc in "$SPARKLE_B"/XPCServices/*.xpc; do
-    [[ -e "$xpc" ]] && "${SIGN[@]}" --preserve-metadata=entitlements "$xpc"
-done
+if [[ -d "$SPARKLE_B/XPCServices" ]]; then
+    for xpc in "$SPARKLE_B"/XPCServices/*.xpc; do
+        [[ -e "$xpc" ]] && "${SIGN[@]}" --preserve-metadata=entitlements "$xpc"
+    done
+fi
 "${SIGN[@]}" "$SPARKLE_B/Autoupdate"
 "${SIGN[@]}" "$SPARKLE_B/Updater.app"
 "${SIGN[@]}" "$SPARKLE"
