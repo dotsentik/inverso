@@ -29,26 +29,5 @@ struct InversoApp: App {
             .environmentObject(appDelegate.l10n)
         }
         .windowResizability(.contentSize)
-        .commands {
-            CommandGroup(replacing: .appInfo) {}
-            CommandGroup(replacing: .appSettings) {}
-            CommandGroup(replacing: .systemServices) {}
-            CommandGroup(replacing: .appVisibility) {}
-            CommandGroup(replacing: .appTermination) {}
-            CommandGroup(replacing: .newItem) {}
-            CommandGroup(replacing: .saveItem) {}
-            CommandGroup(replacing: .importExport) {}
-            CommandGroup(replacing: .printItem) {}
-            CommandGroup(replacing: .undoRedo) {}
-            CommandGroup(replacing: .pasteboard) {}
-            CommandGroup(replacing: .textEditing) {}
-            CommandGroup(replacing: .textFormatting) {}
-            CommandGroup(replacing: .toolbar) {}
-            CommandGroup(replacing: .sidebar) {}
-            CommandGroup(replacing: .windowSize) {}
-            CommandGroup(replacing: .windowList) {}
-            CommandGroup(replacing: .windowArrangement) {}
-            CommandGroup(replacing: .help) {}
-        }
     }
 }
