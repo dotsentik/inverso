@@ -21,36 +21,40 @@ final class ConversionCoordinator {
 
     private let settingsManager: SettingsManager
     private let l10n: LocalizationManager
-    private let conversionLogStore: ConversionLogStore
+    private let logStoreProvider: @MainActor () -> ConversionLogStore
     private let hotkeyManager: HotkeyManager
-    private let accessibilityService: AccessibilityService
+    private lazy var accessibilityService: AccessibilityService = accessibilityServiceFactory()
+    private let accessibilityServiceFactory: @MainActor () -> AccessibilityService
     private let hudFeedback: FeedbackProviding
-    private let notificationFeedback: FeedbackProviding
-    private let soundFeedback: FeedbackProviding
-    private let silentFeedback: FeedbackProviding
-    private let textConverter: TextConverter
+    private lazy var notificationFeedback: FeedbackProviding =
+        customNotificationFeedback ?? NotificationFeedbackProvider()
+    private let customNotificationFeedback: FeedbackProviding?
+    private lazy var soundFeedback: FeedbackProviding = customSoundFeedback ?? SoundFeedbackProvider()
+    private let customSoundFeedback: FeedbackProviding?
+    private lazy var silentFeedback: FeedbackProviding = customSilentFeedback ?? SilentFeedbackProvider()
+    private let customSilentFeedback: FeedbackProviding?
+    private lazy var textConverter = TextConverter(settingsManager: settingsManager)
 
     init(
         settingsManager: SettingsManager,
         l10n: LocalizationManager,
-        conversionLogStore: ConversionLogStore,
-        hud: ConversionHUD,
+        conversionLogStore: @autoclosure @escaping @MainActor () -> ConversionLogStore,
+        hud: @autoclosure @escaping @MainActor () -> ConversionHUD,
         hotkeyManager: HotkeyManager = HotkeyManager(),
-        accessibilityService: AccessibilityService = AccessibilityService(),
-        notificationFeedback: FeedbackProviding = NotificationFeedbackProvider(),
-        soundFeedback: FeedbackProviding = SoundFeedbackProvider(),
-        silentFeedback: FeedbackProviding = SilentFeedbackProvider()
+        accessibilityService: @autoclosure @escaping @MainActor () -> AccessibilityService = AccessibilityService(),
+        notificationFeedback: FeedbackProviding? = nil,
+        soundFeedback: FeedbackProviding? = nil,
+        silentFeedback: FeedbackProviding? = nil
     ) {
         self.settingsManager = settingsManager
         self.l10n = l10n
-        self.conversionLogStore = conversionLogStore
+        self.logStoreProvider = conversionLogStore
         self.hotkeyManager = hotkeyManager
-        self.accessibilityService = accessibilityService
-        self.hudFeedback = HUDFeedbackProvider(hud: hud)
-        self.notificationFeedback = notificationFeedback
-        self.soundFeedback = soundFeedback
-        self.silentFeedback = silentFeedback
-        self.textConverter = TextConverter(settingsManager: settingsManager)
+        self.accessibilityServiceFactory = accessibilityService
+        self.hudFeedback = HUDFeedbackProvider(hud: hud())
+        self.customNotificationFeedback = notificationFeedback
+        self.customSoundFeedback = soundFeedback
+        self.customSilentFeedback = silentFeedback
     }
 
     /// The chain drives the shared pasteboard, so only one conversion may run at a time.
@@ -220,7 +224,8 @@ final class ConversionCoordinator {
             LayoutMapper.detectSourceLayout(text: input, candidateLayouts: layouts.map(\.id)) ?? "unknown"
         let targetLayout = layouts.first(where: { $0.id != sourceLayout })?.id ?? "unknown"
 
-        conversionLogStore.log(
+        let store = logStoreProvider()
+        store.log(
             inputText: input,
             outputText: output,
             sourceLayout: sourceLayout,
@@ -230,7 +235,7 @@ final class ConversionCoordinator {
 
         let maxEntries = settingsManager.logMaxEntries
         if maxEntries > 0 {
-            conversionLogStore.trim(toMaxEntries: maxEntries)
+            store.trim(toMaxEntries: maxEntries)
         }
     }
 

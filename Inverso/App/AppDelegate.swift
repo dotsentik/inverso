@@ -1,57 +1,49 @@
 import Cocoa
+import Darwin
 
 /// Starts the app: loads the keyboard layouts, starts the conversion coordinator and asks
 /// for the permissions it needs. The conversion itself lives in ConversionCoordinator.
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
-    let settingsManager: SettingsManager
-    let l10n: LocalizationManager
-    let conversionLogStore: ConversionLogStore
-    let conversionHUD: ConversionHUD
-    let inputSourceMonitor: InputSourceMonitor
-    let updateController: UpdateController
-    let launchAtLoginHelper: LaunchAtLoginHelper
-    let conversionCoordinator: ConversionCoordinator
+    private var hasLoadedInitialSystemLayouts = false
 
-    override init() {
-        let settingsManager = SettingsManager()
-        let l10n = LocalizationManager()
-        let conversionLogStore = ConversionLogStore()
-        let conversionHUD = ConversionHUD()
-        let inputSourceMonitor = InputSourceMonitor()
-        let updateController = UpdateController()
-        let launchAtLoginHelper = LaunchAtLoginHelper()
-        let conversionCoordinator = ConversionCoordinator(
-            settingsManager: settingsManager,
-            l10n: l10n,
-            conversionLogStore: conversionLogStore,
-            hud: conversionHUD
-        )
-        self.settingsManager = settingsManager
-        self.l10n = l10n
-        self.conversionLogStore = conversionLogStore
-        self.conversionHUD = conversionHUD
-        self.inputSourceMonitor = inputSourceMonitor
-        self.updateController = updateController
-        self.launchAtLoginHelper = launchAtLoginHelper
-        self.conversionCoordinator = conversionCoordinator
-        super.init()
-    }
+    private(set) lazy var settingsManager: SettingsManager = {
+        ensureInitialSystemLayoutsLoaded()
+        return SettingsManager()
+    }()
+    private(set) lazy var l10n = LocalizationManager()
+    private(set) lazy var conversionLogStore = ConversionLogStore()
+    private(set) lazy var conversionHUD = ConversionHUD()
+    private(set) lazy var inputSourceMonitor = InputSourceMonitor()
+    private(set) lazy var updateController = UpdateController()
+    private(set) lazy var launchAtLoginHelper = LaunchAtLoginHelper()
+    private(set) lazy var conversionCoordinator = ConversionCoordinator(
+        settingsManager: settingsManager,
+        l10n: l10n,
+        conversionLogStore: self.conversionLogStore,
+        hud: self.conversionHUD
+    )
 
     /// Value of kTISNotifyEnabledKeyboardInputSourcesChanged (the C global is not concurrency-safe).
     private static let enabledInputSourcesChanged = Notification.Name(
         "com.apple.Carbon.TISNotifyEnabledKeyboardInputSourcesChanged")
+
+    private func ensureInitialSystemLayoutsLoaded() {
+        guard !hasLoadedInitialSystemLayouts else { return }
+        hasLoadedInitialSystemLayouts = true
+        // Character maps come from the installed layouts; the tables stay as a fallback
+        // and cover layouts that only the system maps support.
+        LayoutMaps.reloadFromSystem()
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Log.app.info("App launched. Bundle: \(Bundle.main.bundlePath, privacy: .public)")
         Log.app.debug("Executable: \(Bundle.main.executablePath ?? "unknown", privacy: .public)")
         Log.app.debug("PID: \(ProcessInfo.processInfo.processIdentifier)")
 
-        // Character maps come from the installed layouts; the tables stay as a fallback
-        // and cover layouts that only the system maps support.
-        LayoutMaps.reloadFromSystem()
-        settingsManager.refreshSystemLayouts()
+        ensureInitialSystemLayoutsLoaded()
+        _ = settingsManager
         DistributedNotificationCenter.default().addObserver(
             self,
             selector: #selector(enabledInputSourcesDidChange),
@@ -76,6 +68,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #if DEBUG
             startDevelopmentAids()
         #endif
+
+        DispatchQueue.main.async {
+            malloc_zone_pressure_relief(nil, 0)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            malloc_zone_pressure_relief(nil, 0)
+        }
     }
 
     @objc private func enabledInputSourcesDidChange() {

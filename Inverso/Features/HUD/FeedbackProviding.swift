@@ -15,10 +15,12 @@ extension FeedbackProviding {
 /// Displays conversion results and status hints in the non-activating top-of-screen HUD panel.
 @MainActor
 struct HUDFeedbackProvider: FeedbackProviding {
-    let hud: ConversionHUD
+    private let hudBuilder: @MainActor () -> ConversionHUD
 
-    init(hud: ConversionHUD = ConversionHUD()) {
-        self.hud = hud
+    var hud: ConversionHUD { hudBuilder() }
+
+    init(hud: @autoclosure @escaping @MainActor () -> ConversionHUD = ConversionHUD()) {
+        self.hudBuilder = hud
     }
 
     func showConversion(input: String, output: String, layoutCode: String) {

@@ -8,21 +8,10 @@ struct LayoutMaps: LayoutMapProviding {
 
     static let shared = LayoutMaps()
 
-    private struct CachedEntry {
-        let forward: [Character: Character]
-        let reverse: [Character: Character]
-        let characterSet: Set<Character>
-
-        init(forward: [Character: Character]) {
-            self.forward = forward
-            self.reverse = LayoutMapper.reverseMap(forward)
-            self.characterSet = Set(forward.values)
-        }
-    }
-
     private struct State {
         var systemMaps: [String: [Character: Character]] = [:]
-        var cache: [String: CachedEntry] = [:]
+        var reverseCache: [String: [Character: Character]] = [:]
+        var characterSetCache: [String: Set<Character>] = [:]
         var useSystemLayouts = true
     }
 
@@ -35,32 +24,60 @@ struct LayoutMaps: LayoutMapProviding {
             state.withLock { state in
                 guard state.useSystemLayouts != newValue else { return }
                 state.useSystemLayouts = newValue
-                state.cache.removeAll()
+                state.reverseCache.removeAll()
+                state.characterSetCache.removeAll()
             }
         }
     }
 
     static func characterMap(for layoutID: String) -> [Character: Character]? {
-        cachedEntry(for: layoutID)?.forward
+        let systemMap = state.withLock { $0.useSystemLayouts ? $0.systemMaps[layoutID] : nil }
+        return systemMap ?? LayoutCharacterMap.characterMap(for: layoutID)
     }
 
     static func reverseMap(for layoutID: String) -> [Character: Character]? {
-        cachedEntry(for: layoutID)?.reverse
+        state.withLock { state in
+            if let existing = state.reverseCache[layoutID] {
+                return existing
+            }
+            let forward =
+                (state.useSystemLayouts ? state.systemMaps[layoutID] : nil)
+                ?? LayoutCharacterMap.characterMap(for: layoutID)
+            guard let forward else { return nil }
+            let reverse = LayoutMapper.reverseMap(forward)
+            state.reverseCache[layoutID] = reverse
+            return reverse
+        }
     }
 
     static func characterSet(for layoutID: String) -> Set<Character>? {
-        cachedEntry(for: layoutID)?.characterSet
+        state.withLock { state in
+            if let existing = state.characterSetCache[layoutID] {
+                return existing
+            }
+            let forward =
+                (state.useSystemLayouts ? state.systemMaps[layoutID] : nil)
+                ?? LayoutCharacterMap.characterMap(for: layoutID)
+            guard let forward else { return nil }
+            let charSet = Set(forward.values)
+            state.characterSetCache[layoutID] = charSet
+            return charSet
+        }
     }
 
     static func setSystemMaps(_ maps: [String: [Character: Character]]) {
         state.withLock { state in
             state.systemMaps = maps
-            state.cache.removeAll()
+            state.reverseCache.removeAll()
+            state.characterSetCache.removeAll()
         }
     }
 
     static func invalidateCache() {
-        state.withLock { $0.cache.removeAll() }
+        state.withLock { state in
+            state.reverseCache.removeAll()
+            state.characterSetCache.removeAll()
+        }
     }
 
     /// Rebuilds the maps of all enabled keyboard layouts. Call on launch and when input sources change.
@@ -77,21 +94,6 @@ struct LayoutMaps: LayoutMapProviding {
         }
         setSystemMaps(maps)
         Log.layouts.info("Loaded \(maps.count) keyboard layouts from the system")
-    }
-
-    private static func cachedEntry(for layoutID: String) -> CachedEntry? {
-        state.withLock { state in
-            if let existing = state.cache[layoutID] {
-                return existing
-            }
-            let forward =
-                (state.useSystemLayouts ? state.systemMaps[layoutID] : nil)
-                ?? LayoutCharacterMap.characterMap(for: layoutID)
-            guard let forward else { return nil }
-            let entry = CachedEntry(forward: forward)
-            state.cache[layoutID] = entry
-            return entry
-        }
     }
 
     // MARK: - LayoutMapProviding

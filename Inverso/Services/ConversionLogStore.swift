@@ -181,9 +181,10 @@ final class ConversionLogStore: ObservableObject {
 
 private final class DatabaseBackend: @unchecked Sendable {
 
-    private let queue = DispatchQueue(label: "com.inverso.conversionLogStore", qos: .utility)
+    private lazy var queue = DispatchQueue(label: "com.inverso.conversionLogStore", qos: .utility)
     private let customDatabaseURL: URL?
     private var db: OpaquePointer?
+    private var hasDispatchedWork = false
 
     init(databaseURL: URL?) {
         self.customDatabaseURL = databaseURL
@@ -196,10 +197,12 @@ private final class DatabaseBackend: @unchecked Sendable {
     }
 
     var isOpen: Bool {
-        queue.sync { db != nil }
+        guard hasDispatchedWork else { return false }
+        return queue.sync { db != nil }
     }
 
     func load(completion: @escaping @MainActor @Sendable ([ConversionLog]) -> Void) {
+        hasDispatchedWork = true
         queue.async {
             guard let db = self.openIfNeeded() else { return }
             let entries = self.fetchAll(db: db)
@@ -212,6 +215,14 @@ private final class DatabaseBackend: @unchecked Sendable {
     }
 
     func close(completion: @escaping @MainActor @Sendable () -> Void) {
+        guard hasDispatchedWork else {
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated {
+                    completion()
+                }
+            }
+            return
+        }
         queue.async {
             if let currentDB = self.db {
                 sqlite3_close(currentDB)
@@ -227,6 +238,7 @@ private final class DatabaseBackend: @unchecked Sendable {
     }
 
     func flush() async {
+        guard hasDispatchedWork else { return }
         await withCheckedContinuation { continuation in
             queue.async {
                 DispatchQueue.main.async {
@@ -245,6 +257,7 @@ private final class DatabaseBackend: @unchecked Sendable {
         conversionMode: String,
         completion: @escaping @MainActor @Sendable ([ConversionLog]) -> Void
     ) {
+        hasDispatchedWork = true
         queue.async {
             guard let db = self.openIfNeeded() else { return }
 
@@ -283,6 +296,7 @@ private final class DatabaseBackend: @unchecked Sendable {
     }
 
     func updateRating(id: Int64, isCorrect: Bool?) {
+        hasDispatchedWork = true
         queue.async {
             guard let db = self.openIfNeeded() else { return }
 
@@ -307,6 +321,7 @@ private final class DatabaseBackend: @unchecked Sendable {
     }
 
     func delete(id: Int64) {
+        hasDispatchedWork = true
         queue.async {
             guard let db = self.openIfNeeded() else { return }
 
@@ -325,6 +340,7 @@ private final class DatabaseBackend: @unchecked Sendable {
         toMaxEntries max: Int,
         completion: @escaping @MainActor @Sendable ([ConversionLog]?) -> Void
     ) {
+        hasDispatchedWork = true
         queue.async {
             guard let db = self.openIfNeeded() else { return }
 
@@ -367,6 +383,7 @@ private final class DatabaseBackend: @unchecked Sendable {
     }
 
     func clearAll() {
+        hasDispatchedWork = true
         queue.async {
             guard let db = self.openIfNeeded() else { return }
 

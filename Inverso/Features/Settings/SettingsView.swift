@@ -16,9 +16,19 @@ struct SettingsView: View {
         }
     }
 
-    let logStore: ConversionLogStore
-    let launchAtLogin: LaunchAtLoginHelper
-    let updates: UpdateController
+    private let logStoreProvider: () -> ConversionLogStore
+    private let launchAtLoginProvider: () -> LaunchAtLoginHelper
+    private let updatesProvider: () -> UpdateController
+
+    init(
+        logStore: @autoclosure @escaping () -> ConversionLogStore,
+        launchAtLogin: @autoclosure @escaping () -> LaunchAtLoginHelper,
+        updates: @autoclosure @escaping () -> UpdateController
+    ) {
+        self.logStoreProvider = logStore
+        self.launchAtLoginProvider = launchAtLogin
+        self.updatesProvider = updates
+    }
 
     @EnvironmentObject private var settingsManager: SettingsManager
     @EnvironmentObject private var l10n: LocalizationManager
@@ -54,11 +64,11 @@ struct SettingsView: View {
     @ViewBuilder
     private var content: some View {
         switch selectedTab {
-        case .general: GeneralSettingsTab(launchAtLogin: launchAtLogin, updates: updates)
+        case .general: GeneralSettingsTab(launchAtLogin: launchAtLoginProvider(), updates: updatesProvider())
         case .layouts: LayoutsSettingsTab()
         case .shortcut: HotkeySettingsTab()
         case .permissions: PermissionsView()
-        case .log: ConversionLogView(logStore: logStore)
+        case .log: ConversionLogView(logStore: logStoreProvider())
         }
     }
 

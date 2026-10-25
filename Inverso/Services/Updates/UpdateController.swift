@@ -112,45 +112,104 @@ private final class SettingsUpdaterDriver: UpdaterDriving {
 }
 
 /// Production `UpdaterDriving` backed by Sparkle's `SPUStandardUpdaterController`.
+/// Defers instantiating Sparkle's controller until the user checks for updates or the
+/// background schedule delay elapses, keeping launch and idle footprint minimal.
 @MainActor
 private final class SparkleUpdaterDriver: UpdaterDriving {
-    private let standardController: SPUStandardUpdaterController
-    /// Sparkle keeps its delegates weakly.
-    private let userDriverDelegate: MenuBarAppUserDriverDelegate
-    private let updaterDelegate: FeedErrorLoggingDelegate
+    private static let automaticChecksKey = "SUEnableAutomaticChecks"
+    private static let checkIntervalKey = "SUScheduledCheckInterval"
+    private static let startupDelay: Duration = .seconds(120)
 
-    init() {
+    private var standardController: SPUStandardUpdaterController?
+    /// Sparkle keeps its delegates weakly.
+    private var userDriverDelegate: MenuBarAppUserDriverDelegate?
+    private var updaterDelegate: FeedErrorLoggingDelegate?
+    private let canCheckSubject = CurrentValueSubject<Bool, Never>(false)
+    private var cancellable: AnyCancellable?
+    private var deferredStartTask: Task<Void, Never>?
+    private var isStarted = false
+
+    @discardableResult
+    private func ensureController() -> SPUStandardUpdaterController {
+        if let standardController {
+            return standardController
+        }
+        deferredStartTask?.cancel()
+        deferredStartTask = nil
         let userDriverDelegate = MenuBarAppUserDriverDelegate()
         let updaterDelegate = FeedErrorLoggingDelegate()
-        self.userDriverDelegate = userDriverDelegate
-        self.updaterDelegate = updaterDelegate
-        self.standardController = SPUStandardUpdaterController(
+        let controller = SPUStandardUpdaterController(
             startingUpdater: false,
             updaterDelegate: updaterDelegate,
             userDriverDelegate: userDriverDelegate
         )
+        self.userDriverDelegate = userDriverDelegate
+        self.updaterDelegate = updaterDelegate
+        self.standardController = controller
+        self.cancellable = controller.updater.publisher(for: \.canCheckForUpdates)
+            .sink { [weak self] value in
+                self?.canCheckSubject.send(value)
+            }
+        if isStarted {
+            controller.startUpdater()
+        }
+        return controller
     }
 
     var automaticallyChecksForUpdates: Bool {
-        get { standardController.updater.automaticallyChecksForUpdates }
-        set { standardController.updater.automaticallyChecksForUpdates = newValue }
+        get {
+            if let standardController {
+                return standardController.updater.automaticallyChecksForUpdates
+            }
+            return UserDefaults.standard.object(forKey: Self.automaticChecksKey) as? Bool ?? true
+        }
+        set {
+            if let standardController {
+                standardController.updater.automaticallyChecksForUpdates = newValue
+            } else {
+                UserDefaults.standard.set(newValue, forKey: Self.automaticChecksKey)
+            }
+        }
     }
 
     var updateCheckInterval: TimeInterval {
-        get { standardController.updater.updateCheckInterval }
-        set { standardController.updater.updateCheckInterval = newValue }
+        get {
+            if let standardController {
+                return standardController.updater.updateCheckInterval
+            }
+            return UserDefaults.standard.object(forKey: Self.checkIntervalKey) as? TimeInterval
+                ?? UpdateConfig.checkInterval
+        }
+        set {
+            if let standardController {
+                standardController.updater.updateCheckInterval = newValue
+            } else {
+                UserDefaults.standard.set(newValue, forKey: Self.checkIntervalKey)
+            }
+        }
     }
 
     var canCheckForUpdatesPublisher: AnyPublisher<Bool, Never> {
-        standardController.updater.publisher(for: \.canCheckForUpdates).eraseToAnyPublisher()
+        canCheckSubject.eraseToAnyPublisher()
     }
 
     func startUpdater() {
-        standardController.startUpdater()
+        isStarted = true
+        canCheckSubject.send(true)
+        guard automaticallyChecksForUpdates, standardController == nil else {
+            standardController?.startUpdater()
+            return
+        }
+        deferredStartTask?.cancel()
+        deferredStartTask = Task { [weak self] in
+            try? await Task.sleep(for: Self.startupDelay)
+            guard !Task.isCancelled, let self, self.automaticallyChecksForUpdates else { return }
+            self.ensureController()
+        }
     }
 
     func checkForUpdates() {
-        standardController.checkForUpdates(nil)
+        ensureController().checkForUpdates(nil)
     }
 }
 
