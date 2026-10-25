@@ -1,5 +1,23 @@
 import AppKit
+import Combine
 import Sparkle
+
+/// Drives the underlying update mechanism (Sparkle in production, a stub in tests).
+@MainActor
+protocol UpdaterDriving: UpdaterSettings {
+    var canCheckForUpdatesPublisher: AnyPublisher<Bool, Never> { get }
+    func startUpdater()
+    func checkForUpdates()
+}
+
+extension UpdaterDriving {
+    var canCheckForUpdatesPublisher: AnyPublisher<Bool, Never> {
+        Just(false).eraseToAnyPublisher()
+    }
+
+    func startUpdater() {}
+    func checkForUpdates() {}
+}
 
 /// Update checks through Sparkle: the "Check for Updates…" menu item and the automatic
 /// check switch in Settings. Sparkle stores the switch in the app's defaults and schedules
@@ -13,60 +31,44 @@ final class UpdateController: ObservableObject {
     @Published private(set) var canCheckForUpdates = false
     @Published private(set) var automaticallyChecksForUpdates: Bool
 
-    private let settings: UpdaterSettings
-    /// nil in tests: only the settings logic runs.
-    private let standardController: SPUStandardUpdaterController?
-    /// Sparkle keeps its delegates weakly.
-    private let userDriverDelegate: MenuBarAppUserDriverDelegate?
-    private let updaterDelegate: FeedErrorLoggingDelegate?
+    private let driver: UpdaterDriving
 
     /// The app's updater. It does nothing until `start()`.
-    private init() {
-        let userDriverDelegate = MenuBarAppUserDriverDelegate()
-        let updaterDelegate = FeedErrorLoggingDelegate()
-        let standardController = SPUStandardUpdaterController(
-            startingUpdater: false,
-            updaterDelegate: updaterDelegate,
-            userDriverDelegate: userDriverDelegate
-        )
-        settings = standardController.updater
-        self.standardController = standardController
-        self.userDriverDelegate = userDriverDelegate
-        self.updaterDelegate = updaterDelegate
-        automaticallyChecksForUpdates = standardController.updater.automaticallyChecksForUpdates
-        standardController.updater.publisher(for: \.canCheckForUpdates).assign(to: &$canCheckForUpdates)
+    private convenience init() {
+        self.init(driver: SparkleUpdaterDriver())
     }
 
-    init(settings: UpdaterSettings) {
-        self.settings = settings
-        standardController = nil
-        userDriverDelegate = nil
-        updaterDelegate = nil
-        automaticallyChecksForUpdates = settings.automaticallyChecksForUpdates
+    init(driver: UpdaterDriving) {
+        self.driver = driver
+        automaticallyChecksForUpdates = driver.automaticallyChecksForUpdates
+        driver.canCheckForUpdatesPublisher.assign(to: &$canCheckForUpdates)
+    }
+
+    convenience init(settings: UpdaterSettings) {
+        self.init(driver: SettingsUpdaterDriver(settings: settings))
     }
 
     /// Starts the updater and its schedule. Call once at launch.
     func start() {
         // Unit tests run inside the app; they must not check for updates.
-        guard let standardController, ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
-        else { return }
-        standardController.startUpdater()
+        guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
+        driver.startUpdater()
         Log.app.info(
             "Updater started, automatic checks \(self.automaticallyChecksForUpdates ? "on" : "off", privacy: .public)")
     }
 
     func checkForUpdates() {
         Log.app.info("Checking for updates (user)")
-        standardController?.checkForUpdates(nil)
+        driver.checkForUpdates()
     }
 
     /// Turning checks on also restores the interval, in case an older version stored another one.
     func setAutomaticallyChecksForUpdates(_ enabled: Bool) {
         if enabled {
-            settings.updateCheckInterval = UpdateConfig.checkInterval
+            driver.updateCheckInterval = UpdateConfig.checkInterval
         }
-        settings.automaticallyChecksForUpdates = enabled
-        automaticallyChecksForUpdates = settings.automaticallyChecksForUpdates
+        driver.automaticallyChecksForUpdates = enabled
+        automaticallyChecksForUpdates = driver.automaticallyChecksForUpdates
         Log.app.info("Automatic update checks \(enabled ? "enabled" : "disabled", privacy: .public)")
     }
 
@@ -91,26 +93,76 @@ final class UpdateController: ObservableObject {
     }
 }
 
-/// Logs why fetching the feed failed. Sparkle's "Update Error" alert doesn't say whether
-/// the feed is missing (404: private repository, unpublished appcast) or unreachable.
+/// Adapts a plain `UpdaterSettings` double into an `UpdaterDriving` instance without Sparkle.
+@MainActor
+private final class SettingsUpdaterDriver: UpdaterDriving {
+    private let settings: UpdaterSettings
+
+    init(settings: UpdaterSettings) {
+        self.settings = settings
+    }
+
+    var automaticallyChecksForUpdates: Bool {
+        get { settings.automaticallyChecksForUpdates }
+        set { settings.automaticallyChecksForUpdates = newValue }
+    }
+
+    var updateCheckInterval: TimeInterval {
+        get { settings.updateCheckInterval }
+        set { settings.updateCheckInterval = newValue }
+    }
+}
+
+/// Production `UpdaterDriving` backed by Sparkle's `SPUStandardUpdaterController`.
+@MainActor
+private final class SparkleUpdaterDriver: UpdaterDriving {
+    private let standardController: SPUStandardUpdaterController
+    /// Sparkle keeps its delegates weakly.
+    private let userDriverDelegate: MenuBarAppUserDriverDelegate
+    private let updaterDelegate: FeedErrorLoggingDelegate
+
+    init() {
+        let userDriverDelegate = MenuBarAppUserDriverDelegate()
+        let updaterDelegate = FeedErrorLoggingDelegate()
+        self.userDriverDelegate = userDriverDelegate
+        self.updaterDelegate = updaterDelegate
+        self.standardController = SPUStandardUpdaterController(
+            startingUpdater: false,
+            updaterDelegate: updaterDelegate,
+            userDriverDelegate: userDriverDelegate
+        )
+    }
+
+    var automaticallyChecksForUpdates: Bool {
+        get { standardController.updater.automaticallyChecksForUpdates }
+        set { standardController.updater.automaticallyChecksForUpdates = newValue }
+    }
+
+    var updateCheckInterval: TimeInterval {
+        get { standardController.updater.updateCheckInterval }
+        set { standardController.updater.updateCheckInterval = newValue }
+    }
+
+    var canCheckForUpdatesPublisher: AnyPublisher<Bool, Never> {
+        standardController.updater.publisher(for: \.canCheckForUpdates).eraseToAnyPublisher()
+    }
+
+    func startUpdater() {
+        standardController.startUpdater()
+    }
+
+    func checkForUpdates() {
+        standardController.checkForUpdates(nil)
+    }
+}
+
+/// Logs why fetching the feed failed without making extra network requests outside Sparkle.
 private final class FeedErrorLoggingDelegate: NSObject, SPUUpdaterDelegate {
     func updater(_ updater: SPUUpdater, didAbortWithError error: Error) {
         let error = error as NSError
         guard UpdateController.isFeedError(error) else { return }
-        guard let feedURL = updater.feedURL else {
-            Log.app.error(
-                "Update feed failed: \(UpdateController.feedErrorSummary(error, httpStatus: nil), privacy: .public)")
-            return
-        }
-        // Sparkle doesn't report the HTTP status; ask the server again, anonymously.
-        var request = URLRequest(url: feedURL, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
-        request.httpMethod = "HEAD"
-        request.httpShouldHandleCookies = false
-        URLSession.shared.dataTask(with: request) { _, response, _ in
-            let status = (response as? HTTPURLResponse)?.statusCode
-            Log.app.error(
-                "Update feed failed: \(UpdateController.feedErrorSummary(error, httpStatus: status), privacy: .public)")
-        }.resume()
+        Log.app.error(
+            "Update feed failed: \(UpdateController.feedErrorSummary(error, httpStatus: nil), privacy: .public)")
     }
 }
 

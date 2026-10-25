@@ -1,3 +1,4 @@
+import Combine
 import Sparkle
 import XCTest
 
@@ -14,6 +15,25 @@ final class UpdateControllerTests: XCTestCase {
         init(automaticallyChecksForUpdates: Bool, updateCheckInterval: TimeInterval = UpdateConfig.checkInterval) {
             self.automaticallyChecksForUpdates = automaticallyChecksForUpdates
             self.updateCheckInterval = updateCheckInterval
+        }
+    }
+
+    private final class FakeUpdaterDriver: UpdaterDriving {
+        var automaticallyChecksForUpdates: Bool
+        var updateCheckInterval: TimeInterval = UpdateConfig.checkInterval
+        let canCheckSubject = CurrentValueSubject<Bool, Never>(false)
+        var checkForUpdatesCount = 0
+
+        init(automaticallyChecksForUpdates: Bool = true) {
+            self.automaticallyChecksForUpdates = automaticallyChecksForUpdates
+        }
+
+        var canCheckForUpdatesPublisher: AnyPublisher<Bool, Never> {
+            canCheckSubject.eraseToAnyPublisher()
+        }
+
+        func checkForUpdates() {
+            checkForUpdatesCount += 1
         }
     }
 
@@ -87,6 +107,18 @@ final class UpdateControllerTests: XCTestCase {
         let controller = UpdateController(settings: FakeUpdaterSettings(automaticallyChecksForUpdates: true))
         XCTAssertFalse(controller.canCheckForUpdates)
         controller.checkForUpdates()  // No updater: must not crash
+    }
+
+    func testDriverForwardsCanCheckAndManualChecks() {
+        let driver = FakeUpdaterDriver()
+        let controller = UpdateController(driver: driver)
+        XCTAssertFalse(controller.canCheckForUpdates)
+
+        driver.canCheckSubject.send(true)
+        XCTAssertTrue(controller.canCheckForUpdates)
+
+        controller.checkForUpdates()
+        XCTAssertEqual(driver.checkForUpdatesCount, 1)
     }
 
     // MARK: - Feed error logging

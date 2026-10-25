@@ -1,13 +1,129 @@
 import Carbon
 import Cocoa
 
+/// Stateful detector that decides whether an incoming keyboard or modifier event triggers the hotkey.
+protocol HotkeyTrigger {
+    /// Whether this trigger needs `.flagsChanged` event monitors in addition to `.keyDown`.
+    var monitorsFlagsChanged: Bool { get }
+    /// Whether a matched `.keyDown` event in the app's own windows should be consumed.
+    var consumesMatchedKeyDown: Bool { get }
+
+    mutating func handleKeyDown(
+        keyCode: UInt16,
+        modifierFlags: NSEvent.ModifierFlags,
+        timestamp: TimeInterval
+    ) -> Bool
+
+    mutating func handleFlagsChanged(
+        modifierFlags: NSEvent.ModifierFlags,
+        timestamp: TimeInterval
+    ) -> Bool
+
+    mutating func reset()
+}
+
+extension HotkeyTrigger {
+    var monitorsFlagsChanged: Bool { false }
+    var consumesMatchedKeyDown: Bool { false }
+
+    mutating func handleFlagsChanged(
+        modifierFlags: NSEvent.ModifierFlags,
+        timestamp: TimeInterval
+    ) -> Bool {
+        false
+    }
+
+    mutating func reset() {}
+}
+
+/// Fires on two clean Shift taps within `doubleTapInterval` with no other key or modifier in between.
+struct DoubleShiftTrigger: HotkeyTrigger {
+    static let defaultInterval: TimeInterval = 0.4
+    private static let chordModifiersMask: NSEvent.ModifierFlags = [.shift, .command, .option, .control]
+
+    let doubleTapInterval: TimeInterval
+    private(set) var lastShiftTapTime: TimeInterval = 0
+    private(set) var shiftIsDownAlone = false
+
+    var monitorsFlagsChanged: Bool { true }
+
+    init(doubleTapInterval: TimeInterval = DoubleShiftTrigger.defaultInterval) {
+        self.doubleTapInterval = doubleTapInterval
+    }
+
+    mutating func handleKeyDown(
+        keyCode: UInt16,
+        modifierFlags: NSEvent.ModifierFlags,
+        timestamp: TimeInterval
+    ) -> Bool {
+        if shiftIsDownAlone {
+            shiftIsDownAlone = false
+        }
+        return false
+    }
+
+    mutating func handleFlagsChanged(
+        modifierFlags: NSEvent.ModifierFlags,
+        timestamp: TimeInterval
+    ) -> Bool {
+        let flags = modifierFlags.intersection(Self.chordModifiersMask)
+        if flags == .shift {
+            if !shiftIsDownAlone {
+                shiftIsDownAlone = true
+            }
+            return false
+        }
+
+        if !flags.contains(.shift) && shiftIsDownAlone {
+            // Released after a clean press
+            shiftIsDownAlone = false
+            if lastShiftTapTime > 0 && timestamp - lastShiftTapTime < doubleTapInterval {
+                lastShiftTapTime = 0
+                return true
+            }
+            lastShiftTapTime = timestamp
+            return false
+        }
+
+        if shiftIsDownAlone {
+            // Another modifier is involved
+            shiftIsDownAlone = false
+        }
+        return false
+    }
+
+    mutating func reset() {
+        lastShiftTapTime = 0
+        shiftIsDownAlone = false
+    }
+}
+
+/// Fires when a specific `keyCode` is pressed with exact device-independent `modifiers`.
+struct KeyChordTrigger: HotkeyTrigger {
+    let keyCode: UInt16
+    let modifiers: NSEvent.ModifierFlags
+
+    var consumesMatchedKeyDown: Bool { true }
+
+    init(keyCode: UInt16, modifiers: NSEvent.ModifierFlags) {
+        self.keyCode = keyCode
+        self.modifiers = modifiers.intersection(.deviceIndependentFlagsMask)
+    }
+
+    mutating func handleKeyDown(
+        keyCode: UInt16,
+        modifierFlags: NSEvent.ModifierFlags,
+        timestamp: TimeInterval
+    ) -> Bool {
+        guard keyCode == self.keyCode else { return false }
+        return modifierFlags.intersection(.deviceIndependentFlagsMask) == modifiers
+    }
+}
+
 /// Global hotkey: a modifier + key shortcut, or a double tap of Shift.
 final class HotkeyManager {
 
     typealias Action = () -> Void
-
-    /// Longest pause between the two Shift taps of a double Shift.
-    private static let doubleTapInterval: TimeInterval = 0.4
 
     private static let keyNames: [Int: String] = [
         kVK_ANSI_A: "A", kVK_ANSI_S: "S", kVK_ANSI_D: "D", kVK_ANSI_F: "F", kVK_ANSI_H: "H",
@@ -25,16 +141,12 @@ final class HotkeyManager {
         kVK_F9: "F9", kVK_F10: "F10", kVK_F11: "F11", kVK_F12: "F12",
     ]
 
+    private var trigger: (any HotkeyTrigger)?
     private var action: Action?
     private var keyDownGlobalMonitor: Any?
     private var keyDownLocalMonitor: Any?
     private var flagsGlobalMonitor: Any?
     private var flagsLocalMonitor: Any?
-
-    /// Uptime of the last clean Shift tap, 0 if none is pending.
-    private var lastShiftTapTime: TimeInterval = 0
-    /// Shift is down and nothing else has been pressed since.
-    private var shiftIsDownAlone = false
 
     deinit {
         unregister()
@@ -44,46 +156,37 @@ final class HotkeyManager {
 
     /// Fires `action` on two clean Shift taps (no other key or modifier in between).
     func registerDoubleShift(action: @escaping Action) {
-        unregister()
-        self.action = action
-
-        flagsGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
-            self?.handleFlagsChanged(event)
-        }
-        flagsLocalMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
-            self?.handleFlagsChanged(event)
-            return event
-        }
-
-        // Any key pressed while Shift is down makes it a Shift+key chord, not a tap
-        keyDownGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] _ in
-            self?.shiftIsDownAlone = false
-        }
-        keyDownLocalMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            self?.shiftIsDownAlone = false
-            return event
-        }
+        register(trigger: DoubleShiftTrigger(), action: action)
     }
 
     /// Fires `action` on `keyCode` with exactly `modifiers`. In our own windows the key is consumed.
     func register(keyCode: UInt16, modifiers: NSEvent.ModifierFlags, action: @escaping Action) {
+        register(trigger: KeyChordTrigger(keyCode: keyCode, modifiers: modifiers), action: action)
+    }
+
+    /// Registers a custom `HotkeyTrigger` and installs only the required `NSEvent` monitors.
+    func register(trigger: some HotkeyTrigger, action: @escaping Action) {
         unregister()
+        self.trigger = trigger
         self.action = action
 
-        let targetModifiers = modifiers.intersection(.deviceIndependentFlagsMask)
-        let matches = { (event: NSEvent) in
-            event.keyCode == keyCode && event.modifierFlags.intersection(.deviceIndependentFlagsMask) == targetModifiers
+        if trigger.monitorsFlagsChanged {
+            flagsGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
+                self?.processFlagsChanged(event)
+            }
+            flagsLocalMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
+                self?.processFlagsChanged(event)
+                return event
+            }
         }
 
         keyDownGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if matches(event) {
-                self?.action?()
-            }
+            _ = self?.processKeyDown(event)
         }
         keyDownLocalMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self, matches(event) else { return event }
-            self.action?()
-            return nil
+            guard let self else { return event }
+            let matched = self.processKeyDown(event)
+            return (matched && (self.trigger?.consumesMatchedKeyDown ?? false)) ? nil : event
         }
     }
 
@@ -95,31 +198,37 @@ final class HotkeyManager {
         keyDownLocalMonitor = nil
         flagsGlobalMonitor = nil
         flagsLocalMonitor = nil
+        trigger?.reset()
+        trigger = nil
         action = nil
-        lastShiftTapTime = 0
-        shiftIsDownAlone = false
     }
 
-    private func handleFlagsChanged(_ event: NSEvent) {
-        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-        let shiftDown = flags.contains(.shift)
-        let onlyShift = shiftDown && !flags.contains(.command) && !flags.contains(.option) && !flags.contains(.control)
+    @discardableResult
+    private func processKeyDown(_ event: NSEvent) -> Bool {
+        guard
+            var currentTrigger = trigger
+        else { return false }
+        let matched = currentTrigger.handleKeyDown(
+            keyCode: event.keyCode,
+            modifierFlags: event.modifierFlags,
+            timestamp: ProcessInfo.processInfo.systemUptime
+        )
+        trigger = currentTrigger
+        if matched {
+            action?()
+        }
+        return matched
+    }
 
-        if onlyShift && !shiftIsDownAlone {
-            shiftIsDownAlone = true
-        } else if !shiftDown && shiftIsDownAlone {
-            // Released after a clean press
-            shiftIsDownAlone = false
-            let now = ProcessInfo.processInfo.systemUptime
-            if lastShiftTapTime > 0 && now - lastShiftTapTime < Self.doubleTapInterval {
-                lastShiftTapTime = 0
-                action?()
-            } else {
-                lastShiftTapTime = now
-            }
-        } else if !onlyShift {
-            // Another modifier is involved
-            shiftIsDownAlone = false
+    private func processFlagsChanged(_ event: NSEvent) {
+        guard var currentTrigger = trigger else { return }
+        let matched = currentTrigger.handleFlagsChanged(
+            modifierFlags: event.modifierFlags,
+            timestamp: ProcessInfo.processInfo.systemUptime
+        )
+        trigger = currentTrigger
+        if matched {
+            action?()
         }
     }
 
