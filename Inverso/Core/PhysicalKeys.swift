@@ -1,4 +1,4 @@
-import Carbon
+import Foundation
 
 /// The 48 character keys that layout maps are keyed by: the 47 ANSI keys and the ISO section
 /// key (left of 1 on ISO keyboards, where Russian – PC types ё).
@@ -8,18 +8,14 @@ enum PhysicalKeys {
     static let qwerty = Array(
         "`1234567890-=qwertyuiop[]\\asdfghjkl;'zxcvbnm,./§~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:\"ZXCVBNM<>?±")
 
-    /// Virtual key codes of the keys, in the order of the unshifted row of `qwerty`.
+    /// Virtual key codes (HIToolbox Events.h) of the keys, in the order of the unshifted row of `qwerty`.
     static let keyCodes: [UInt16] = [
-        kVK_ANSI_Grave, kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5, kVK_ANSI_6,
-        kVK_ANSI_7, kVK_ANSI_8, kVK_ANSI_9, kVK_ANSI_0, kVK_ANSI_Minus, kVK_ANSI_Equal,
-        kVK_ANSI_Q, kVK_ANSI_W, kVK_ANSI_E, kVK_ANSI_R, kVK_ANSI_T, kVK_ANSI_Y, kVK_ANSI_U,
-        kVK_ANSI_I, kVK_ANSI_O, kVK_ANSI_P, kVK_ANSI_LeftBracket, kVK_ANSI_RightBracket, kVK_ANSI_Backslash,
-        kVK_ANSI_A, kVK_ANSI_S, kVK_ANSI_D, kVK_ANSI_F, kVK_ANSI_G, kVK_ANSI_H, kVK_ANSI_J,
-        kVK_ANSI_K, kVK_ANSI_L, kVK_ANSI_Semicolon, kVK_ANSI_Quote,
-        kVK_ANSI_Z, kVK_ANSI_X, kVK_ANSI_C, kVK_ANSI_V, kVK_ANSI_B, kVK_ANSI_N, kVK_ANSI_M,
-        kVK_ANSI_Comma, kVK_ANSI_Period, kVK_ANSI_Slash,
-        kVK_ISO_Section,
-    ].map { UInt16($0) }
+        0x32, 0x12, 0x13, 0x14, 0x15, 0x17, 0x16, 0x1A, 0x1C, 0x19, 0x1D, 0x1B, 0x18,
+        0x0C, 0x0D, 0x0E, 0x0F, 0x11, 0x10, 0x20, 0x22, 0x1F, 0x23, 0x21, 0x1E, 0x2A,
+        0x00, 0x01, 0x02, 0x03, 0x05, 0x04, 0x26, 0x28, 0x25, 0x29, 0x27,
+        0x06, 0x07, 0x08, 0x09, 0x0B, 0x2D, 0x2E, 0x2B, 0x2F, 0x2C,
+        0x0A,
+    ]
 
     /// US-QWERTY characters of the section key.
     private static let isoKeys: Set<Character> = ["§", "±"]

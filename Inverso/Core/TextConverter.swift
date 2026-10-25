@@ -17,9 +17,17 @@ final class TextConverter {
     private static let wholeLineMinimumWords = 3
 
     private let settingsManager: SettingsManager
+    private let mapProvider: any LayoutMapProviding
+    private let currentLayoutIDProvider: () -> String?
 
-    init(settingsManager: SettingsManager) {
+    init(
+        settingsManager: SettingsManager,
+        mapProvider: any LayoutMapProviding = LayoutMaps.shared,
+        currentLayoutID: @escaping () -> String? = { KeyboardLayoutDetector.currentLayout()?.id }
+    ) {
         self.settingsManager = settingsManager
+        self.mapProvider = mapProvider
+        self.currentLayoutIDProvider = currentLayoutID
     }
 
     // MARK: - Conversion
@@ -34,7 +42,12 @@ final class TextConverter {
             return nil
         }
 
-        guard let sourceID = LayoutMapper.detectSourceLayout(text: text, candidateLayouts: detectionCandidates(layouts))
+        guard
+            let sourceID = LayoutMapper.detectSourceLayout(
+                text: text,
+                candidateLayouts: detectionCandidates(layouts),
+                mapProvider: mapProvider
+            )
         else {
             Log.conversion.debug("convert: detectSourceLayout returned nil")
             return nil
@@ -46,14 +59,24 @@ final class TextConverter {
         else {
             Log.conversion.debug("convert: no target layout found different from source")
             guard let firstLayout = layouts.first,
-                let result = LayoutMapper.convert(text: text, from: sourceID, to: firstLayout.id)
+                let result = LayoutMapper.convert(
+                    text: text,
+                    from: sourceID,
+                    to: firstLayout.id,
+                    mapProvider: mapProvider
+                )
             else { return nil }
             return ConversionResult(text: result, targetLayoutID: firstLayout.id)
         }
 
         Log.conversion.debug(
             "convert: converting from '\(sourceID, privacy: .public)' to '\(targetLayout.id, privacy: .public)'")
-        let result = LayoutMapper.convert(text: text, from: sourceID, to: targetLayout.id)
+        let result = LayoutMapper.convert(
+            text: text,
+            from: sourceID,
+            to: targetLayout.id,
+            mapProvider: mapProvider
+        )
         Log.conversion.debug("convert: result = '\(result ?? "nil", privacy: .private)'")
         return result.map { ConversionResult(text: $0, targetLayoutID: targetLayout.id) }
     }
@@ -90,7 +113,10 @@ final class TextConverter {
 
         guard
             let sourceID = LayoutMapper.detectSourceLayout(
-                text: trimmed, candidateLayouts: detectionCandidates(layouts))
+                text: trimmed,
+                candidateLayouts: detectionCandidates(layouts),
+                mapProvider: mapProvider
+            )
         else {
             Log.conversion.debug("looksLikeWrongLayout: detectSourceLayout returned nil")
             return false
@@ -99,7 +125,14 @@ final class TextConverter {
             "looksLikeWrongLayout: detected source='\(sourceID, privacy: .public)' for '\(trimmed, privacy: .private)'")
 
         for layout in layouts where layout.id != sourceID {
-            guard let converted = LayoutMapper.convert(text: trimmed, from: sourceID, to: layout.id) else { continue }
+            guard
+                let converted = LayoutMapper.convert(
+                    text: trimmed,
+                    from: sourceID,
+                    to: layout.id,
+                    mapProvider: mapProvider
+                )
+            else { continue }
             Log.conversion.debug(
                 "looksLikeWrongLayout: converted to '\(converted, privacy: .private)' via layout '\(layout.id, privacy: .public)'"
             )
@@ -204,7 +237,7 @@ final class TextConverter {
     /// U.S. vs German (or Russian vs Ukrainian) resolves to the layout actually used for typing.
     private func detectionCandidates(_ layouts: [KeyboardLayout]) -> [String] {
         var ids = layouts.map(\.id)
-        if let currentID = KeyboardLayoutDetector.currentLayout()?.id,
+        if let currentID = currentLayoutIDProvider(),
             let index = ids.firstIndex(of: currentID), index != 0
         {
             ids.remove(at: index)

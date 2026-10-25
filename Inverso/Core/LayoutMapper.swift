@@ -10,21 +10,22 @@ enum LayoutMapper {
     /// punctuation (a token without letters) and punctuation before a word's first letter
     /// stay as typed. A key that types a letter in either layout counts as a letter:
     /// ";" → "ж", ",f,eirf" → "бабушка".
-    static func convert(text: String, from sourceLayoutID: String, to targetLayoutID: String) -> String? {
-        guard let sourceMap = LayoutMaps.characterMap(for: sourceLayoutID) else {
+    static func convert(
+        text: String,
+        from sourceLayoutID: String,
+        to targetLayoutID: String,
+        mapProvider: any LayoutMapProviding = LayoutMaps.shared
+    ) -> String? {
+        guard let reverseSource = mapProvider.reverseMap(for: sourceLayoutID) else {
             Log.conversion.error(
                 "LayoutMapper.convert: no characterMap for source '\(sourceLayoutID, privacy: .public)'")
             return nil
         }
-        guard let targetMap = LayoutMaps.characterMap(for: targetLayoutID) else {
+        guard let targetMap = mapProvider.characterMap(for: targetLayoutID) else {
             Log.conversion.error(
                 "LayoutMapper.convert: no characterMap for target '\(targetLayoutID, privacy: .public)'")
             return nil
         }
-
-        // Maps are keyed by the US-QWERTY character of a key; the reverse map finds the key
-        // that typed a character in the source layout.
-        let reverseSource = reverseMap(sourceMap)
 
         var result = ""
         var unmappedCount = 0
@@ -74,16 +75,19 @@ enum LayoutMapper {
 
     /// The candidate whose character set contains most characters of `text`.
     /// On a tie the earlier candidate wins.
-    static func detectSourceLayout(text: String, candidateLayouts: [String]) -> String? {
+    static func detectSourceLayout(
+        text: String,
+        candidateLayouts: [String],
+        mapProvider: any LayoutMapProviding = LayoutMaps.shared
+    ) -> String? {
         var bestMatch: String?
         var bestScore = 0
 
         for layoutID in candidateLayouts {
-            guard let map = LayoutMaps.characterMap(for: layoutID) else {
+            guard let layoutChars = mapProvider.characterSet(for: layoutID) else {
                 Log.conversion.debug("detectSourceLayout: no characterMap for '\(layoutID, privacy: .public)'")
                 continue
             }
-            let layoutChars = Set(map.values)
             let score = text.filter { layoutChars.contains($0) }.count
             Log.conversion.debug(
                 "detectSourceLayout: layout '\(layoutID, privacy: .public)' score=\(score) for '\(text, privacy: .private)'"

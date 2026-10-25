@@ -15,7 +15,10 @@ enum LayoutScript {
     /// Unshifted letter keys of US-QWERTY.
     private static let letterKeys = "qwertyuiopasdfghjklzxcvbnm"
 
-    static func of(layoutID: String) -> LayoutScript {
+    static func of(
+        layoutID: String,
+        mapProvider: any LayoutMapProviding = LayoutMaps.shared
+    ) -> LayoutScript {
         let lowered = layoutID.lowercased()
         if lowered.contains("russian") || lowered.contains("ukrainian") {
             return .cyrillic
@@ -24,7 +27,7 @@ enum LayoutScript {
             return .latin
         }
         // Not in the tables: judge by the letters the system layout produces.
-        return LayoutMaps.characterMap(for: layoutID).map { of(map: $0) } ?? .latin
+        return mapProvider.characterMap(for: layoutID).map { of(map: $0) } ?? .latin
     }
 
     /// Script of the majority of letters on the unshifted letter keys.
