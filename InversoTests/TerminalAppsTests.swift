@@ -45,8 +45,12 @@ final class TerminalAppsTests: XCTestCase {
     }
 
     @MainActor
-    func testHintIsLocalized() {
-        let manager = LocalizationManager(defaults: UserDefaults(suiteName: "TerminalAppsTests.\(UUID().uuidString)")!)
+    func testHintIsLocalized() throws {
+        let suiteName = "TerminalAppsTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let manager = LocalizationManager(defaults: defaults)
         manager.currentLanguage = "en"
         XCTAssertEqual(manager.localized("alert.terminalNotSupported"), "Not supported in the terminal")
         manager.currentLanguage = "ru"
@@ -111,5 +115,17 @@ final class TerminalAppsTests: XCTestCase {
             AppRuleRegistry.focusMode(frontmostBundleID: nil, overlayPID: nil),
             .standard
         )
+    }
+
+    func testTextAccessStrategyResolveForFocusModeAndFlags() {
+        XCTAssertNil(TextAccessStrategy.resolve(for: .terminal))
+        XCTAssertEqual(TextAccessStrategy.resolve(for: .overlay(1234)), .overlay)
+        XCTAssertEqual(TextAccessStrategy.resolve(for: .clipboardOnly), .clipboardOnly)
+        XCTAssertEqual(TextAccessStrategy.resolve(for: .standard), .standard)
+
+        XCTAssertEqual(TextAccessStrategy.resolve(overlayFocused: true, clipboardOnly: false), .overlay)
+        XCTAssertEqual(TextAccessStrategy.resolve(overlayFocused: true, clipboardOnly: true), .overlay)
+        XCTAssertEqual(TextAccessStrategy.resolve(overlayFocused: false, clipboardOnly: true), .clipboardOnly)
+        XCTAssertEqual(TextAccessStrategy.resolve(overlayFocused: false, clipboardOnly: false), .standard)
     }
 }
