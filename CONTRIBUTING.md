@@ -95,18 +95,19 @@ Setup notes:
 
 ```
 Inverso/
-├── App/                       entry point, AppDelegate (startup only)
+├── App/                       entry point, AppDelegate (Composition Root)
+├── Core/                      pure conversion & layout engine (Foundation only)
 ├── Features/
-│   ├── Conversion/            conversion pipeline, layout mapping, target layout choice
-│   ├── HUD/                   overlay shown after a conversion
+│   ├── Conversion/            conversion coordinator connecting UI, Core, and TextAccess
+│   ├── HUD/                   overlay and FeedbackProviding implementations
 │   ├── MenuBar/               menu bar menu, About panel
 │   └── Settings/              Settings window and its sections
 ├── Services/
 │   ├── Layouts/               system input sources, character maps (UCKeyTranslate)
-│   ├── TextAccess/            Accessibility, clipboard, keystrokes, focus detection
+│   ├── TextAccess/            Accessibility, clipboard, keystrokes, focus rules & strategies
 │   ├── Updates/               Sparkle updater and its configuration (UpdateConfig)
-│   └── ...                    settings, hotkey, localization, log store, logging
-├── Models/
+│   └── ...                    settings, hotkey triggers, localization, log store, logging
+├── Models/                    value models and SettingsKeys
 └── Resources/                 Localizable.xcstrings (en, ru), icon, assets
 InversoTests/                  XCTest unit tests
 scripts/release.sh             release build, signing, archive, appcast entry
@@ -117,6 +118,42 @@ docs/                          README media
 CHANGELOG.md, CONTRIBUTING.md  changes per version; branches, commits, releasing
 appcast.xml                    Sparkle update feed
 ```
+
+## Architecture
+
+### Composition Root
+
+`InversoApp` and `AppDelegate` (`Inverso/App/`) act as the single Composition Root. At startup they instantiate `SettingsManager`, `LocalizationManager`, `ConversionLogStore`, `InputSourceMonitor`, `UpdateController`, `ConversionHUD`, `HotkeyManager`, `AccessibilityService`, and `ConversionCoordinator`, injecting dependencies explicitly via initializers and SwiftUI `@EnvironmentObject` rather than global singletons.
+
+### Pure Core (`Inverso/Core`)
+
+`Inverso/Core` contains the layout mapping and text conversion engine (`TextConverter`, `LayoutMapper`, `LayoutMapProviding`, `LayoutCharacterMap`, `LayoutScript`, `PhysicalKeys`, `TargetLayoutResolver`). Files in `Inverso/Core` import only `Foundation` (enforced by `LoggingPolicyTests.testCoreDoesNotImportUIOrSystemFrameworks`) and receive system character maps through the `LayoutMapProviding` protocol.
+
+### Adding an Application Rule (`AppRuleRegistry`)
+
+`AppRuleRegistry` (`Inverso/Services/TextAccess/AppRuleRegistry.swift`) resolves the active `FocusMode` (`.overlay(pid)`, `.terminal`, `.clipboardOnly`, or `.standard`):
+
+1. If the app is a terminal emulator where synthetic text replacement should be skipped, add its bundle identifier to `TerminalApps.bundleIDs` (`Inverso/Services/TextAccess/TerminalApps.swift`).
+2. If the app has broken Accessibility text writes and must always use `⌘C`/`⌘V`, add its bundle identifier or bundle-structure check to `ClipboardOnlyApps` (`Inverso/Services/TextAccess/ClipboardOnlyApps.swift`).
+3. If a new focus mode or rule category is needed, add a case to `AppRuleRegistry.FocusMode`, update `AppRuleRegistry.focusMode(frontmostBundleID:frontmostBundleURL:overlayPID:)`, and handle the case in `ConversionCoordinator` / `AccessibilityService`.
+4. Add unit tests in `InversoTests/TerminalAppsTests.swift` or `InversoTests/AccessibilityServiceTests.swift`.
+
+### Adding a Feedback Mode (`FeedbackProviding`)
+
+Visual and audio notifications after a conversion implement `FeedbackProviding` (`Inverso/Features/HUD/FeedbackProviding.swift`):
+
+1. Define a struct or class conforming to `@MainActor protocol FeedbackProviding` with `showConversion(input:output:layoutCode:)` (and optionally `showMessage(_:)`).
+2. If the mode is user-selectable, add a case to `ConversionFeedback` (`Inverso/Models/ConversionFeedback.swift`) with localized title/description in `Inverso/Resources/Localizable.xcstrings` (`en` and `ru`).
+3. Wire the provider in `ConversionCoordinator` (`Inverso/Features/Conversion/ConversionCoordinator.swift`).
+4. Add a unit test in `InversoTests/ConversionHUDTests.swift`.
+
+### Adding a Text Access Strategy (`TextAccessStrategy`)
+
+`AccessibilityService` (`Inverso/Services/TextAccess/AccessibilityService.swift`) delegates reading and replacing text to `TextAccessStrategy` implementations (`Inverso/Services/TextAccess/TextAccessStrategy.swift`):
+
+1. Implement a type conforming to `@MainActor protocol TextAccessStrategy` with `replaceText(using:)`, returning `.handled(success:)` when the strategy completes or `.notApplicable` to fall back to the next strategy in the chain.
+2. Inject or append the strategy in `AccessibilityService` (`selectionStrategies` for explicit selections or `lineStrategies` for greedy line selection).
+3. Add unit tests with fake `SelectedTextAccess` / `PasteboardAccess` / `KeystrokeSender` in `InversoTests/AccessibilityServiceTests.swift`.
 
 ## Troubleshooting updates
 
