@@ -6,13 +6,13 @@
         <description>Inverso updates</description>
         <language>en</language>
         <item>
-            <title>Version 1.2.8</title>
-            <pubDate>Tue, 20 Oct 2026 18:13:00 +0000</pubDate>
-            <sparkle:version>8</sparkle:version>
-            <sparkle:shortVersionString>1.2.8</sparkle:shortVersionString>
+            <title>Version 1.2.9</title>
+            <pubDate>Sun, 25 Oct 2026 14:44:41 +0000</pubDate>
+            <sparkle:version>9</sparkle:version>
+            <sparkle:shortVersionString>1.2.9</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-            <sparkle:releaseNotesLink>https://github.com/dotsentik/inverso/releases/tag/v1.2.8</sparkle:releaseNotesLink>
-            <enclosure url="https://github.com/dotsentik/inverso/releases/download/v1.2.8/Inverso-1.2.8.zip" sparkle:edSignature="VPrPMpvZ/BOUDZe+XVy9Y78oBWu66PjL6jAOrvbat+rSV7UcbCiwxv6OpEPxv9y2QrahEtLbiu86oh3En2AIBw==" length="2993192" type="application/octet-stream"/>
+            <sparkle:releaseNotesLink>https://github.com/dotsentik/inverso/releases/tag/v1.2.9</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/dotsentik/inverso/releases/download/v1.2.9/Inverso-1.2.9.zip" sparkle:edSignature="GPQEK/wvazoC6ZXCjPdQ0OEO8p8hqZ33qvEB4iuo6XM9OY6PJvx9x1p3PxMNr/s8grO/TShfrkW7oGp8O34fCA==" length="2676713" type="application/octet-stream"/>
         </item>
     </channel>
 </rss>
