@@ -54,4 +54,42 @@ final class MenuShortcutTests: XCTestCase {
         XCTAssertFalse(trigger.handleFlagsChanged(modifierFlags: [.shift], timestamp: 2.2))
         XCTAssertFalse(trigger.handleFlagsChanged(modifierFlags: [], timestamp: 2.25))
     }
+
+    func testDoubleShiftTriggerTimeoutModifierCancellationAndReset() {
+        var trigger = DoubleShiftTrigger(doubleTapInterval: 0.4)
+
+        // Two clean taps separated by more than doubleTapInterval do not fire
+        XCTAssertFalse(trigger.handleFlagsChanged(modifierFlags: [.shift], timestamp: 1.0))
+        XCTAssertFalse(trigger.handleFlagsChanged(modifierFlags: [], timestamp: 1.05))
+        XCTAssertFalse(trigger.handleFlagsChanged(modifierFlags: [.shift], timestamp: 1.6))
+        XCTAssertFalse(trigger.handleFlagsChanged(modifierFlags: [], timestamp: 1.65))
+
+        // Another modifier pressed while Shift is held cancels the tap
+        XCTAssertFalse(trigger.handleFlagsChanged(modifierFlags: [.shift], timestamp: 3.0))
+        XCTAssertFalse(trigger.handleFlagsChanged(modifierFlags: [.shift, .command], timestamp: 3.05))
+        XCTAssertFalse(trigger.handleFlagsChanged(modifierFlags: [], timestamp: 3.1))
+        XCTAssertFalse(trigger.handleFlagsChanged(modifierFlags: [.shift], timestamp: 3.2))
+        XCTAssertFalse(trigger.handleFlagsChanged(modifierFlags: [], timestamp: 3.25))
+
+        // Reset clears pending tap state
+        XCTAssertFalse(trigger.handleFlagsChanged(modifierFlags: [.shift], timestamp: 4.0))
+        XCTAssertFalse(trigger.handleFlagsChanged(modifierFlags: [], timestamp: 4.05))
+        XCTAssertGreaterThan(trigger.lastShiftTapTime, 0)
+        trigger.reset()
+        XCTAssertEqual(trigger.lastShiftTapTime, 0)
+        XCTAssertFalse(trigger.shiftIsDownAlone)
+    }
+
+    func testKeyChordTriggerStripsDeviceDependentFlagsAndDisplayFormatting() {
+        let dirtyModifiers = NSEvent.ModifierFlags(rawValue: NSEvent.ModifierFlags.option.rawValue | 0x20)
+        var trigger = KeyChordTrigger(keyCode: 0x01, modifiers: dirtyModifiers)
+        XCTAssertEqual(trigger.modifiers, [.option])
+        XCTAssertTrue(trigger.handleKeyDown(keyCode: 0x01, modifierFlags: dirtyModifiers, timestamp: 1.0))
+        XCTAssertFalse(trigger.handleFlagsChanged(modifierFlags: [.option], timestamp: 1.1))
+        trigger.reset()
+
+        XCTAssertEqual(HotkeyManager.symbols(for: [.control, .option, .shift, .command]), "⌃⌥⇧⌘")
+        XCTAssertEqual(HotkeyManager.keyName(for: 0x01), "S")
+        XCTAssertEqual(HotkeyManager.keyName(for: 999), "Key999")
+    }
 }

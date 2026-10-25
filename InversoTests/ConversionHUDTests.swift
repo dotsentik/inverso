@@ -143,5 +143,34 @@ final class ConversionHUDTests: XCTestCase {
         let silentProvider: FeedbackProviding = SilentFeedbackProvider()
         silentProvider.showConversion(input: "a", output: "ф", layoutCode: "RU")
         silentProvider.showMessage("Ignored")
+
+        XCTAssertEqual(SoundFeedbackProvider.defaultSoundName, NSSound.Name("Tink"))
+    }
+
+    func testDefaultShowMessageIsNoOpForProvidersWithoutMessageUI() {
+        @MainActor
+        final class RecordingProvider: FeedbackProviding {
+            var conversions: [(String, String, String)] = []
+            func showConversion(input: String, output: String, layoutCode: String) {
+                conversions.append((input, output, layoutCode))
+            }
+        }
+
+        let custom: FeedbackProviding = RecordingProvider()
+        custom.showMessage("Should be ignored by default extension")
+
+        var notified = false
+        let notification: FeedbackProviding = NotificationFeedbackProvider { _, _ in
+            notified = true
+        }
+        notification.showMessage("Ignored")
+        XCTAssertFalse(notified)
+
+        var soundPlayed = false
+        let sound: FeedbackProviding = SoundFeedbackProvider {
+            soundPlayed = true
+        }
+        sound.showMessage("Ignored")
+        XCTAssertFalse(soundPlayed)
     }
 }

@@ -93,4 +93,36 @@ final class LoggingPolicyTests: XCTestCase {
             }
         }
     }
+
+    func testCoreDoesNotImportUIOrSystemFrameworks() throws {
+        let coreDir = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Inverso/Core")
+        let files = try FileManager.default.contentsOfDirectory(at: coreDir, includingPropertiesForKeys: nil)
+            .filter { $0.pathExtension == "swift" }
+        XCTAssertFalse(files.isEmpty, "Expected Swift files in Inverso/Core")
+
+        let forbiddenModules: Set<String> = [
+            "AppKit", "Carbon", "Cocoa", "SwiftUI", "Sparkle", "SQLite3",
+            "UserNotifications", "ServiceManagement",
+        ]
+
+        for url in files {
+            let lines = try String(contentsOf: url, encoding: .utf8).components(separatedBy: "\n")
+            for (index, rawLine) in lines.enumerated() where !isComment(rawLine) {
+                let trimmed = rawLine.trimmingCharacters(in: .whitespaces)
+                guard trimmed.hasPrefix("import ") else { continue }
+                let module = trimmed.dropFirst("import ".count).trimmingCharacters(in: .whitespaces)
+                XCTAssertFalse(
+                    forbiddenModules.contains(module),
+                    "\(url.lastPathComponent):\(index + 1) imports forbidden module '\(module)' in Inverso/Core"
+                )
+                XCTAssertEqual(
+                    module, "Foundation",
+                    "\(url.lastPathComponent):\(index + 1) imports non-Foundation module '\(module)' in Inverso/Core"
+                )
+            }
+        }
+    }
 }

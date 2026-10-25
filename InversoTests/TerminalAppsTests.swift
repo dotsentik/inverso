@@ -52,4 +52,64 @@ final class TerminalAppsTests: XCTestCase {
         manager.currentLanguage = "ru"
         XCTAssertEqual(manager.localized("alert.terminalNotSupported"), "В терминале не поддерживается")
     }
+
+    func testAppRuleRegistryFocusModePrecedence() throws {
+        // Active overlay always wins over terminal, clipboard-only, and standard apps
+        XCTAssertEqual(
+            AppRuleRegistry.focusMode(frontmostBundleID: "com.apple.Terminal", overlayPID: 4242),
+            .overlay(4242)
+        )
+        XCTAssertEqual(
+            AppRuleRegistry.focusMode(frontmostBundleID: "com.microsoft.VSCode", overlayPID: 1001),
+            .overlay(1001)
+        )
+        XCTAssertEqual(
+            AppRuleRegistry.focusMode(frontmostBundleID: "com.apple.TextEdit", overlayPID: 99),
+            .overlay(99)
+        )
+
+        // Without an overlay, terminal apps resolve to .terminal
+        for bundleID in TerminalApps.bundleIDs {
+            XCTAssertEqual(
+                AppRuleRegistry.focusMode(frontmostBundleID: bundleID, overlayPID: nil),
+                .terminal,
+                bundleID
+            )
+        }
+
+        // Clipboard-only bundle IDs and Electron bundles resolve to .clipboardOnly
+        for bundleID in ClipboardOnlyApps.bundleIDs {
+            XCTAssertEqual(
+                AppRuleRegistry.focusMode(frontmostBundleID: bundleID, overlayPID: nil),
+                .clipboardOnly,
+                bundleID
+            )
+        }
+
+        let electronBundle = FileManager.default.temporaryDirectory
+            .appendingPathComponent("AppRuleElectron-\(UUID().uuidString).app")
+        defer { try? FileManager.default.removeItem(at: electronBundle) }
+        try FileManager.default.createDirectory(
+            at: electronBundle.appendingPathComponent("Contents/Frameworks/Electron Framework.framework"),
+            withIntermediateDirectories: true
+        )
+        XCTAssertEqual(
+            AppRuleRegistry.focusMode(
+                frontmostBundleID: "com.example.CustomElectron",
+                frontmostBundleURL: electronBundle,
+                overlayPID: nil
+            ),
+            .clipboardOnly
+        )
+
+        // Regular apps and nil bundle ID resolve to .standard
+        XCTAssertEqual(
+            AppRuleRegistry.focusMode(frontmostBundleID: "com.apple.TextEdit", overlayPID: nil),
+            .standard
+        )
+        XCTAssertEqual(
+            AppRuleRegistry.focusMode(frontmostBundleID: nil, overlayPID: nil),
+            .standard
+        )
+    }
 }
