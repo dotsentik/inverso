@@ -62,7 +62,8 @@ enum KeyboardFocusOwner {
             let value = raw, CFGetTypeID(value) == AXUIElementGetTypeID()
         else { return nil }
         var pid: pid_t = 0
-        guard AXUIElementGetPid(value as! AXUIElement, &pid) == .success else { return nil }  // Type ID checked above
+        let element = unsafeDowncast(value, to: AXUIElement.self)
+        guard AXUIElementGetPid(element, &pid) == .success else { return nil }
         return pid
     }
 

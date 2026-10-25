@@ -147,7 +147,7 @@ struct AXSelectedTextAccess: SelectedTextAccess {
         guard status == .success, let value: CFTypeRef = raw,
             CFGetTypeID(value) == AXUIElementGetTypeID()
         else { return nil }
-        let element = value as! AXUIElement  // Safe: the type ID was checked above
+        let element = unsafeDowncast(value, to: AXUIElement.self)
         let role: String? = attribute(element, kAXRoleAttribute)
         let subrole: String? = attribute(element, kAXSubroleAttribute)
         var pid: pid_t = 0
@@ -165,7 +165,7 @@ struct AXSelectedTextAccess: SelectedTextAccess {
         guard let raw: CFTypeRef = attribute(element, kAXSelectedTextRangeAttribute),
             CFGetTypeID(raw) == AXValueGetTypeID()
         else { return nil }
-        let value = raw as! AXValue  // Safe: the type ID was checked above
+        let value = unsafeDowncast(raw, to: AXValue.self)
         var range = CFRange()
         guard AXValueGetValue(value, .cfRange, &range) else { return nil }
         return NSRange(location: range.location, length: range.length)

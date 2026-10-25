@@ -6,9 +6,8 @@ struct PermissionsView: View {
     @State private var hasAccessibility = AccessibilityService.hasAccessibilityPermission
 
     /// Privacy & Security → Accessibility pane of System Settings.
-    /// Force unwrap is safe: the string is a constant, valid URL.
     private static let accessibilitySettingsURL = URL(
-        string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
+        string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
     /// The user grants access in System Settings while this tab stays open; poll for it.
     private static let refreshInterval: Duration = .seconds(2)
 
@@ -27,7 +26,9 @@ struct PermissionsView: View {
                 .accessibilityElement(children: .combine)
 
                 Button(l10n.localized("permissions.openAccessibility")) {
-                    NSWorkspace.shared.open(Self.accessibilitySettingsURL)
+                    if let accessibilitySettingsURL = Self.accessibilitySettingsURL {
+                        NSWorkspace.shared.open(accessibilitySettingsURL)
+                    }
                 }
                 if !hasAccessibility {
                     Button(l10n.localized("permissions.requestPrompt")) {
