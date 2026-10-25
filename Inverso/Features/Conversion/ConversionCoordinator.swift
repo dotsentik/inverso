@@ -73,7 +73,7 @@ final class ConversionCoordinator {
             return
         }
         // Terminals: no keystrokes, no pasteboard, no text changes; only the hint.
-        if TerminalApps.hasFocus() {
+        if AppRuleRegistry.isTerminalFocused() {
             Log.app.info("Terminal has the focus, conversion is not supported")
             let hint = LocalizationManager.shared.localized("alert.terminalNotSupported")
             ConversionHUD.shared.show(ConversionHUDContent(message: hint))

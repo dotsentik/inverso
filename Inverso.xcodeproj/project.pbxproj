@@ -55,6 +55,7 @@
 		E10000010000000000000229 /* PhysicalKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000229 /* PhysicalKeys.swift */; };
 		E10000010000000000000230 /* SystemLayoutMapBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000230 /* SystemLayoutMapBuilder.swift */; };
 		E10000010000000000000231 /* AccessibilityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000231 /* AccessibilityService.swift */; };
+		E10000010000000000000265 /* AppRuleRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000265 /* AppRuleRegistry.swift */; };
 		E10000010000000000000232 /* AXReplaceResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000232 /* AXReplaceResult.swift */; };
 		E10000010000000000000233 /* AXReplaceVerifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000233 /* AXReplaceVerifier.swift */; };
 		E10000010000000000000234 /* AXSelectedTextAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000234 /* AXSelectedTextAccess.swift */; };
@@ -158,6 +159,7 @@
 		E10000020000000000000229 /* PhysicalKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeys.swift; sourceTree = "<group>"; };
 		E10000020000000000000230 /* SystemLayoutMapBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemLayoutMapBuilder.swift; sourceTree = "<group>"; };
 		E10000020000000000000231 /* AccessibilityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityService.swift; sourceTree = "<group>"; };
+		E10000020000000000000265 /* AppRuleRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRuleRegistry.swift; sourceTree = "<group>"; };
 		E10000020000000000000232 /* AXReplaceResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXReplaceResult.swift; sourceTree = "<group>"; };
 		E10000020000000000000233 /* AXReplaceVerifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXReplaceVerifier.swift; sourceTree = "<group>"; };
 		E10000020000000000000234 /* AXSelectedTextAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXSelectedTextAccess.swift; sourceTree = "<group>"; };
@@ -380,6 +382,7 @@
 			isa = PBXGroup;
 			children = (
 				E10000020000000000000231 /* AccessibilityService.swift */,
+				E10000020000000000000265 /* AppRuleRegistry.swift */,
 				E10000020000000000000232 /* AXReplaceResult.swift */,
 				E10000020000000000000233 /* AXReplaceVerifier.swift */,
 				E10000020000000000000234 /* AXSelectedTextAccess.swift */,
@@ -579,6 +582,7 @@
 				E10000010000000000000229 /* PhysicalKeys.swift in Sources */,
 				E10000010000000000000230 /* SystemLayoutMapBuilder.swift in Sources */,
 				E10000010000000000000231 /* AccessibilityService.swift in Sources */,
+				E10000010000000000000265 /* AppRuleRegistry.swift in Sources */,
 				E10000010000000000000232 /* AXReplaceResult.swift in Sources */,
 				E10000010000000000000233 /* AXReplaceVerifier.swift in Sources */,
 				E10000010000000000000234 /* AXSelectedTextAccess.swift in Sources */,

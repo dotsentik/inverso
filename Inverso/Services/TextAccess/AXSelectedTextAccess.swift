@@ -116,7 +116,7 @@ struct AXSelectedTextAccess: SelectedTextAccess {
     private func focusedTextElement() -> AXUIElement? {
         var raw: CFTypeRef?
         var status: AXError
-        let overlayPID = KeyboardFocusOwner.overlayPID()
+        let overlayPID = AppRuleRegistry.overlayPID()
         if let overlayPID {
             // Spotlight / Open-Save panel: the system-wide focus would be the app behind it.
             // Never fall back to that app: we would read or write the wrong text field.

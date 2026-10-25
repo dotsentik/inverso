@@ -36,8 +36,8 @@ final class AccessibilityService {
         keystrokes: KeystrokeSender = CGEventKeystrokeSender(),
         selection: SelectedTextAccess = AXSelectedTextAccess(),
         timing: Timing = Timing(),
-        isClipboardOnlyApp: @escaping @MainActor () -> Bool = ClipboardOnlyApps.isFrontmost,
-        isOverlayFocused: @escaping @MainActor () -> Bool = { KeyboardFocusOwner.overlayPID() != nil }
+        isClipboardOnlyApp: @escaping @MainActor () -> Bool = AppRuleRegistry.isClipboardOnlyFrontmost,
+        isOverlayFocused: @escaping @MainActor () -> Bool = { AppRuleRegistry.overlayPID() != nil }
     ) {
         self.pasteboard = pasteboard
         self.keystrokes = keystrokes

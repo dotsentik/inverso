@@ -15,8 +15,7 @@ enum ClipboardOnlyApps {
 
     @MainActor
     static func isFrontmost() -> Bool {
-        guard let app = NSWorkspace.shared.frontmostApplication else { return false }
-        return matches(bundleID: app.bundleIdentifier, bundleURL: app.bundleURL)
+        AppRuleRegistry.isClipboardOnlyFrontmost()
     }
 
     static func matches(bundleID: String?, bundleURL: URL?) -> Bool {

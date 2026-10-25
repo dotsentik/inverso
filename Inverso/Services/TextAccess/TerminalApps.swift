@@ -21,13 +21,14 @@ enum TerminalApps {
     /// True if a terminal has the keyboard focus. Spotlight or an Open/Save panel above
     /// a terminal has the focus itself, so conversion works there.
     static func hasFocus(frontmostBundleID: String?, overlayFocused: Bool) -> Bool {
-        !overlayFocused && matches(bundleID: frontmostBundleID)
+        AppRuleRegistry.focusMode(
+            frontmostBundleID: frontmostBundleID,
+            overlayPID: overlayFocused ? 1 : nil
+        ) == .terminal
     }
 
     @MainActor
     static func hasFocus() -> Bool {
-        let frontmost = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
-        guard matches(bundleID: frontmost) else { return false }
-        return hasFocus(frontmostBundleID: frontmost, overlayFocused: KeyboardFocusOwner.overlayPID() != nil)
+        AppRuleRegistry.isTerminalFocused()
     }
 }
