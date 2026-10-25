@@ -15,8 +15,10 @@ struct AXSelectedTextAccess: SelectedTextAccess {
     private static let messagingTimeout: Float = 0.25
 
     private let systemWide: AXUIElement
+    private let overlayPIDProvider: () -> pid_t?
 
-    init() {
+    init(overlayPIDProvider: @escaping () -> pid_t? = AppRuleRegistry.overlayPID) {
+        self.overlayPIDProvider = overlayPIDProvider
         systemWide = AXUIElementCreateSystemWide()
         // Applies to all AX calls of this process: a hung app must not stall the main thread.
         AXUIElementSetMessagingTimeout(systemWide, Self.messagingTimeout)
@@ -69,7 +71,13 @@ struct AXSelectedTextAccess: SelectedTextAccess {
 
         var result = AXReplaceResult.unchanged
         for delay in Self.verifyDelays {
-            if delay != .zero { try? await Task.sleep(for: delay) }
+            if delay != .zero {
+                do {
+                    try await Task.sleep(for: delay)
+                } catch {
+                    break
+                }
+            }
             let after: String? = attribute(element, kAXValueAttribute)
             result = AXReplaceVerifier.result(before: before, selectedRange: range, inserted: text, after: after)
             if result != .unchanged { break }
@@ -116,7 +124,7 @@ struct AXSelectedTextAccess: SelectedTextAccess {
     private func focusedTextElement() -> AXUIElement? {
         var raw: CFTypeRef?
         var status: AXError
-        let overlayPID = AppRuleRegistry.overlayPID()
+        let overlayPID = overlayPIDProvider()
         if let overlayPID {
             // Spotlight / Open-Save panel: the system-wide focus would be the app behind it.
             // Never fall back to that app: we would read or write the wrong text field.

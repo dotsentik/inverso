@@ -56,6 +56,7 @@
 		E10000010000000000000230 /* SystemLayoutMapBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000230 /* SystemLayoutMapBuilder.swift */; };
 		E10000010000000000000231 /* AccessibilityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000231 /* AccessibilityService.swift */; };
 		E10000010000000000000265 /* AppRuleRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000265 /* AppRuleRegistry.swift */; };
+		E10000010000000000000266 /* TextAccessStrategy.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000266 /* TextAccessStrategy.swift */; };
 		E10000010000000000000232 /* AXReplaceResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000232 /* AXReplaceResult.swift */; };
 		E10000010000000000000233 /* AXReplaceVerifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000233 /* AXReplaceVerifier.swift */; };
 		E10000010000000000000234 /* AXSelectedTextAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000234 /* AXSelectedTextAccess.swift */; };
@@ -160,6 +161,7 @@
 		E10000020000000000000230 /* SystemLayoutMapBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemLayoutMapBuilder.swift; sourceTree = "<group>"; };
 		E10000020000000000000231 /* AccessibilityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityService.swift; sourceTree = "<group>"; };
 		E10000020000000000000265 /* AppRuleRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRuleRegistry.swift; sourceTree = "<group>"; };
+		E10000020000000000000266 /* TextAccessStrategy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextAccessStrategy.swift; sourceTree = "<group>"; };
 		E10000020000000000000232 /* AXReplaceResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXReplaceResult.swift; sourceTree = "<group>"; };
 		E10000020000000000000233 /* AXReplaceVerifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXReplaceVerifier.swift; sourceTree = "<group>"; };
 		E10000020000000000000234 /* AXSelectedTextAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXSelectedTextAccess.swift; sourceTree = "<group>"; };
@@ -397,6 +399,7 @@
 				E10000020000000000000242 /* SelectedTextAccess.swift */,
 				E10000020000000000000243 /* SystemPasteboard.swift */,
 				E10000020000000000000261 /* TerminalApps.swift */,
+				E10000020000000000000266 /* TextAccessStrategy.swift */,
 				E10000020000000000000262 /* OverlayTextSelection.swift */,
 			);
 			path = TextAccess;
@@ -597,6 +600,7 @@
 				E10000010000000000000243 /* SystemPasteboard.swift in Sources */,
 				E10000010000000000000257 /* KeyboardFocusOwner.swift in Sources */,
 				E10000010000000000000261 /* TerminalApps.swift in Sources */,
+				E10000010000000000000266 /* TextAccessStrategy.swift in Sources */,
 				E10000010000000000000262 /* OverlayTextSelection.swift in Sources */,
 				E10000010000000000000244 /* ConversionLogStore.swift in Sources */,
 				E10000010000000000000245 /* HotkeyManager.swift in Sources */,

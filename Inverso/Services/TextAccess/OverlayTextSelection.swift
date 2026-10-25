@@ -10,6 +10,28 @@ enum OverlayTextSelection {
         var selectedRange: NSRange
     }
 
+    /// Selection action for an overlay field.
+    enum Action: Equatable {
+        /// Keep the user's explicit selection as-is.
+        case keepSelection
+        /// Select the computed range before the cursor, saving the previous range to restore on failure.
+        case selectRange(NSRange, restore: NSRange)
+        /// Abort this step (e.g. inline completion during direct selection, or nothing before cursor).
+        case abort
+    }
+
+    /// Evaluates what `AccessibilityService` should select in an overlay field for `select`.
+    static func action(for select: Keystroke?, in state: State) -> (action: Action, isInlineCompletion: Bool) {
+        let completion = isInlineCompletion(state)
+        guard let select else {
+            return (completion ? .abort : .keepSelection, completion)
+        }
+        guard let range = rangeBeforeCursor(select, in: state) else {
+            return (.abort, completion)
+        }
+        return (.selectRange(range, restore: state.selectedRange), completion)
+    }
+
     /// Spotlight completes the typed text inline: the suggested tail is selected, from the
     /// end of the typed text to the end of the value. A selection the user made at the end of
     /// the text, not starting at its beginning, looks the same and is treated the same way.
