@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.9] - 2026-10-25
+
+### Changed
+
+- Refactored app architecture around a single Composition Root (`InversoApp` / `AppDelegate`)
+  and extracted a pure `Inverso/Core` conversion engine (`Foundation` only) with cached
+  layout maps (`LayoutMapProviding`).
+- Introduced extension seams for application focus rules (`AppRuleRegistry`), text access
+  strategies (`TextAccessStrategy`), user feedback (`FeedbackProviding`), hotkey triggers
+  (`HotkeyTrigger`), Sparkle updater driving (`UpdaterDriving`), and centralized
+  `UserDefaults` keys (`SettingsKeys`).
+- Reduced idle resource usage and startup time (~30% faster launch): lazy SQLite connection
+  and background serial write queue in `ConversionLogStore`, reusable `NSPanel` /
+  `NSHostingView` in `ConversionHUD`, deferred updater startup, and `.task`-scoped
+  permission checks in `PermissionsView`.
+- Reduced app bundle size by ~40% (from 8.3 MB to 5.0 MB) and executable binary size by
+  ~58% through dead-code stripping, asset catalog space optimization, and pruning unused
+  Sparkle `XPCServices` and localizations.
+
 ## [1.2.8] - 2026-10-20
 
 ### Fixed
@@ -82,7 +101,8 @@ The history of the LangSwitcher repository starts with this version.
   Greedy Line).
 - Update errors are logged with the error domain, code and the feed's HTTP status.
 
-[Unreleased]: https://github.com/dotsentik/inverso/compare/v1.2.8...HEAD
+[Unreleased]: https://github.com/dotsentik/inverso/compare/v1.2.9...HEAD
+[1.2.9]: https://github.com/dotsentik/inverso/compare/v1.2.8...v1.2.9
 [1.2.8]: https://github.com/dotsentik/inverso/releases/tag/v1.2.8
 [1.2.7]: https://github.com/dotsentik/inverso/releases/tag/v1.2.7
 [1.2.6]: https://github.com/dotsentik/LangSwitcher/releases/tag/v1.2.6
