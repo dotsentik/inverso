@@ -207,22 +207,30 @@ final class SystemLayoutMapsTests: XCTestCase {
         XCTAssertEqual(LayoutMapper.reverseMap(phonetic)[">"], ">")
     }
 
-    /// U.S. and Russian – PC maps for an ISO keyboard, stored under the IDs of the enabled
-    /// U.S.-like and Russian layouts. Returns their IDs.
-    private func useISOMaps() throws -> (latin: String, russian: String) {
-        let ids = SettingsManager().enabledLayouts.map(\.id)
-        let latin = try XCTUnwrap(ids.first { LayoutCharacterMap.characterMap(for: $0) == LayoutCharacterMap.qwertyUS })
-        let russian = try XCTUnwrap(
-            ids.first { LayoutCharacterMap.characterMap(for: $0) == LayoutCharacterMap.russian })
+    /// U.S. and Russian – PC maps for an ISO keyboard, with an isolated SettingsManager
+    /// configured with those two layouts so tests do not depend on the host's enabled layouts.
+    private func useISOMaps() throws -> (latin: String, russian: String, settings: SettingsManager) {
+        let suiteName = "com.dotsentik.inversoTests.iso.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        addTeardownBlock {
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+        let latin = "com.apple.keylayout.US"
+        let russian = "com.apple.keylayout.RussianWin"
+        let settings = SettingsManager(defaults: defaults)
+        settings.enabledLayouts = [
+            KeyboardLayout(id: latin, localizedName: "U.S.", languageCode: "en"),
+            KeyboardLayout(id: russian, localizedName: "Russian – PC", languageCode: "ru"),
+        ]
         LayoutMaps.setSystemMaps([
-            latin: try systemMap("com.apple.keylayout.US", keyboardType: Self.isoKeyboard),
-            russian: try systemMap("com.apple.keylayout.RussianWin", keyboardType: Self.isoKeyboard),
+            latin: try systemMap(latin, keyboardType: Self.isoKeyboard),
+            russian: try systemMap(russian, keyboardType: Self.isoKeyboard),
         ])
-        return (latin, russian)
+        return (latin, russian, settings)
     }
 
     func testISO_ConvertSectionKeyWords() throws {
-        let (latin, russian) = try useISOMaps()
+        let (latin, russian, _) = try useISOMaps()
 
         XCTAssertEqual(LayoutMapper.convert(text: "§krf", from: latin, to: russian), "ёлка")
         XCTAssertEqual(LayoutMapper.convert(text: "±KRF", from: latin, to: russian), "ЁЛКА")
@@ -233,8 +241,8 @@ final class SystemLayoutMapsTests: XCTestCase {
     }
 
     func testISO_TextConverter() throws {
-        _ = try useISOMaps()
-        let converter = TextConverter(settingsManager: SettingsManager())
+        let (_, _, settings) = try useISOMaps()
+        let converter = TextConverter(settingsManager: settings)
 
         XCTAssertEqual(converter.convert("§krf")?.text, "ёлка")
         XCTAssertEqual(converter.convert("±KRF")?.text, "ЁЛКА")
