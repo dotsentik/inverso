@@ -4,7 +4,7 @@ import SwiftUI
 /// A small non-activating panel at the top of the screen that shows the last conversion.
 /// Never takes focus or mouse events, so typing continues in the frontmost app.
 @MainActor
-final class ConversionHUD {
+final class ConversionHUD: FeedbackProviding {
 
     static let shared = ConversionHUD()
 
@@ -14,12 +14,21 @@ final class ConversionHUD {
     var backgroundOverride: HUDBackgroundStyle?
 
     private(set) var panel: NSPanel?
+    private(set) var hostingView: NSHostingView<ConversionHUDView>?
     private var hideTask: Task<Void, Never>?
 
     private static let topMargin: CGFloat = 8
     private static let slideDistance: CGFloat = 8
     private static let fadeInDuration: TimeInterval = 0.18
     private static let fadeOutDuration: TimeInterval = 0.25
+
+    func showConversion(input: String, output: String, layoutCode: String) {
+        show(ConversionHUDContent(input: input, output: output, layoutCode: layoutCode))
+    }
+
+    func showMessage(_ message: String) {
+        show(ConversionHUDContent(message: message))
+    }
 
     func show(_ content: ConversionHUDContent) {
         let workspace = NSWorkspace.shared
@@ -28,10 +37,22 @@ final class ConversionHUD {
             backgroundOverride
             ?? HUDBackgroundStyle.current(reduceTransparency: workspace.accessibilityDisplayShouldReduceTransparency)
 
-        let panel = self.panel ?? makePanel()
-        self.panel = panel
-        let hosting = NSHostingView(rootView: ConversionHUDView(content: content, background: background))
-        panel.contentView = hosting
+        let rootView = ConversionHUDView(content: content, background: background)
+        let panel: NSPanel
+        let hosting: NSHostingView<ConversionHUDView>
+        if let existingPanel = self.panel, let existingHosting = self.hostingView {
+            panel = existingPanel
+            hosting = existingHosting
+            hosting.rootView = rootView
+        } else {
+            let newPanel = self.panel ?? makePanel()
+            let newHosting = NSHostingView(rootView: rootView)
+            newPanel.contentView = newHosting
+            self.panel = newPanel
+            self.hostingView = newHosting
+            panel = newPanel
+            hosting = newHosting
+        }
         let finalFrame = Self.frame(size: hosting.fittingSize, on: Self.screenWithMouse())
 
         hideTask?.cancel()
@@ -71,9 +92,9 @@ final class ConversionHUD {
         NSAnimationContext.runAnimationGroup { context in
             context.duration = Self.fadeOutDuration
             panel.animator().alphaValue = 0
-        } completionHandler: {
+        } completionHandler: { [weak panel] in
             Task { @MainActor in
-                if panel.alphaValue == 0 { panel.orderOut(nil) }
+                if let panel, panel.alphaValue == 0 { panel.orderOut(nil) }
             }
         }
     }

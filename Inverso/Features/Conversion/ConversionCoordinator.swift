@@ -1,5 +1,4 @@
 import Cocoa
-import UserNotifications
 
 /// Runs a conversion when the hotkey fires: converts the selection or, without one, the text
 /// chosen by the Smart Conversion mode; then logs it, switches the layout and gives feedback.
@@ -24,6 +23,10 @@ final class ConversionCoordinator {
     private let conversionLogStore = ConversionLogStore.shared
     private let hotkeyManager = HotkeyManager()
     private let accessibilityService = AccessibilityService()
+    private let hudFeedback: FeedbackProviding = HUDFeedbackProvider()
+    private let notificationFeedback: FeedbackProviding = NotificationFeedbackProvider()
+    private let soundFeedback: FeedbackProviding = SoundFeedbackProvider()
+    private let silentFeedback: FeedbackProviding = SilentFeedbackProvider()
     private lazy var textConverter = TextConverter(settingsManager: settingsManager)
 
     /// The chain drives the shared pasteboard, so only one conversion may run at a time.
@@ -76,7 +79,7 @@ final class ConversionCoordinator {
         if AppRuleRegistry.isTerminalFocused() {
             Log.app.info("Terminal has the focus, conversion is not supported")
             let hint = LocalizationManager.shared.localized("alert.terminalNotSupported")
-            ConversionHUD.shared.show(ConversionHUDContent(message: hint))
+            hudFeedback.showMessage(hint)
             return
         }
         conversionInProgress = true
@@ -222,40 +225,27 @@ final class ConversionCoordinator {
     // MARK: - Feedback
 
     static func requestNotificationAuthorization() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert]) { _, _ in }
+        NotificationFeedbackProvider.requestAuthorization()
     }
 
     private func playSoundIfEnabled() {
-        if settingsManager.playSounds {
-            NSSound(named: .init("Tink"))?.play()
-        }
+        guard settingsManager.playSounds else { return }
+        soundFeedback.showConversion(input: "", output: "", layoutCode: "")
     }
 
     /// Shows the HUD or a notification about the result, as configured.
     private func showFeedback(for capture: Capture) {
         guard let input = capture.input, let output = capture.output else { return }
+        let code = ConversionHUDContent.layoutCode(for: capture.targetLayoutID, in: settingsManager.layoutOrder)
+        let provider: FeedbackProviding
         switch settingsManager.conversionFeedback {
         case .none:
-            return
+            provider = silentFeedback
         case .hud:
-            let code = ConversionHUDContent.layoutCode(for: capture.targetLayoutID, in: settingsManager.layoutOrder)
-            ConversionHUD.shared.show(ConversionHUDContent(input: input, output: output, layoutCode: code))
+            provider = hudFeedback
         case .notification:
-            showNotification(input: input, output: output)
+            provider = notificationFeedback
         }
-    }
-
-    private func showNotification(input: String, output: String) {
-        let content = UNMutableNotificationContent()
-        content.title = "Inverso"
-        content.body = "\(input) → \(output)"
-        content.sound = nil  // The sound is a separate setting, played by playSoundIfEnabled()
-
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error {
-                Log.app.error("Failed to show notification: \(error.localizedDescription, privacy: .public)")
-            }
-        }
+        provider.showConversion(input: input, output: output, layoutCode: code)
     }
 }

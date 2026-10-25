@@ -76,6 +76,12 @@ final class ConversionHUDTests: XCTestCase {
 
     // MARK: - Panel
 
+    func testPanelAndHostingViewAreNilUntilFirstShow() {
+        let hud = ConversionHUD()
+        XCTAssertNil(hud.panel)
+        XCTAssertNil(hud.hostingView)
+    }
+
     func testPanelNeverTakesFocusOrMouse() throws {
         let hud = ConversionHUD()
         hud.show(ConversionHUDContent(input: "ghbdtn", output: "привет", layoutCode: "RU"))
@@ -97,10 +103,45 @@ final class ConversionHUDTests: XCTestCase {
 
         hud.show(ConversionHUDContent(input: "a", output: "ф", layoutCode: "RU"))
         let first = try XCTUnwrap(hud.panel)
+        let firstHosting = try XCTUnwrap(hud.hostingView)
         hud.show(ConversionHUDContent(input: "b", output: "и", layoutCode: "RU"))
         XCTAssertTrue(hud.panel === first, "one panel, text swapped")
+        XCTAssertTrue(hud.hostingView === firstHosting, "NSHostingView reused via rootView")
+        XCTAssertEqual(firstHosting.rootView.content.output, "и")
 
         try await Task.sleep(for: .milliseconds(800))
         XCTAssertFalse(first.isVisible)
+    }
+
+    // MARK: - FeedbackProviding
+
+    func testFeedbackProviders() throws {
+        let hud = ConversionHUD()
+        defer { hud.panel?.orderOut(nil) }
+        let hudProvider: FeedbackProviding = HUDFeedbackProvider(hud: hud)
+        hudProvider.showConversion(input: "ghbdtn", output: "привет", layoutCode: "RU")
+        XCTAssertEqual(hud.hostingView?.rootView.content.output, "привет")
+
+        hudProvider.showMessage("Terminal hint")
+        XCTAssertEqual(hud.hostingView?.rootView.content.message, "Terminal hint")
+
+        var notifiedPair: (String, String)?
+        let notificationProvider: FeedbackProviding = NotificationFeedbackProvider { input, output in
+            notifiedPair = (input, output)
+        }
+        notificationProvider.showConversion(input: "ghbdtn", output: "привет", layoutCode: "RU")
+        XCTAssertEqual(notifiedPair?.0, "ghbdtn")
+        XCTAssertEqual(notifiedPair?.1, "привет")
+
+        var soundPlayed = false
+        let soundProvider: FeedbackProviding = SoundFeedbackProvider {
+            soundPlayed = true
+        }
+        soundProvider.showConversion(input: "a", output: "ф", layoutCode: "RU")
+        XCTAssertTrue(soundPlayed)
+
+        let silentProvider: FeedbackProviding = SilentFeedbackProvider()
+        silentProvider.showConversion(input: "a", output: "ф", layoutCode: "RU")
+        silentProvider.showMessage("Ignored")
     }
 }
