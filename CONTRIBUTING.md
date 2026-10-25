@@ -149,10 +149,10 @@ Visual and audio notifications after a conversion implement `FeedbackProviding` 
 
 ### Adding a Text Access Strategy (`TextAccessStrategy`)
 
-`AccessibilityService` (`Inverso/Services/TextAccess/AccessibilityService.swift`) delegates reading and replacing text to `TextAccessStrategy` implementations (`Inverso/Services/TextAccess/TextAccessStrategy.swift`):
+`AccessibilityService` (`Inverso/Services/TextAccess/AccessibilityService.swift`) resolves how to select, read, and replace text through `TextAccessStrategy` (`Inverso/Services/TextAccess/TextAccessStrategy.swift`):
 
-1. Implement a type conforming to `@MainActor protocol TextAccessStrategy` with `replaceText(using:)`, returning `.handled(success:)` when the strategy completes or `.notApplicable` to fall back to the next strategy in the chain.
-2. Inject or append the strategy in `AccessibilityService` (`selectionStrategies` for explicit selections or `lineStrategies` for greedy line selection).
+1. Add or update cases on `TextAccessStrategy.SelectionMethod`, `ReadMethod`, or `ReplaceMethod`, and define a static preset on `TextAccessStrategy` (alongside `.standard`, `.clipboardOnly`, and `.overlay`).
+2. Update `TextAccessStrategy.resolve(for:)` and `TextAccessStrategy.resolve(overlayFocused:clipboardOnly:)` to map the target focus mode or flags to the new preset, and handle any new method case in `AccessibilityService`.
 3. Add unit tests with fake `SelectedTextAccess` / `PasteboardAccess` / `KeystrokeSender` in `InversoTests/AccessibilityServiceTests.swift`.
 
 ## Troubleshooting updates
