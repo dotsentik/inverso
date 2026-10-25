@@ -11,7 +11,7 @@ final class LocalizationManager: ObservableObject {
     static let shared = LocalizationManager()
 
     /// `currentLanguage` value meaning "use the system language".
-    static let systemLanguage = ""
+    static let systemLanguage = SettingsKeys.Defaults.appLanguageOverride
 
     /// Languages the user can pick explicitly: code + native name.
     static let availableLanguages: [(code: String, name: String)] = [
@@ -21,7 +21,7 @@ final class LocalizationManager: ObservableObject {
 
     /// UserDefaults key of the explicit choice. The old "appLanguage" key is ignored on purpose:
     /// earlier versions always wrote it, so it cannot tell a real choice from the detected default.
-    static let overrideKey = "appLanguageOverride"
+    static let overrideKey = SettingsKeys.appLanguageOverride
 
     private static let fallbackLanguage = "en"
 

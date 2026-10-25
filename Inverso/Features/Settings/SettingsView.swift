@@ -19,7 +19,7 @@ struct SettingsView: View {
     @EnvironmentObject private var settingsManager: SettingsManager
     @EnvironmentObject private var l10n: LocalizationManager
     /// The window reopens on the last used section.
-    @AppStorage("settingsTab") private var selectedTab: TabID = .general
+    @AppStorage(SettingsKeys.settingsTab) private var selectedTab: TabID = .general
 
     /// One size for every section: the window never resizes when switching.
     static let windowContentSize = CGSize(width: 640, height: 560)

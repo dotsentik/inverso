@@ -84,6 +84,7 @@
 		E10000010000000000000253 /* KeyboardLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000253 /* KeyboardLayout.swift */; };
 		E10000010000000000000254 /* LayoutCharacterMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000254 /* LayoutCharacterMap.swift */; };
 		E10000010000000000000255 /* LayoutSwitchMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000255 /* LayoutSwitchMode.swift */; };
+		E10000010000000000000263 /* SettingsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000263 /* SettingsKeys.swift */; };
 		E10000010000000000000256 /* SmartConversionMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000256 /* SmartConversionMode.swift */; };
 		E10000010000000000000258 /* UpdateConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000258 /* UpdateConfig.swift */; };
 		E10000010000000000000259 /* UpdaterSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000259 /* UpdaterSettings.swift */; };
@@ -185,6 +186,7 @@
 		E10000020000000000000253 /* KeyboardLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardLayout.swift; sourceTree = "<group>"; };
 		E10000020000000000000254 /* LayoutCharacterMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutCharacterMap.swift; sourceTree = "<group>"; };
 		E10000020000000000000255 /* LayoutSwitchMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutSwitchMode.swift; sourceTree = "<group>"; };
+		E10000020000000000000263 /* SettingsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsKeys.swift; sourceTree = "<group>"; };
 		E10000020000000000000256 /* SmartConversionMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartConversionMode.swift; sourceTree = "<group>"; };
 		E10000020000000000000258 /* UpdateConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateConfig.swift; sourceTree = "<group>"; };
 		E10000020000000000000259 /* UpdaterSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdaterSettings.swift; sourceTree = "<group>"; };
@@ -420,6 +422,7 @@
 				E10000020000000000000253 /* KeyboardLayout.swift */,
 				E10000020000000000000254 /* LayoutCharacterMap.swift */,
 				E10000020000000000000255 /* LayoutSwitchMode.swift */,
+				E10000020000000000000263 /* SettingsKeys.swift */,
 				E10000020000000000000256 /* SmartConversionMode.swift */,
 			);
 			path = Models;
@@ -591,6 +594,7 @@
 				E10000010000000000000253 /* KeyboardLayout.swift in Sources */,
 				E10000010000000000000254 /* LayoutCharacterMap.swift in Sources */,
 				E10000010000000000000255 /* LayoutSwitchMode.swift in Sources */,
+				E10000010000000000000263 /* SettingsKeys.swift in Sources */,
 				E10000010000000000000256 /* SmartConversionMode.swift in Sources */,
 				E10000010000000000000258 /* UpdateConfig.swift in Sources */,
 				E10000010000000000000259 /* UpdaterSettings.swift in Sources */,

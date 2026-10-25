@@ -60,16 +60,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         private func startDevelopmentAids() {
             let launchDelay = Duration.milliseconds(500)
             let defaults = UserDefaults.standard
-            if defaults.bool(forKey: "LSOpenSettingsAtLaunch") {
+            if defaults.bool(forKey: SettingsKeys.openSettingsAtLaunch) {
                 Task { @MainActor in
                     try? await Task.sleep(for: launchDelay)
                     NotificationCenter.default.post(name: .openSettingsRequest, object: nil)
                 }
             }
-            if defaults.bool(forKey: "LSDemoHUD") {
+            if defaults.bool(forKey: SettingsKeys.demoHUD) {
                 let hud = ConversionHUD.shared
                 hud.displayDuration = .seconds(10)
-                hud.backgroundOverride = defaults.string(forKey: "LSHUDBackground")
+                hud.backgroundOverride = defaults.string(forKey: SettingsKeys.hudBackground)
                     .flatMap(HUDBackgroundStyle.init(rawValue:))
                 Task { @MainActor in
                     try? await Task.sleep(for: launchDelay)
