@@ -210,7 +210,7 @@ final class SystemLayoutMapsTests: XCTestCase {
     /// U.S. and Russian – PC maps for an ISO keyboard, stored under the IDs of the enabled
     /// U.S.-like and Russian layouts. Returns their IDs.
     private func useISOMaps() throws -> (latin: String, russian: String) {
-        let ids = SettingsManager.shared.enabledLayouts.map(\.id)
+        let ids = SettingsManager().enabledLayouts.map(\.id)
         let latin = try XCTUnwrap(ids.first { LayoutCharacterMap.characterMap(for: $0) == LayoutCharacterMap.qwertyUS })
         let russian = try XCTUnwrap(
             ids.first { LayoutCharacterMap.characterMap(for: $0) == LayoutCharacterMap.russian })
@@ -234,7 +234,7 @@ final class SystemLayoutMapsTests: XCTestCase {
 
     func testISO_TextConverter() throws {
         _ = try useISOMaps()
-        let converter = TextConverter(settingsManager: SettingsManager.shared)
+        let converter = TextConverter(settingsManager: SettingsManager())
 
         XCTAssertEqual(converter.convert("§krf")?.text, "ёлка")
         XCTAssertEqual(converter.convert("±KRF")?.text, "ЁЛКА")

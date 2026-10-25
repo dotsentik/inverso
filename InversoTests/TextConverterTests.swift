@@ -6,7 +6,7 @@ import XCTest
 final class TextConverterTests: XCTestCase {
 
     // We need a SettingsManager with known layouts for deterministic testing.
-    // SettingsManager.shared will pick up system layouts which may vary,
+    // SettingsManager() will pick up system layouts which may vary,
     // so tests must check that at least US+Russian are present for core tests.
 
     private var converter: TextConverter!
@@ -14,7 +14,7 @@ final class TextConverterTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
         LayoutMaps.useSystemLayouts = false
-        let settings = SettingsManager.shared
+        let settings = SettingsManager()
         // Ensure we have at least US and Russian layouts for testing
         let hasUS = settings.enabledLayouts.contains {
             $0.id.lowercased().contains("us") || $0.id.lowercased().contains("abc")

@@ -6,8 +6,6 @@ import SwiftUI
 @MainActor
 final class ConversionHUD: FeedbackProviding {
 
-    static let shared = ConversionHUD()
-
     /// How long the HUD stays fully visible.
     var displayDuration: Duration = .milliseconds(1000)
     /// Forces a background style instead of following the system (tests, screenshots).

@@ -16,6 +16,10 @@ struct SettingsView: View {
         }
     }
 
+    let logStore: ConversionLogStore
+    let launchAtLogin: LaunchAtLoginHelper
+    let updates: UpdateController
+
     @EnvironmentObject private var settingsManager: SettingsManager
     @EnvironmentObject private var l10n: LocalizationManager
     /// The window reopens on the last used section.
@@ -50,11 +54,11 @@ struct SettingsView: View {
     @ViewBuilder
     private var content: some View {
         switch selectedTab {
-        case .general: GeneralSettingsTab()
+        case .general: GeneralSettingsTab(launchAtLogin: launchAtLogin, updates: updates)
         case .layouts: LayoutsSettingsTab()
         case .shortcut: HotkeySettingsTab()
         case .permissions: PermissionsView()
-        case .log: ConversionLogView(logStore: ConversionLogStore.shared)
+        case .log: ConversionLogView(logStore: logStore)
         }
     }
 

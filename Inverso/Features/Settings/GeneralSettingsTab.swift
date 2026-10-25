@@ -2,10 +2,10 @@ import SwiftUI
 
 /// Language, launch at login, feedback, Smart Conversion and layout switch modes.
 struct GeneralSettingsTab: View {
+    @ObservedObject var launchAtLogin: LaunchAtLoginHelper
+    @ObservedObject var updates: UpdateController
     @EnvironmentObject private var settingsManager: SettingsManager
     @EnvironmentObject private var l10n: LocalizationManager
-    @ObservedObject private var launchAtLogin = LaunchAtLoginHelper.shared
-    @ObservedObject private var updates = UpdateController.shared
 
     var body: some View {
         Form {

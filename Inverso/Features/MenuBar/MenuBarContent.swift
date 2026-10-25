@@ -2,12 +2,12 @@ import SwiftUI
 
 /// The menu of the status item.
 struct MenuBarContent: View {
+    @ObservedObject var inputSource: InputSourceMonitor
+    @ObservedObject var updates: UpdateController
     let onConvert: () -> Void
 
     @EnvironmentObject private var settingsManager: SettingsManager
     @EnvironmentObject private var l10n: LocalizationManager
-    @ObservedObject private var inputSource = InputSourceMonitor.shared
-    @ObservedObject private var updates = UpdateController.shared
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {

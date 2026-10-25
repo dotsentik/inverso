@@ -8,8 +8,6 @@ import Foundation
 @MainActor
 final class LocalizationManager: ObservableObject {
 
-    static let shared = LocalizationManager()
-
     /// `currentLanguage` value meaning "use the system language".
     static let systemLanguage = SettingsKeys.Defaults.appLanguageOverride
 

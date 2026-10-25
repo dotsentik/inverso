@@ -7,7 +7,7 @@ import XCTest
 final class AboutPanelTests: XCTestCase {
 
     func testShowsOnlyTheShortVersion() {
-        let options = AboutPanel.options(l10n: LocalizationManager.shared)
+        let options = AboutPanel.options(l10n: LocalizationManager())
 
         // Empty build version: no "(7)" after "Version 1.2.7"
         XCTAssertEqual(options[.version] as? String, "")
@@ -17,7 +17,7 @@ final class AboutPanelTests: XCTestCase {
 
     func testCreditsLinkToTheOriginalProject() throws {
         let credits = try XCTUnwrap(
-            AboutPanel.options(l10n: LocalizationManager.shared)[.credits] as? NSAttributedString)
+            AboutPanel.options(l10n: LocalizationManager())[.credits] as? NSAttributedString)
         var links: [URL] = []
         credits.enumerateAttribute(.link, in: NSRange(location: 0, length: credits.length)) { value, _, _ in
             if let url = value as? URL { links.append(url) }
@@ -26,7 +26,7 @@ final class AboutPanelTests: XCTestCase {
     }
 
     func testCreditsNameTheOriginalProjectAndAuthor() throws {
-        let l10n = LocalizationManager.shared
+        let l10n = LocalizationManager()
         let credits = try XCTUnwrap(AboutPanel.options(l10n: l10n)[.credits] as? NSAttributedString)
         let basedOn = l10n.localized("about.basedOn")
         XCTAssertTrue(basedOn.contains("LangSwitcher"))

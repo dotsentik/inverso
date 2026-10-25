@@ -5,9 +5,39 @@ import Cocoa
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
-    let conversionCoordinator = ConversionCoordinator()
+    let settingsManager: SettingsManager
+    let l10n: LocalizationManager
+    let conversionLogStore: ConversionLogStore
+    let conversionHUD: ConversionHUD
+    let inputSourceMonitor: InputSourceMonitor
+    let updateController: UpdateController
+    let launchAtLoginHelper: LaunchAtLoginHelper
+    let conversionCoordinator: ConversionCoordinator
 
-    private let settingsManager = SettingsManager.shared
+    override init() {
+        let settingsManager = SettingsManager()
+        let l10n = LocalizationManager()
+        let conversionLogStore = ConversionLogStore()
+        let conversionHUD = ConversionHUD()
+        let inputSourceMonitor = InputSourceMonitor()
+        let updateController = UpdateController()
+        let launchAtLoginHelper = LaunchAtLoginHelper()
+        let conversionCoordinator = ConversionCoordinator(
+            settingsManager: settingsManager,
+            l10n: l10n,
+            conversionLogStore: conversionLogStore,
+            hud: conversionHUD
+        )
+        self.settingsManager = settingsManager
+        self.l10n = l10n
+        self.conversionLogStore = conversionLogStore
+        self.conversionHUD = conversionHUD
+        self.inputSourceMonitor = inputSourceMonitor
+        self.updateController = updateController
+        self.launchAtLoginHelper = launchAtLoginHelper
+        self.conversionCoordinator = conversionCoordinator
+        super.init()
+    }
 
     /// Value of kTISNotifyEnabledKeyboardInputSourcesChanged (the C global is not concurrency-safe).
     private static let enabledInputSourcesChanged = Notification.Name(
@@ -30,7 +60,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
 
         conversionCoordinator.start()
-        UpdateController.shared.start()
+        updateController.start()
 
         let trusted = AccessibilityService.hasAccessibilityPermission
         Log.app.info("Initial AXIsProcessTrusted = \(trusted)")
@@ -67,7 +97,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
             if defaults.bool(forKey: SettingsKeys.demoHUD) {
-                let hud = ConversionHUD.shared
+                let hud = conversionHUD
                 hud.displayDuration = .seconds(10)
                 hud.backgroundOverride = defaults.string(forKey: SettingsKeys.hudBackground)
                     .flatMap(HUDBackgroundStyle.init(rawValue:))

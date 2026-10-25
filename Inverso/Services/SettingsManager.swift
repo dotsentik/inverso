@@ -4,12 +4,10 @@ import SwiftUI
 @MainActor
 final class SettingsManager: ObservableObject {
 
-    static let shared = SettingsManager()
-
     /// Log size limit until the user changes it; also what turning "unlimited" off restores.
     static let defaultLogMaxEntries = SettingsKeys.Defaults.logMaxEntries
 
-    private let defaults = UserDefaults.standard
+    private let defaults: UserDefaults
 
     // MARK: - Layouts
 
@@ -113,7 +111,8 @@ final class SettingsManager: ObservableObject {
 
     // MARK: - Init
 
-    private init() {
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
         useDoubleShift =
             defaults.object(forKey: SettingsKeys.useDoubleShift) as? Bool
             ?? SettingsKeys.Defaults.useDoubleShift

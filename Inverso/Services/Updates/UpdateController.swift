@@ -25,8 +25,6 @@ extension UpdaterDriving {
 @MainActor
 final class UpdateController: ObservableObject {
 
-    static let shared = UpdateController()
-
     /// False while a check is running or before the updater has started.
     @Published private(set) var canCheckForUpdates = false
     @Published private(set) var automaticallyChecksForUpdates: Bool
@@ -34,7 +32,7 @@ final class UpdateController: ObservableObject {
     private let driver: UpdaterDriving
 
     /// The app's updater. It does nothing until `start()`.
-    private convenience init() {
+    convenience init() {
         self.init(driver: SparkleUpdaterDriver())
     }
 

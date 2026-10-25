@@ -10,7 +10,7 @@ struct PermissionsView: View {
     private static let accessibilitySettingsURL = URL(
         string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
     /// The user grants access in System Settings while this tab stays open; poll for it.
-    private static let refreshInterval: TimeInterval = 2
+    private static let refreshInterval: Duration = .seconds(2)
 
     var body: some View {
         Form {
@@ -56,8 +56,12 @@ struct PermissionsView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refresh()
         }
-        .onReceive(Timer.publish(every: Self.refreshInterval, on: .main, in: .common).autoconnect()) { _ in
-            refresh()
+        .task(id: hasAccessibility) {
+            while !hasAccessibility && !Task.isCancelled {
+                try? await Task.sleep(for: Self.refreshInterval)
+                guard !Task.isCancelled else { break }
+                refresh()
+            }
         }
     }
 

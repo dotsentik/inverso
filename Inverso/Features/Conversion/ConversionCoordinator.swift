@@ -19,15 +19,39 @@ final class ConversionCoordinator {
         var targetLayoutID: String?
     }
 
-    private let settingsManager = SettingsManager.shared
-    private let conversionLogStore = ConversionLogStore.shared
-    private let hotkeyManager = HotkeyManager()
-    private let accessibilityService = AccessibilityService()
-    private let hudFeedback: FeedbackProviding = HUDFeedbackProvider()
-    private let notificationFeedback: FeedbackProviding = NotificationFeedbackProvider()
-    private let soundFeedback: FeedbackProviding = SoundFeedbackProvider()
-    private let silentFeedback: FeedbackProviding = SilentFeedbackProvider()
-    private lazy var textConverter = TextConverter(settingsManager: settingsManager)
+    private let settingsManager: SettingsManager
+    private let l10n: LocalizationManager
+    private let conversionLogStore: ConversionLogStore
+    private let hotkeyManager: HotkeyManager
+    private let accessibilityService: AccessibilityService
+    private let hudFeedback: FeedbackProviding
+    private let notificationFeedback: FeedbackProviding
+    private let soundFeedback: FeedbackProviding
+    private let silentFeedback: FeedbackProviding
+    private let textConverter: TextConverter
+
+    init(
+        settingsManager: SettingsManager,
+        l10n: LocalizationManager,
+        conversionLogStore: ConversionLogStore,
+        hud: ConversionHUD,
+        hotkeyManager: HotkeyManager = HotkeyManager(),
+        accessibilityService: AccessibilityService = AccessibilityService(),
+        notificationFeedback: FeedbackProviding = NotificationFeedbackProvider(),
+        soundFeedback: FeedbackProviding = SoundFeedbackProvider(),
+        silentFeedback: FeedbackProviding = SilentFeedbackProvider()
+    ) {
+        self.settingsManager = settingsManager
+        self.l10n = l10n
+        self.conversionLogStore = conversionLogStore
+        self.hotkeyManager = hotkeyManager
+        self.accessibilityService = accessibilityService
+        self.hudFeedback = HUDFeedbackProvider(hud: hud)
+        self.notificationFeedback = notificationFeedback
+        self.soundFeedback = soundFeedback
+        self.silentFeedback = silentFeedback
+        self.textConverter = TextConverter(settingsManager: settingsManager)
+    }
 
     /// The chain drives the shared pasteboard, so only one conversion may run at a time.
     private var conversionInProgress = false
@@ -78,7 +102,7 @@ final class ConversionCoordinator {
         // Terminals: no keystrokes, no pasteboard, no text changes; only the hint.
         if AppRuleRegistry.isTerminalFocused() {
             Log.app.info("Terminal has the focus, conversion is not supported")
-            let hint = LocalizationManager.shared.localized("alert.terminalNotSupported")
+            let hint = l10n.localized("alert.terminalNotSupported")
             hudFeedback.showMessage(hint)
             return
         }

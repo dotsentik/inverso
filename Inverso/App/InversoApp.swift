@@ -7,18 +7,26 @@ struct InversoApp: App {
     var body: some Scene {
         // Menu bar app: no main window.
         MenuBarExtra {
-            MenuBarContent(onConvert: { appDelegate.conversionCoordinator.convert() })
-                .environmentObject(SettingsManager.shared)
-                .environmentObject(LocalizationManager.shared)
+            MenuBarContent(
+                inputSource: appDelegate.inputSourceMonitor,
+                updates: appDelegate.updateController,
+                onConvert: { appDelegate.conversionCoordinator.convert() }
+            )
+            .environmentObject(appDelegate.settingsManager)
+            .environmentObject(appDelegate.l10n)
         } label: {
             MenuBarLabel()
         }
         .menuBarExtraStyle(.menu)
 
         Settings {
-            SettingsView()
-                .environmentObject(SettingsManager.shared)
-                .environmentObject(LocalizationManager.shared)
+            SettingsView(
+                logStore: appDelegate.conversionLogStore,
+                launchAtLogin: appDelegate.launchAtLoginHelper,
+                updates: appDelegate.updateController
+            )
+            .environmentObject(appDelegate.settingsManager)
+            .environmentObject(appDelegate.l10n)
         }
         .windowResizability(.contentSize)
     }

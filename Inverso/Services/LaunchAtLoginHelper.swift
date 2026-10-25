@@ -6,8 +6,6 @@ import ServiceManagement
 @MainActor
 final class LaunchAtLoginHelper: ObservableObject {
 
-    static let shared = LaunchAtLoginHelper()
-
     @Published private(set) var status: SMAppService.Status
     /// Message of the last failed register/unregister; cleared on the next attempt.
     @Published private(set) var lastError: String?

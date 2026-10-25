@@ -17,7 +17,7 @@ extension FeedbackProviding {
 struct HUDFeedbackProvider: FeedbackProviding {
     let hud: ConversionHUD
 
-    init(hud: ConversionHUD = .shared) {
+    init(hud: ConversionHUD = ConversionHUD()) {
         self.hud = hud
     }
 

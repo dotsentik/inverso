@@ -7,8 +7,6 @@ import SQLite3
 @MainActor
 final class ConversionLogStore: ObservableObject {
 
-    static let shared = ConversionLogStore()
-
     @Published private(set) var logs: [ConversionLog] = []
 
     private let backend: DatabaseBackend
