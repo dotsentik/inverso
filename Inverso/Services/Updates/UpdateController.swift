@@ -116,8 +116,6 @@ private final class SettingsUpdaterDriver: UpdaterDriving {
 /// background schedule delay elapses, keeping launch and idle footprint minimal.
 @MainActor
 final class SparkleUpdaterDriver: UpdaterDriving {
-    private static let automaticChecksKey = "SUEnableAutomaticChecks"
-    private static let checkIntervalKey = "SUScheduledCheckInterval"
     private static let defaultStartupDelay: Duration = .seconds(120)
 
     private let defaults: UserDefaults
@@ -201,13 +199,14 @@ final class SparkleUpdaterDriver: UpdaterDriving {
             if let standardController {
                 return standardController.updater.automaticallyChecksForUpdates
             }
-            return defaults.object(forKey: Self.automaticChecksKey) as? Bool ?? true
+            return defaults.object(forKey: SettingsKeys.sparkleEnableAutomaticChecks) as? Bool
+                ?? SettingsKeys.Defaults.sparkleEnableAutomaticChecks
         }
         set {
             if let standardController {
                 standardController.updater.automaticallyChecksForUpdates = newValue
             } else {
-                defaults.set(newValue, forKey: Self.automaticChecksKey)
+                defaults.set(newValue, forKey: SettingsKeys.sparkleEnableAutomaticChecks)
                 if newValue {
                     if isStarted {
                         scheduleDeferredStart()
@@ -224,14 +223,14 @@ final class SparkleUpdaterDriver: UpdaterDriving {
             if let standardController {
                 return standardController.updater.updateCheckInterval
             }
-            return defaults.object(forKey: Self.checkIntervalKey) as? TimeInterval
+            return defaults.object(forKey: SettingsKeys.sparkleScheduledCheckInterval) as? TimeInterval
                 ?? UpdateConfig.checkInterval
         }
         set {
             if let standardController {
                 standardController.updater.updateCheckInterval = newValue
             } else {
-                defaults.set(newValue, forKey: Self.checkIntervalKey)
+                defaults.set(newValue, forKey: SettingsKeys.sparkleScheduledCheckInterval)
             }
         }
     }

@@ -126,7 +126,7 @@ final class UpdateControllerTests: XCTestCase {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
         defer { defaults.removePersistentDomain(forName: suiteName) }
 
-        defaults.set(false, forKey: "SUEnableAutomaticChecks")
+        defaults.set(false, forKey: SettingsKeys.sparkleEnableAutomaticChecks)
         var controllerStartCount = 0
         let driver = SparkleUpdaterDriver(
             defaults: defaults,

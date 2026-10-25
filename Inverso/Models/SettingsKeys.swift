@@ -18,6 +18,8 @@ enum SettingsKeys {
     static let logMaxEntries = "logMaxEntries"
     static let appLanguageOverride = "appLanguageOverride"
     static let settingsTab = "settingsTab"
+    static let sparkleEnableAutomaticChecks = "SUEnableAutomaticChecks"
+    static let sparkleScheduledCheckInterval = "SUScheduledCheckInterval"
 
     static let openSettingsAtLaunch = "LSOpenSettingsAtLaunch"
     static let demoHUD = "LSDemoHUD"
@@ -40,6 +42,8 @@ enum SettingsKeys {
         logMaxEntries,
         appLanguageOverride,
         settingsTab,
+        sparkleEnableAutomaticChecks,
+        sparkleScheduledCheckInterval,
     ]
 
     enum Defaults {
@@ -57,5 +61,6 @@ enum SettingsKeys {
         static let loggingEnabled = false
         static let logMaxEntries = 100
         static let appLanguageOverride = ""
+        static let sparkleEnableAutomaticChecks = true
     }
 }

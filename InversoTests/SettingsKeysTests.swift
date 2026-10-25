@@ -22,6 +22,8 @@ final class SettingsKeysTests: XCTestCase {
         XCTAssertEqual(SettingsKeys.logMaxEntries, "logMaxEntries")
         XCTAssertEqual(SettingsKeys.appLanguageOverride, "appLanguageOverride")
         XCTAssertEqual(SettingsKeys.settingsTab, "settingsTab")
+        XCTAssertEqual(SettingsKeys.sparkleEnableAutomaticChecks, "SUEnableAutomaticChecks")
+        XCTAssertEqual(SettingsKeys.sparkleScheduledCheckInterval, "SUScheduledCheckInterval")
 
         XCTAssertEqual(SettingsKeys.openSettingsAtLaunch, "LSOpenSettingsAtLaunch")
         XCTAssertEqual(SettingsKeys.demoHUD, "LSDemoHUD")
@@ -45,6 +47,8 @@ final class SettingsKeysTests: XCTestCase {
                 "logMaxEntries",
                 "appLanguageOverride",
                 "settingsTab",
+                "SUEnableAutomaticChecks",
+                "SUScheduledCheckInterval",
             ]
         )
         XCTAssertEqual(Set(SettingsKeys.allPreferenceKeys).count, SettingsKeys.allPreferenceKeys.count)
@@ -64,6 +68,7 @@ final class SettingsKeysTests: XCTestCase {
         XCTAssertFalse(SettingsKeys.Defaults.loggingEnabled)
         XCTAssertEqual(SettingsKeys.Defaults.logMaxEntries, 100)
         XCTAssertEqual(SettingsKeys.Defaults.appLanguageOverride, "")
+        XCTAssertTrue(SettingsKeys.Defaults.sparkleEnableAutomaticChecks)
     }
 
     func testSettingsManagerUsesDefaultsAndPersistsChanges() throws {
