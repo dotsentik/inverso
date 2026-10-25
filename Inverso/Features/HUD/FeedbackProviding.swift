@@ -14,10 +14,18 @@ extension FeedbackProviding {
 
 /// Displays conversion results and status hints in the non-activating top-of-screen HUD panel.
 @MainActor
-struct HUDFeedbackProvider: FeedbackProviding {
+final class HUDFeedbackProvider: FeedbackProviding {
     private let hudBuilder: @MainActor () -> ConversionHUD
+    private var cachedHUD: ConversionHUD?
 
-    var hud: ConversionHUD { hudBuilder() }
+    var hud: ConversionHUD {
+        if let cachedHUD {
+            return cachedHUD
+        }
+        let instance = hudBuilder()
+        cachedHUD = instance
+        return instance
+    }
 
     init(hud: @autoclosure @escaping @MainActor () -> ConversionHUD = ConversionHUD()) {
         self.hudBuilder = hud

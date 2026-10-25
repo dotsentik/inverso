@@ -147,6 +147,19 @@ final class ConversionHUDTests: XCTestCase {
         XCTAssertEqual(SoundFeedbackProvider.defaultSoundName, NSSound.Name("Tink"))
     }
 
+    func testHUDFeedbackProviderMemoizesDefaultHUDInstance() throws {
+        let provider = HUDFeedbackProvider()
+        defer { provider.hud.panel?.orderOut(nil) }
+
+        provider.showConversion(input: "ghbdtn", output: "привет", layoutCode: "RU")
+        let firstHUD = provider.hud
+        let firstPanel = try XCTUnwrap(firstHUD.panel)
+
+        provider.showMessage("Second message")
+        XCTAssertTrue(provider.hud === firstHUD)
+        XCTAssertTrue(provider.hud.panel === firstPanel)
+    }
+
     func testDefaultShowMessageIsNoOpForProvidersWithoutMessageUI() {
         @MainActor
         final class RecordingProvider: FeedbackProviding {
