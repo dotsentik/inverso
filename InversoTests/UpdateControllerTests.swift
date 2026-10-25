@@ -121,6 +121,57 @@ final class UpdateControllerTests: XCTestCase {
         XCTAssertEqual(driver.checkForUpdatesCount, 1)
     }
 
+    func testSparkleDriverSchedulesStartWhenAutomaticChecksEnabledAfterLaunch() async throws {
+        let suiteName = "UpdateControllerTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        defaults.set(false, forKey: "SUEnableAutomaticChecks")
+        var controllerStartCount = 0
+        let driver = SparkleUpdaterDriver(
+            defaults: defaults,
+            startupDelay: .milliseconds(20),
+            controllerStarter: { controllerStartCount += 1 }
+        )
+
+        XCTAssertFalse(driver.automaticallyChecksForUpdates)
+        driver.startUpdater()
+        XCTAssertTrue(driver.isStarted)
+        XCTAssertFalse(driver.isDeferredStartScheduled)
+
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertEqual(controllerStartCount, 0)
+
+        driver.automaticallyChecksForUpdates = true
+        XCTAssertTrue(driver.isDeferredStartScheduled)
+
+        try await Task.sleep(for: .milliseconds(60))
+        XCTAssertEqual(controllerStartCount, 1)
+        XCTAssertFalse(driver.isDeferredStartScheduled)
+    }
+
+    func testSparkleDriverCancelsScheduledStartWhenAutomaticChecksDisabledBeforeDelay() async throws {
+        let suiteName = "UpdateControllerTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        var controllerStartCount = 0
+        let driver = SparkleUpdaterDriver(
+            defaults: defaults,
+            startupDelay: .milliseconds(80),
+            controllerStarter: { controllerStartCount += 1 }
+        )
+
+        driver.startUpdater()
+        XCTAssertTrue(driver.isDeferredStartScheduled)
+
+        driver.automaticallyChecksForUpdates = false
+        XCTAssertFalse(driver.isDeferredStartScheduled)
+
+        try await Task.sleep(for: .milliseconds(120))
+        XCTAssertEqual(controllerStartCount, 0)
+    }
+
     // MARK: - Feed error logging
 
     func testFeedErrors_ExcludeNoUpdate() {

@@ -115,11 +115,14 @@ private final class SettingsUpdaterDriver: UpdaterDriving {
 /// Defers instantiating Sparkle's controller until the user checks for updates or the
 /// background schedule delay elapses, keeping launch and idle footprint minimal.
 @MainActor
-private final class SparkleUpdaterDriver: UpdaterDriving {
+final class SparkleUpdaterDriver: UpdaterDriving {
     private static let automaticChecksKey = "SUEnableAutomaticChecks"
     private static let checkIntervalKey = "SUScheduledCheckInterval"
-    private static let startupDelay: Duration = .seconds(120)
+    private static let defaultStartupDelay: Duration = .seconds(120)
 
+    private let defaults: UserDefaults
+    private let startupDelay: Duration
+    private let controllerStarter: (@MainActor () -> Void)?
     private var standardController: SPUStandardUpdaterController?
     /// Sparkle keeps its delegates weakly.
     private var userDriverDelegate: MenuBarAppUserDriverDelegate?
@@ -127,15 +130,28 @@ private final class SparkleUpdaterDriver: UpdaterDriving {
     private let canCheckSubject = CurrentValueSubject<Bool, Never>(false)
     private var cancellable: AnyCancellable?
     private var deferredStartTask: Task<Void, Never>?
-    private var isStarted = false
+    private(set) var isStarted = false
+
+    var isDeferredStartScheduled: Bool {
+        deferredStartTask != nil
+    }
+
+    init(
+        defaults: UserDefaults = .standard,
+        startupDelay: Duration = SparkleUpdaterDriver.defaultStartupDelay,
+        controllerStarter: (@MainActor () -> Void)? = nil
+    ) {
+        self.defaults = defaults
+        self.startupDelay = startupDelay
+        self.controllerStarter = controllerStarter
+    }
 
     @discardableResult
     private func ensureController() -> SPUStandardUpdaterController {
         if let standardController {
             return standardController
         }
-        deferredStartTask?.cancel()
-        deferredStartTask = nil
+        cancelDeferredStart()
         let userDriverDelegate = MenuBarAppUserDriverDelegate()
         let updaterDelegate = FeedErrorLoggingDelegate()
         let controller = SPUStandardUpdaterController(
@@ -156,18 +172,49 @@ private final class SparkleUpdaterDriver: UpdaterDriving {
         return controller
     }
 
+    private func startScheduledController() {
+        cancelDeferredStart()
+        if let controllerStarter {
+            controllerStarter()
+            return
+        }
+        ensureController()
+    }
+
+    private func scheduleDeferredStart() {
+        cancelDeferredStart()
+        let delay = startupDelay
+        deferredStartTask = Task { [weak self] in
+            try? await Task.sleep(for: delay)
+            guard !Task.isCancelled, let self, self.automaticallyChecksForUpdates else { return }
+            self.startScheduledController()
+        }
+    }
+
+    private func cancelDeferredStart() {
+        deferredStartTask?.cancel()
+        deferredStartTask = nil
+    }
+
     var automaticallyChecksForUpdates: Bool {
         get {
             if let standardController {
                 return standardController.updater.automaticallyChecksForUpdates
             }
-            return UserDefaults.standard.object(forKey: Self.automaticChecksKey) as? Bool ?? true
+            return defaults.object(forKey: Self.automaticChecksKey) as? Bool ?? true
         }
         set {
             if let standardController {
                 standardController.updater.automaticallyChecksForUpdates = newValue
             } else {
-                UserDefaults.standard.set(newValue, forKey: Self.automaticChecksKey)
+                defaults.set(newValue, forKey: Self.automaticChecksKey)
+                if newValue {
+                    if isStarted {
+                        scheduleDeferredStart()
+                    }
+                } else {
+                    cancelDeferredStart()
+                }
             }
         }
     }
@@ -177,14 +224,14 @@ private final class SparkleUpdaterDriver: UpdaterDriving {
             if let standardController {
                 return standardController.updater.updateCheckInterval
             }
-            return UserDefaults.standard.object(forKey: Self.checkIntervalKey) as? TimeInterval
+            return defaults.object(forKey: Self.checkIntervalKey) as? TimeInterval
                 ?? UpdateConfig.checkInterval
         }
         set {
             if let standardController {
                 standardController.updater.updateCheckInterval = newValue
             } else {
-                UserDefaults.standard.set(newValue, forKey: Self.checkIntervalKey)
+                defaults.set(newValue, forKey: Self.checkIntervalKey)
             }
         }
     }
@@ -200,12 +247,7 @@ private final class SparkleUpdaterDriver: UpdaterDriving {
             standardController?.startUpdater()
             return
         }
-        deferredStartTask?.cancel()
-        deferredStartTask = Task { [weak self] in
-            try? await Task.sleep(for: Self.startupDelay)
-            guard !Task.isCancelled, let self, self.automaticallyChecksForUpdates else { return }
-            self.ensureController()
-        }
+        scheduleDeferredStart()
     }
 
     func checkForUpdates() {
