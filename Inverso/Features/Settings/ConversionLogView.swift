@@ -89,6 +89,14 @@ struct ConversionLogView: View {
             }
         }
         .settingsTabFrame()
+        .onAppear {
+            if settingsManager.loggingEnabled {
+                logStore.loadIfNeeded()
+            }
+        }
+        .onChange(of: settingsManager.loggingEnabled) { _, enabled in
+            logStore.setLoggingEnabled(enabled)
+        }
         .confirmationDialog(l10n.localized("log.clearConfirmTitle"), isPresented: $showClearConfirmation) {
             Button(l10n.localized("log.clearAll"), role: .destructive) {
                 logStore.clearAll()
