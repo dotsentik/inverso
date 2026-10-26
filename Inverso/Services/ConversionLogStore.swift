@@ -108,12 +108,15 @@ final class ConversionLogStore: ObservableObject {
 
     // MARK: - Entries
 
+    /// Adds an entry. When `maxEntries` > 0, the oldest entries beyond that limit are deleted
+    /// in the same database operation.
     func log(
         inputText: String,
         outputText: String,
         sourceLayout: String,
         targetLayout: String,
-        conversionMode: String
+        conversionMode: String,
+        trimTo maxEntries: Int = 0
     ) {
         let timestamp = Date().timeIntervalSince1970
         let operation = beginOperation()
@@ -123,7 +126,8 @@ final class ConversionLogStore: ObservableObject {
             outputText: outputText,
             sourceLayout: sourceLayout,
             targetLayout: targetLayout,
-            conversionMode: conversionMode
+            conversionMode: conversionMode,
+            trimTo: maxEntries
         ) { [weak self] entries in
             self?.applySnapshot(entries, operation: operation)
         }
@@ -304,6 +308,7 @@ private final class DatabaseBackend: @unchecked Sendable {
         sourceLayout: String,
         targetLayout: String,
         conversionMode: String,
+        trimTo maxEntries: Int,
         completion: @escaping @MainActor @Sendable ([ConversionLog]) -> Void
     ) {
         enqueue(
@@ -332,6 +337,9 @@ private final class DatabaseBackend: @unchecked Sendable {
                         "Logged conversion '\(inputText, privacy: .private)' -> '\(outputText, privacy: .private)'")
                 } else {
                     Log.logStore.error("INSERT failed")
+                }
+                if maxEntries > 0 {
+                    self.trimRows(db: db, toMaxEntries: maxEntries)
                 }
             }, completion: completion)
     }

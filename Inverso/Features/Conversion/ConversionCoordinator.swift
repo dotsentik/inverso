@@ -230,13 +230,9 @@ final class ConversionCoordinator {
             outputText: output,
             sourceLayout: sourceLayout,
             targetLayout: targetLayout,
-            conversionMode: mode.rawValue
+            conversionMode: mode.rawValue,
+            trimTo: settingsManager.logMaxEntries
         )
-
-        let maxEntries = settingsManager.logMaxEntries
-        if maxEntries > 0 {
-            store.trim(toMaxEntries: maxEntries)
-        }
     }
 
     // MARK: - Layout Switch

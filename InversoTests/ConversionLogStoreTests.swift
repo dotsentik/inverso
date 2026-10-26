@@ -20,13 +20,14 @@ final class ConversionLogStoreTests: XCTestCase {
         try? FileManager.default.removeItem(at: root)
     }
 
-    private func add(_ input: String, output: String = "out") {
+    private func add(_ input: String, output: String = "out", trimTo: Int = 0) {
         store.log(
             inputText: input,
             outputText: output,
             sourceLayout: "us",
             targetLayout: "russian",
-            conversionMode: "direct"
+            conversionMode: "direct",
+            trimTo: trimTo
         )
     }
 
@@ -73,5 +74,20 @@ final class ConversionLogStoreTests: XCTestCase {
         await store.flush()
 
         XCTAssertEqual(store.logs.map(\.inputText), ["second"])
+    }
+
+    func testLogTrimsToLimitInOneOperation() async {
+        store.loadIfNeeded()
+        for index in 0..<5 {
+            add("entry \(index)", trimTo: 3)
+        }
+        await store.flush()
+
+        XCTAssertEqual(store.logs.count, 3)
+
+        store.close()
+        store.loadIfNeeded()
+        await store.flush()
+        XCTAssertEqual(store.logs.count, 3)
     }
 }
