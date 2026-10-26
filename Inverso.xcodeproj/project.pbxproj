@@ -83,6 +83,7 @@
 		E10000010000000000000117 /* AboutPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000117 /* AboutPanelTests.swift */; };
 		E10000010000000000000119 /* SettingsKeysTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000119 /* SettingsKeysTests.swift */; };
 		E10000010000000000000306 /* URLStaticStringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000306 /* URLStaticStringTests.swift */; };
+		E10000010000000000000308 /* MenuBarLabelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000308 /* MenuBarLabelTests.swift */; };
 		E10000010000000000000244 /* ConversionLogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000244 /* ConversionLogStore.swift */; };
 		E10000010000000000000245 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000245 /* HotkeyManager.swift */; };
 		E10000010000000000000246 /* LaunchAtLoginHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000246 /* LaunchAtLoginHelper.swift */; };
@@ -197,6 +198,7 @@
 		E10000020000000000000117 /* AboutPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutPanelTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000119 /* SettingsKeysTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsKeysTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000306 /* URLStaticStringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLStaticStringTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000308 /* MenuBarLabelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarLabelTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000244 /* ConversionLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionLogStore.swift; sourceTree = "<group>"; };
 		E10000020000000000000245 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
 		E10000020000000000000246 /* LaunchAtLoginHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginHelper.swift; sourceTree = "<group>"; };
@@ -322,6 +324,7 @@
 				E10000020000000000000117 /* AboutPanelTests.swift */,
 				E10000020000000000000119 /* SettingsKeysTests.swift */,
 				E10000020000000000000306 /* URLStaticStringTests.swift */,
+				E10000020000000000000308 /* MenuBarLabelTests.swift */,
 			);
 			path = InversoTests;
 			sourceTree = "<group>";
@@ -680,6 +683,7 @@
 				E10000010000000000000117 /* AboutPanelTests.swift in Sources */,
 				E10000010000000000000119 /* SettingsKeysTests.swift in Sources */,
 				E10000010000000000000306 /* URLStaticStringTests.swift in Sources */,
+				E10000010000000000000308 /* MenuBarLabelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
