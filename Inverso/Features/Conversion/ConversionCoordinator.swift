@@ -25,14 +25,8 @@ final class ConversionCoordinator {
     private let hotkeyManager: HotkeyManager
     private lazy var accessibilityService: AccessibilityService = accessibilityServiceFactory()
     private let accessibilityServiceFactory: @MainActor () -> AccessibilityService
-    private let hudFeedback: FeedbackProviding
-    private lazy var notificationFeedback: FeedbackProviding =
-        customNotificationFeedback ?? NotificationFeedbackProvider()
-    private let customNotificationFeedback: FeedbackProviding?
-    private lazy var soundFeedback: FeedbackProviding = customSoundFeedback ?? SoundFeedbackProvider()
-    private let customSoundFeedback: FeedbackProviding?
-    private lazy var silentFeedback: FeedbackProviding = customSilentFeedback ?? SilentFeedbackProvider()
-    private let customSilentFeedback: FeedbackProviding?
+    private let feedbackProviders: FeedbackProviders
+    private let soundPlayer: SoundPlaying
     private lazy var textConverter = TextConverter(
         preferences: settingsManager,
         mapProvider: LayoutMaps.shared,
@@ -43,22 +37,18 @@ final class ConversionCoordinator {
         settingsManager: SettingsManager,
         l10n: LocalizationManager,
         conversionLogStore: @autoclosure @escaping @MainActor () -> ConversionLogStore,
-        hud: @autoclosure @escaping @MainActor () -> ConversionHUD,
         hotkeyManager: HotkeyManager,
         accessibilityService: @autoclosure @escaping @MainActor () -> AccessibilityService,
-        notificationFeedback: FeedbackProviding? = nil,
-        soundFeedback: FeedbackProviding? = nil,
-        silentFeedback: FeedbackProviding? = nil
+        feedbackProviders: FeedbackProviders,
+        soundPlayer: SoundPlaying
     ) {
         self.settingsManager = settingsManager
         self.l10n = l10n
         self.logStoreProvider = conversionLogStore
         self.hotkeyManager = hotkeyManager
         self.accessibilityServiceFactory = accessibilityService
-        self.hudFeedback = HUDFeedbackProvider(hud: hud())
-        self.customNotificationFeedback = notificationFeedback
-        self.customSoundFeedback = soundFeedback
-        self.customSilentFeedback = silentFeedback
+        self.feedbackProviders = feedbackProviders
+        self.soundPlayer = soundPlayer
     }
 
     /// The chain drives the shared pasteboard, so only one conversion may run at a time.
@@ -113,7 +103,7 @@ final class ConversionCoordinator {
         if focusMode == .terminal {
             Log.app.info("Terminal has the focus, conversion is not supported")
             let hint = l10n.localized("alert.terminalNotSupported")
-            hudFeedback.showMessage(hint)
+            feedbackProviders.provider(for: .hud).showMessage(hint)
             return
         }
         conversionInProgress = true
@@ -262,22 +252,14 @@ final class ConversionCoordinator {
 
     private func playSoundIfEnabled() {
         guard settingsManager.playSounds else { return }
-        soundFeedback.showConversion(input: "", output: "", layoutCode: "")
+        soundPlayer.playConversionSound()
     }
 
     /// Shows the HUD or a notification about the result, as configured.
     private func showFeedback(for capture: Capture) {
         guard let input = capture.input, let output = capture.output else { return }
         let code = ConversionHUDContent.layoutCode(for: capture.targetLayoutID, in: settingsManager.layoutOrder)
-        let provider: FeedbackProviding
-        switch settingsManager.conversionFeedback {
-        case .none:
-            provider = silentFeedback
-        case .hud:
-            provider = hudFeedback
-        case .notification:
-            provider = notificationFeedback
-        }
+        let provider = feedbackProviders.provider(for: settingsManager.conversionFeedback)
         provider.showConversion(input: input, output: output, layoutCode: code)
     }
 }

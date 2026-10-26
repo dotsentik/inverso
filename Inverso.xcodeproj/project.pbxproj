@@ -37,6 +37,8 @@
 		E10000010000000000000209 /* ConversionHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000209 /* ConversionHUD.swift */; };
 		E10000010000000000000210 /* ConversionHUDContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000210 /* ConversionHUDContent.swift */; };
 		E10000010000000000000211 /* ConversionHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000211 /* ConversionHUDView.swift */; };
+		E10000010000000000000303 /* SoundPlaying.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000303 /* SoundPlaying.swift */; };
+		E10000010000000000000304 /* FeedbackProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000304 /* FeedbackProviders.swift */; };
 		E10000010000000000000267 /* FeedbackProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000267 /* FeedbackProviding.swift */; };
 		E10000010000000000000212 /* HUDBackgroundStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000212 /* HUDBackgroundStyle.swift */; };
 		E10000010000000000000213 /* AboutPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000213 /* AboutPanel.swift */; };
@@ -146,6 +148,8 @@
 		E10000020000000000000209 /* ConversionHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionHUD.swift; sourceTree = "<group>"; };
 		E10000020000000000000210 /* ConversionHUDContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionHUDContent.swift; sourceTree = "<group>"; };
 		E10000020000000000000211 /* ConversionHUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionHUDView.swift; sourceTree = "<group>"; };
+		E10000020000000000000303 /* SoundPlaying.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundPlaying.swift; sourceTree = "<group>"; };
+		E10000020000000000000304 /* FeedbackProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackProviders.swift; sourceTree = "<group>"; };
 		E10000020000000000000267 /* FeedbackProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackProviding.swift; sourceTree = "<group>"; };
 		E10000020000000000000212 /* HUDBackgroundStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDBackgroundStyle.swift; sourceTree = "<group>"; };
 		E10000020000000000000213 /* AboutPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutPanel.swift; sourceTree = "<group>"; };
@@ -339,6 +343,8 @@
 				E10000020000000000000210 /* ConversionHUDContent.swift */,
 				E10000020000000000000211 /* ConversionHUDView.swift */,
 				E10000020000000000000267 /* FeedbackProviding.swift */,
+				E10000020000000000000304 /* FeedbackProviders.swift */,
+				E10000020000000000000303 /* SoundPlaying.swift */,
 				E10000020000000000000212 /* HUDBackgroundStyle.swift */,
 			);
 			path = HUD;
@@ -579,6 +585,8 @@
 				E10000010000000000000210 /* ConversionHUDContent.swift in Sources */,
 				E10000010000000000000211 /* ConversionHUDView.swift in Sources */,
 				E10000010000000000000267 /* FeedbackProviding.swift in Sources */,
+				E10000010000000000000304 /* FeedbackProviders.swift in Sources */,
+				E10000010000000000000303 /* SoundPlaying.swift in Sources */,
 				E10000010000000000000212 /* HUDBackgroundStyle.swift in Sources */,
 				E10000010000000000000213 /* AboutPanel.swift in Sources */,
 				E10000010000000000000214 /* InputSourceMonitor.swift in Sources */,

@@ -76,29 +76,6 @@ struct NotificationFeedbackProvider: FeedbackProviding {
     }
 }
 
-/// Plays a short system sound effect when a conversion completes.
-@MainActor
-struct SoundFeedbackProvider: FeedbackProviding {
-    static let defaultSoundName = NSSound.Name("Tink")
-
-    private let play: @MainActor () -> Void
-
-    init(
-        soundName: NSSound.Name = SoundFeedbackProvider.defaultSoundName,
-        play: (@MainActor () -> Void)? = nil
-    ) {
-        self.play = play ?? { NSSound(named: soundName)?.play() }
-    }
-
-    func showConversion(input: String, output: String, layoutCode: String) {
-        playSound()
-    }
-
-    func playSound() {
-        play()
-    }
-}
-
 /// No-op feedback provider used when visual or audible feedback is disabled.
 @MainActor
 struct SilentFeedbackProvider: FeedbackProviding {

@@ -134,17 +134,17 @@ final class ConversionHUDTests: XCTestCase {
         XCTAssertEqual(notifiedPair?.1, "привет")
 
         var soundPlayed = false
-        let soundProvider: FeedbackProviding = SoundFeedbackProvider {
+        let soundPlayer: SoundPlaying = SystemSoundPlayer {
             soundPlayed = true
         }
-        soundProvider.showConversion(input: "a", output: "ф", layoutCode: "RU")
+        soundPlayer.playConversionSound()
         XCTAssertTrue(soundPlayed)
 
         let silentProvider: FeedbackProviding = SilentFeedbackProvider()
         silentProvider.showConversion(input: "a", output: "ф", layoutCode: "RU")
         silentProvider.showMessage("Ignored")
 
-        XCTAssertEqual(SoundFeedbackProvider.defaultSoundName, NSSound.Name("Tink"))
+        XCTAssertEqual(SystemSoundPlayer.defaultSoundName, NSSound.Name("Tink"))
     }
 
     func testHUDFeedbackProviderMemoizesDefaultHUDInstance() throws {
@@ -178,12 +178,19 @@ final class ConversionHUDTests: XCTestCase {
         }
         notification.showMessage("Ignored")
         XCTAssertFalse(notified)
+    }
 
-        var soundPlayed = false
-        let sound: FeedbackProviding = SoundFeedbackProvider {
-            soundPlayed = true
+    func testFeedbackProvidersFollowTheSetting() {
+        final class Marker: FeedbackProviding {
+            func showConversion(input: String, output: String, layoutCode: String) {}
         }
-        sound.showMessage("Ignored")
-        XCTAssertFalse(soundPlayed)
+        let hud = Marker()
+        let notification = Marker()
+        let silent = Marker()
+        let providers = FeedbackProviders(hud: hud, notification: notification, silent: silent)
+
+        XCTAssertTrue(providers.provider(for: .hud) as AnyObject === hud)
+        XCTAssertTrue(providers.provider(for: .notification) as AnyObject === notification)
+        XCTAssertTrue(providers.provider(for: .none) as AnyObject === silent)
     }
 }

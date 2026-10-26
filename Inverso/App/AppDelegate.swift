@@ -24,9 +24,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsManager: settingsManager,
         l10n: l10n,
         conversionLogStore: self.conversionLogStore,
-        hud: self.conversionHUD,
         hotkeyManager: hotkeyManager,
-        accessibilityService: self.accessibilityService
+        accessibilityService: self.accessibilityService,
+        feedbackProviders: FeedbackProviders(hud: HUDFeedbackProvider(hud: self.conversionHUD)),
+        soundPlayer: SystemSoundPlayer()
     )
 
     /// Value of kTISNotifyEnabledKeyboardInputSourcesChanged (the C global is not concurrency-safe).
