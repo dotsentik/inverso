@@ -16,6 +16,7 @@ final class ConversionCoordinator {
     private struct Capture {
         var input: String?
         var output: String?
+        var sourceLayoutID: String?
         var targetLayoutID: String?
     }
 
@@ -137,6 +138,7 @@ final class ConversionCoordinator {
                 return nil
             }
             capture.output = result.text
+            capture.sourceLayoutID = result.sourceLayoutID
             capture.targetLayoutID = result.targetLayoutID
             Log.app.debug("convert returned: '\(result.text, privacy: .private)'")
             return result.text
@@ -176,6 +178,7 @@ final class ConversionCoordinator {
             capture.input = text
             guard let result = textConverter.convert(text) else { return nil }
             capture.output = result.text
+            capture.sourceLayoutID = result.sourceLayoutID
             capture.targetLayoutID = result.targetLayoutID
             return result.text
         }
@@ -193,6 +196,7 @@ final class ConversionCoordinator {
             capture.input = lineText
             let result = textConverter.convertLineGreedily(lineText)
             capture.output = result?.text
+            capture.sourceLayoutID = result?.sourceLayoutID
             capture.targetLayoutID = result?.targetLayoutID
             return result?.text
         }
@@ -215,18 +219,12 @@ final class ConversionCoordinator {
         guard settingsManager.loggingEnabled else { return }
         guard let input = capture.input, let output = capture.output else { return }
 
-        let layouts = settingsManager.enabledLayouts
-        let sourceLayout =
-            LayoutMapper.detectSourceLayout(
-                text: input, candidateLayouts: layouts.map(\.id), mapProvider: LayoutMaps.shared) ?? "unknown"
-        let targetLayout = layouts.first(where: { $0.id != sourceLayout })?.id ?? "unknown"
-
         let store = logStoreProvider()
         store.log(
             inputText: input,
             outputText: output,
-            sourceLayout: sourceLayout,
-            targetLayout: targetLayout,
+            sourceLayout: capture.sourceLayoutID ?? "unknown",
+            targetLayout: capture.targetLayoutID ?? "unknown",
             conversionMode: mode.rawValue,
             trimTo: settingsManager.logMaxEntries
         )

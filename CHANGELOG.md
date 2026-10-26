@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The conversion log records the layouts the conversion actually used; with a custom
+  "Convert to" layout it no longer shows the first other enabled layout as the target.
+
 ## [1.2.9] - 2026-10-25
 
 ### Changed

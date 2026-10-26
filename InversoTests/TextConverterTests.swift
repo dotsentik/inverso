@@ -88,8 +88,32 @@ final class TextConverterTests: XCTestCase {
 
         let result = fakeConverter.convert("abc")
 
+        XCTAssertEqual(result?.sourceLayoutID, "fake.A")
         XCTAssertEqual(result?.targetLayoutID, "fake.B")
         XCTAssertEqual(result?.text, "αβγ")
+    }
+
+    /// The result names the layouts the conversion really used, so the log does not guess them.
+    func testConvertReportsOverriddenTargetAndDetectedSource() throws {
+        let suite = "com.dotsentik.inversoTests.overrideResult.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let settings = SettingsManager(defaults: defaults)
+        let ids = ["fake.A", "fake.C", "fake.B"]
+        settings.enabledLayouts = ids.map { KeyboardLayout(id: $0, localizedName: $0, languageCode: "xx") }
+        settings.targetOverrides = ["fake.A": "fake.C"]
+        let fake = FakeMaps(maps: [
+            "fake.A": ["a": "a", "b": "b", "c": "c"],
+            "fake.C": ["a": "d", "b": "e", "c": "f"],
+            "fake.B": ["a": "α", "b": "β", "c": "γ"],
+        ])
+        let fakeConverter = TextConverter(preferences: settings, mapProvider: fake, currentLayoutID: { nil })
+
+        let result = fakeConverter.convert("abc")
+
+        XCTAssertEqual(result?.sourceLayoutID, "fake.A")
+        XCTAssertEqual(result?.targetLayoutID, "fake.C")
+        XCTAssertEqual(result?.text, "def")
     }
 
     // MARK: - looksLikeWrongLayout

@@ -5,9 +5,10 @@ import Foundation
 @MainActor
 final class TextConverter {
 
-    /// Converted text and the layout it was converted into.
+    /// Converted text with the layout it was detected in and the layout it was converted into.
     struct ConversionResult {
         let text: String
+        let sourceLayoutID: String
         let targetLayoutID: String
     }
 
@@ -72,7 +73,7 @@ final class TextConverter {
                     mapProvider: mapProvider
                 )
             else { return nil }
-            return ConversionResult(text: result, targetLayoutID: firstLayoutID)
+            return ConversionResult(text: result, sourceLayoutID: sourceID, targetLayoutID: firstLayoutID)
         }
 
         Log.conversion.debug(
@@ -84,7 +85,7 @@ final class TextConverter {
             mapProvider: mapProvider
         )
         Log.conversion.debug("convert: result = '\(result ?? "nil", privacy: .private)'")
-        return result.map { ConversionResult(text: $0, targetLayoutID: targetID) }
+        return result.map { ConversionResult(text: $0, sourceLayoutID: sourceID, targetLayoutID: targetID) }
     }
 
     /// Converts only the wrong-layout part of a line. Returns the whole replacement line
@@ -97,7 +98,8 @@ final class TextConverter {
         }
         let result = boundary.keep + converted.text
         Log.conversion.debug("convertLineGreedily: '\(text, privacy: .private)' → '\(result, privacy: .private)'")
-        return ConversionResult(text: result, targetLayoutID: converted.targetLayoutID)
+        return ConversionResult(
+            text: result, sourceLayoutID: converted.sourceLayoutID, targetLayoutID: converted.targetLayoutID)
     }
 
     // MARK: - Wrong Layout Detection
