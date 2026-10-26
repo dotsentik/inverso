@@ -30,6 +30,7 @@
 		E10000010000000000000204 /* ConversionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000204 /* ConversionCoordinator.swift */; };
 		E10000010000000000000205 /* LayoutMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000205 /* LayoutMapper.swift */; };
 		E10000010000000000000264 /* LayoutMapProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000264 /* LayoutMapProviding.swift */; };
+		E10000010000000000000302 /* ConversionPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000302 /* ConversionPreferences.swift */; };
 		E10000010000000000000206 /* LayoutScript.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000206 /* LayoutScript.swift */; };
 		E10000010000000000000207 /* TargetLayoutResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000207 /* TargetLayoutResolver.swift */; };
 		E10000010000000000000208 /* TextConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000208 /* TextConverter.swift */; };
@@ -138,6 +139,7 @@
 		E10000020000000000000204 /* ConversionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionCoordinator.swift; sourceTree = "<group>"; };
 		E10000020000000000000205 /* LayoutMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutMapper.swift; sourceTree = "<group>"; };
 		E10000020000000000000264 /* LayoutMapProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutMapProviding.swift; sourceTree = "<group>"; };
+		E10000020000000000000302 /* ConversionPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionPreferences.swift; sourceTree = "<group>"; };
 		E10000020000000000000206 /* LayoutScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutScript.swift; sourceTree = "<group>"; };
 		E10000020000000000000207 /* TargetLayoutResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetLayoutResolver.swift; sourceTree = "<group>"; };
 		E10000020000000000000208 /* TextConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextConverter.swift; sourceTree = "<group>"; };
@@ -254,8 +256,10 @@
 			isa = PBXGroup;
 			children = (
 				E10000020000000000000254 /* LayoutCharacterMap.swift */,
+				E10000020000000000000248 /* Log.swift */,
 				E10000020000000000000205 /* LayoutMapper.swift */,
 				E10000020000000000000264 /* LayoutMapProviding.swift */,
+				E10000020000000000000302 /* ConversionPreferences.swift */,
 				E10000020000000000000206 /* LayoutScript.swift */,
 				E10000020000000000000229 /* PhysicalKeys.swift */,
 				E10000020000000000000207 /* TargetLayoutResolver.swift */,
@@ -434,7 +438,6 @@
 				E10000020000000000000245 /* HotkeyManager.swift */,
 				E10000020000000000000246 /* LaunchAtLoginHelper.swift */,
 				E10000020000000000000247 /* LocalizationManager.swift */,
-				E10000020000000000000248 /* Log.swift */,
 				E10000020000000000000249 /* LoginItemService.swift */,
 				E10000020000000000000250 /* SettingsManager.swift */,
 			);
@@ -568,6 +571,7 @@
 				E10000010000000000000204 /* ConversionCoordinator.swift in Sources */,
 				E10000010000000000000205 /* LayoutMapper.swift in Sources */,
 				E10000010000000000000264 /* LayoutMapProviding.swift in Sources */,
+				E10000010000000000000302 /* ConversionPreferences.swift in Sources */,
 				E10000010000000000000206 /* LayoutScript.swift in Sources */,
 				E10000010000000000000207 /* TargetLayoutResolver.swift in Sources */,
 				E10000010000000000000208 /* TextConverter.swift in Sources */,

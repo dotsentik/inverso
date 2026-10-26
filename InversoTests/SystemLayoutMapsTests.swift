@@ -242,7 +242,9 @@ final class SystemLayoutMapsTests: XCTestCase {
 
     func testISO_TextConverter() throws {
         let (_, _, settings) = try useISOMaps()
-        let converter = TextConverter(settingsManager: settings)
+        let converter = TextConverter(
+            preferences: settings, mapProvider: LayoutMaps.shared,
+            currentLayoutID: { KeyboardLayoutDetector.currentLayout()?.id })
 
         XCTAssertEqual(converter.convert("§krf")?.text, "ёлка")
         XCTAssertEqual(converter.convert("±KRF")?.text, "ЁЛКА")

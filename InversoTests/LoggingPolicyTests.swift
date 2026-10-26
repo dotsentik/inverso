@@ -94,7 +94,7 @@ final class LoggingPolicyTests: XCTestCase {
         }
     }
 
-    func testCoreDoesNotImportUIOrSystemFrameworks() throws {
+    func testCoreDoesNotDependOnServicesOrSystemFrameworks() throws {
         let coreDir = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
@@ -108,8 +108,21 @@ final class LoggingPolicyTests: XCTestCase {
             "UserNotifications", "ServiceManagement",
         ]
 
+        let forbiddenTypes = [
+            "SettingsManager", "LayoutMaps", "KeyboardLayoutDetector", "SystemLayoutMapBuilder",
+            "NSEvent", "NSWorkspace", "AXUIElement", "TIS", "ConversionCoordinator",
+        ]
+
         for url in files {
             let lines = try String(contentsOf: url, encoding: .utf8).components(separatedBy: "\n")
+            for (index, rawLine) in lines.enumerated() where !isComment(rawLine) {
+                for name in forbiddenTypes {
+                    let pattern = #"\b"# + name + #"\b"#
+                    XCTAssertNil(
+                        rawLine.range(of: pattern, options: .regularExpression),
+                        "\(url.lastPathComponent):\(index + 1) mentions '\(name)' in Inverso/Core")
+                }
+            }
             for (index, rawLine) in lines.enumerated() where !isComment(rawLine) {
                 let trimmed = rawLine.trimmingCharacters(in: .whitespaces)
                 guard trimmed.hasPrefix("import ") else { continue }
@@ -118,9 +131,9 @@ final class LoggingPolicyTests: XCTestCase {
                     forbiddenModules.contains(module),
                     "\(url.lastPathComponent):\(index + 1) imports forbidden module '\(module)' in Inverso/Core"
                 )
-                XCTAssertEqual(
-                    module, "Foundation",
-                    "\(url.lastPathComponent):\(index + 1) imports non-Foundation module '\(module)' in Inverso/Core"
+                XCTAssertTrue(
+                    ["Foundation", "os"].contains(module),
+                    "\(url.lastPathComponent):\(index + 1) imports module '\(module)' in Inverso/Core"
                 )
             }
         }

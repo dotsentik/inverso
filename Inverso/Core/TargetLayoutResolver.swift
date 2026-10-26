@@ -14,7 +14,7 @@ enum TargetLayoutResolver {
         forSource sourceID: String,
         ordered: [String],
         overrides: [String: String] = [:],
-        mapProvider: any LayoutMapProviding = LayoutMaps.shared
+        mapProvider: any LayoutMapProviding
     ) -> String? {
         let candidates = ordered.filter { $0 != sourceID }
         if let explicit = overrides[sourceID], candidates.contains(explicit) {

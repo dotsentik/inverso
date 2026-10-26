@@ -14,7 +14,7 @@ enum LayoutMapper {
         text: String,
         from sourceLayoutID: String,
         to targetLayoutID: String,
-        mapProvider: any LayoutMapProviding = LayoutMaps.shared
+        mapProvider: any LayoutMapProviding
     ) -> String? {
         guard let reverseSource = mapProvider.reverseMap(for: sourceLayoutID) else {
             Log.conversion.error(
@@ -78,7 +78,7 @@ enum LayoutMapper {
     static func detectSourceLayout(
         text: String,
         candidateLayouts: [String],
-        mapProvider: any LayoutMapProviding = LayoutMaps.shared
+        mapProvider: any LayoutMapProviding
     ) -> String? {
         var bestMatch: String?
         var bestScore = 0

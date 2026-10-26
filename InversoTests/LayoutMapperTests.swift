@@ -704,3 +704,26 @@ final class LayoutMapperTests: XCTestCase {
         XCTAssertEqual(TargetLayoutResolver.targetID(forSource: us, ordered: order), "com.apple.keylayout.RussianWin")
     }
 }
+
+// Tests run against the shared maps unless they inject a provider.
+extension LayoutMapper {
+    static func convert(text: String, from sourceLayoutID: String, to targetLayoutID: String) -> String? {
+        convert(text: text, from: sourceLayoutID, to: targetLayoutID, mapProvider: LayoutMaps.shared)
+    }
+
+    static func detectSourceLayout(text: String, candidateLayouts: [String]) -> String? {
+        detectSourceLayout(text: text, candidateLayouts: candidateLayouts, mapProvider: LayoutMaps.shared)
+    }
+}
+
+extension LayoutScript {
+    static func of(layoutID: String) -> LayoutScript {
+        of(layoutID: layoutID, mapProvider: LayoutMaps.shared)
+    }
+}
+
+extension TargetLayoutResolver {
+    static func targetID(forSource sourceID: String, ordered: [String], overrides: [String: String] = [:]) -> String? {
+        targetID(forSource: sourceID, ordered: ordered, overrides: overrides, mapProvider: LayoutMaps.shared)
+    }
+}

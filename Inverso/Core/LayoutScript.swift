@@ -17,7 +17,7 @@ enum LayoutScript {
 
     static func of(
         layoutID: String,
-        mapProvider: any LayoutMapProviding = LayoutMaps.shared
+        mapProvider: any LayoutMapProviding
     ) -> LayoutScript {
         let lowered = layoutID.lowercased()
         if lowered.contains("russian") || lowered.contains("ukrainian") {

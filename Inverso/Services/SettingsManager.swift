@@ -238,3 +238,7 @@ final class SettingsManager: ObservableObject {
         }
     }
 }
+
+extension SettingsManager: ConversionPreferences {
+    var enabledLayoutIDs: [String] { enabledLayouts.map(\.id) }
+}

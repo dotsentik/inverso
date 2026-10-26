@@ -23,7 +23,9 @@ final class TextConverterTests: XCTestCase {
             KeyboardLayout(id: "com.apple.keylayout.US", localizedName: "U.S.", languageCode: "en"),
             KeyboardLayout(id: "com.apple.keylayout.Russian", localizedName: "Russian", languageCode: "ru"),
         ]
-        converter = TextConverter(settingsManager: settings)
+        converter = TextConverter(
+            preferences: settings, mapProvider: LayoutMaps.shared,
+            currentLayoutID: { KeyboardLayoutDetector.currentLayout()?.id })
     }
 
     override func tearDown() async throws {
@@ -82,7 +84,7 @@ final class TextConverterTests: XCTestCase {
             "fake.C": ["a": "d", "b": "e", "c": "f"],
             "fake.B": ["a": "α", "b": "β", "c": "γ"],
         ])
-        let fakeConverter = TextConverter(settingsManager: settings, mapProvider: fake)
+        let fakeConverter = TextConverter(preferences: settings, mapProvider: fake, currentLayoutID: { nil })
 
         let result = fakeConverter.convert("abc")
 

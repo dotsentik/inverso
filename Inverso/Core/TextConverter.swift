@@ -16,16 +16,16 @@ final class TextConverter {
     /// …and it has at least this many words.
     private static let wholeLineMinimumWords = 3
 
-    private let settingsManager: SettingsManager
+    private let preferences: any ConversionPreferences
     private let mapProvider: any LayoutMapProviding
     private let currentLayoutIDProvider: () -> String?
 
     init(
-        settingsManager: SettingsManager,
-        mapProvider: any LayoutMapProviding = LayoutMaps.shared,
-        currentLayoutID: @escaping () -> String? = { KeyboardLayoutDetector.currentLayout()?.id }
+        preferences: any ConversionPreferences,
+        mapProvider: any LayoutMapProviding,
+        currentLayoutID: @escaping () -> String?
     ) {
-        self.settingsManager = settingsManager
+        self.preferences = preferences
         self.mapProvider = mapProvider
         self.currentLayoutIDProvider = currentLayoutID
     }
@@ -34,9 +34,9 @@ final class TextConverter {
 
     /// Detects the layout `text` was typed in and converts it into the target layout.
     func convert(_ text: String) -> ConversionResult? {
-        let layouts = settingsManager.enabledLayouts
+        let layouts = preferences.enabledLayoutIDs
         Log.conversion.debug(
-            "convert: enabledLayouts count=\(layouts.count), IDs=\(layouts.map(\.id), privacy: .public)")
+            "convert: enabledLayouts count=\(layouts.count), IDs=\(layouts, privacy: .public)")
         guard layouts.count >= 2 else {
             Log.conversion.debug("convert: fewer than 2 layouts, returning nil")
             return nil
@@ -57,34 +57,34 @@ final class TextConverter {
         guard
             let targetID = TargetLayoutResolver.targetID(
                 forSource: sourceID,
-                ordered: layouts.map(\.id),
-                overrides: settingsManager.targetOverrides,
+                ordered: layouts,
+                overrides: preferences.targetOverrides,
                 mapProvider: mapProvider
             ),
-            let targetLayout = layouts.first(where: { $0.id == targetID })
+            layouts.contains(targetID)
         else {
             Log.conversion.debug("convert: no target layout found different from source")
-            guard let firstLayout = layouts.first,
+            guard let firstLayoutID = layouts.first,
                 let result = LayoutMapper.convert(
                     text: text,
                     from: sourceID,
-                    to: firstLayout.id,
+                    to: firstLayoutID,
                     mapProvider: mapProvider
                 )
             else { return nil }
-            return ConversionResult(text: result, targetLayoutID: firstLayout.id)
+            return ConversionResult(text: result, targetLayoutID: firstLayoutID)
         }
 
         Log.conversion.debug(
-            "convert: converting from '\(sourceID, privacy: .public)' to '\(targetLayout.id, privacy: .public)'")
+            "convert: converting from '\(sourceID, privacy: .public)' to '\(targetID, privacy: .public)'")
         let result = LayoutMapper.convert(
             text: text,
             from: sourceID,
-            to: targetLayout.id,
+            to: targetID,
             mapProvider: mapProvider
         )
         Log.conversion.debug("convert: result = '\(result ?? "nil", privacy: .private)'")
-        return result.map { ConversionResult(text: $0, targetLayoutID: targetLayout.id) }
+        return result.map { ConversionResult(text: $0, targetLayoutID: targetID) }
     }
 
     /// Converts only the wrong-layout part of a line. Returns the whole replacement line
@@ -111,7 +111,7 @@ final class TextConverter {
             return false
         }
 
-        let layouts = settingsManager.enabledLayouts
+        let layouts = preferences.enabledLayoutIDs
         guard layouts.count >= 2 else {
             Log.conversion.debug("looksLikeWrongLayout: fewer than 2 layouts")
             return false
@@ -130,17 +130,17 @@ final class TextConverter {
         Log.conversion.debug(
             "looksLikeWrongLayout: detected source='\(sourceID, privacy: .public)' for '\(trimmed, privacy: .private)'")
 
-        for layout in layouts where layout.id != sourceID {
+        for layoutID in layouts where layoutID != sourceID {
             guard
                 let converted = LayoutMapper.convert(
                     text: trimmed,
                     from: sourceID,
-                    to: layout.id,
+                    to: layoutID,
                     mapProvider: mapProvider
                 )
             else { continue }
             Log.conversion.debug(
-                "looksLikeWrongLayout: converted to '\(converted, privacy: .private)' via layout '\(layout.id, privacy: .public)'"
+                "looksLikeWrongLayout: converted to '\(converted, privacy: .private)' via layout '\(layoutID, privacy: .public)'"
             )
 
             let sourceHasLatinOnly = trimmed.allSatisfy { $0.isASCII || !$0.isLetter }
@@ -171,7 +171,7 @@ final class TextConverter {
     /// script, for mixed lines like "Привет ghbdtn rfr". Punctuation attached to the first
     /// converted word ("123 §krf") converts with it.
     func findWrongLayoutBoundary(in text: String) -> (keep: String, convert: String)? {
-        guard settingsManager.enabledLayouts.count >= 2 else { return nil }
+        guard preferences.enabledLayoutIDs.count >= 2 else { return nil }
 
         let tokens = tokenize(text)
         let wordTokens = tokens.filter { !$0.isWhitespaceOrPunctuation }
@@ -241,8 +241,8 @@ final class TextConverter {
     /// Candidate layout IDs for source detection: priority order, but the currently active
     /// system layout goes first. detectSourceLayout keeps the first layout on a tie, so
     /// U.S. vs German (or Russian vs Ukrainian) resolves to the layout actually used for typing.
-    private func detectionCandidates(_ layouts: [KeyboardLayout]) -> [String] {
-        var ids = layouts.map(\.id)
+    private func detectionCandidates(_ layouts: [String]) -> [String] {
+        var ids = layouts
         if let currentID = currentLayoutIDProvider(),
             let index = ids.firstIndex(of: currentID), index != 0
         {

@@ -33,7 +33,11 @@ final class ConversionCoordinator {
     private let customSoundFeedback: FeedbackProviding?
     private lazy var silentFeedback: FeedbackProviding = customSilentFeedback ?? SilentFeedbackProvider()
     private let customSilentFeedback: FeedbackProviding?
-    private lazy var textConverter = TextConverter(settingsManager: settingsManager)
+    private lazy var textConverter = TextConverter(
+        preferences: settingsManager,
+        mapProvider: LayoutMaps.shared,
+        currentLayoutID: { KeyboardLayoutDetector.currentLayout()?.id }
+    )
 
     init(
         settingsManager: SettingsManager,
@@ -221,7 +225,8 @@ final class ConversionCoordinator {
 
         let layouts = settingsManager.enabledLayouts
         let sourceLayout =
-            LayoutMapper.detectSourceLayout(text: input, candidateLayouts: layouts.map(\.id)) ?? "unknown"
+            LayoutMapper.detectSourceLayout(
+                text: input, candidateLayouts: layouts.map(\.id), mapProvider: LayoutMaps.shared) ?? "unknown"
         let targetLayout = layouts.first(where: { $0.id != sourceLayout })?.id ?? "unknown"
 
         let store = logStoreProvider()
