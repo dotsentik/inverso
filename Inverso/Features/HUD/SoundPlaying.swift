@@ -6,10 +6,10 @@ protocol SoundPlaying {
     func playConversionSound()
 }
 
-/// Plays a short system sound effect.
+/// Plays the bundled conversion sound.
 @MainActor
 struct SystemSoundPlayer: SoundPlaying {
-    static let defaultSoundName = NSSound.Name("Tink")
+    static let defaultSoundName = NSSound.Name("word-change")
 
     private let play: @MainActor () -> Void
 
@@ -17,7 +17,14 @@ struct SystemSoundPlayer: SoundPlaying {
         soundName: NSSound.Name = SystemSoundPlayer.defaultSoundName,
         play: (@MainActor () -> Void)? = nil
     ) {
-        self.play = play ?? { NSSound(named: soundName)?.play() }
+        self.play =
+            play ?? {
+                guard let sound = NSSound(named: soundName) else {
+                    Log.app.error("Conversion sound \(soundName, privacy: .public) is missing from the bundle")
+                    return
+                }
+                sound.play()
+            }
     }
 
     func playConversionSound() {

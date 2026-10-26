@@ -144,7 +144,14 @@ final class ConversionHUDTests: XCTestCase {
         silentProvider.showConversion(input: "a", output: "ф", layoutCode: "RU")
         silentProvider.showMessage("Ignored")
 
-        XCTAssertEqual(SystemSoundPlayer.defaultSoundName, NSSound.Name("Tink"))
+        XCTAssertEqual(SystemSoundPlayer.defaultSoundName, NSSound.Name("word-change"))
+    }
+
+    func testConversionSoundIsBundled() {
+        XCTAssertNotNil(
+            Bundle.main.url(forResource: "word-change", withExtension: "aif"),
+            "word-change.aif is not in the app bundle; check Copy Bundle Resources")
+        XCTAssertNotNil(NSSound(named: SystemSoundPlayer.defaultSoundName))
     }
 
     func testHUDFeedbackProviderMemoizesDefaultHUDInstance() throws {

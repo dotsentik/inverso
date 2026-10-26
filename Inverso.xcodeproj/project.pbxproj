@@ -22,6 +22,7 @@
 		E10000010000000000000109 /* MenuShortcutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000109 /* MenuShortcutTests.swift */; };
 		E10000010000000000000110 /* ConversionHUDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000110 /* ConversionHUDTests.swift */; };
 		E10000010000000000000029 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000029 /* Localizable.xcstrings */; };
+		E10000010000000000000307 /* word-change.aif in Resources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000307 /* word-change.aif */; };
 		E10000010000000000000111 /* LocalizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000111 /* LocalizationTests.swift */; };
 		E10000010000000000000030 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000030 /* AppIcon.icon */; };
 		E10000010000000000000201 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000201 /* AppDelegate.swift */; };
@@ -135,6 +136,7 @@
 		E10000020000000000000109 /* MenuShortcutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuShortcutTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000110 /* ConversionHUDTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionHUDTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000029 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		E10000020000000000000307 /* word-change.aif */ = {isa = PBXFileReference; lastKnownFileType = audio.aiff; path = word-change.aif; sourceTree = "<group>"; };
 		E10000020000000000000111 /* LocalizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000030 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		E10000020000000000000201 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -282,6 +284,7 @@
 				E10000020000000000000013 /* Assets.xcassets */,
 				E10000020000000000000030 /* AppIcon.icon */,
 				E10000020000000000000029 /* Localizable.xcstrings */,
+				E10000020000000000000307 /* word-change.aif */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -560,6 +563,7 @@
 				E10000010000000000000013 /* Assets.xcassets in Resources */,
 				E10000010000000000000030 /* AppIcon.icon in Resources */,
 				E10000010000000000000029 /* Localizable.xcstrings in Resources */,
+				E10000010000000000000307 /* word-change.aif in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
