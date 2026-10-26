@@ -54,7 +54,13 @@ final class TextConverter {
         }
         Log.conversion.debug("convert: detected source layout = '\(sourceID, privacy: .public)'")
 
-        guard let targetID = settingsManager.targetLayoutID(forSource: sourceID),
+        guard
+            let targetID = TargetLayoutResolver.targetID(
+                forSource: sourceID,
+                ordered: layouts.map(\.id),
+                overrides: settingsManager.targetOverrides,
+                mapProvider: mapProvider
+            ),
             let targetLayout = layouts.first(where: { $0.id == targetID })
         else {
             Log.conversion.debug("convert: no target layout found different from source")

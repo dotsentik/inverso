@@ -63,6 +63,33 @@ final class TextConverterTests: XCTestCase {
         XCTAssertEqual(result, "текст")
     }
 
+    // MARK: - Injected map provider
+
+    private struct FakeMaps: LayoutMapProviding {
+        let maps: [String: [Character: Character]]
+        func characterMap(for layoutID: String) -> [Character: Character]? { maps[layoutID] }
+    }
+
+    func testConvertUsesInjectedProviderForTargetSelection() throws {
+        let suite = "com.dotsentik.inversoTests.fakeMaps.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let settings = SettingsManager(defaults: defaults)
+        let ids = ["fake.A", "fake.C", "fake.B"]
+        settings.enabledLayouts = ids.map { KeyboardLayout(id: $0, localizedName: $0, languageCode: "xx") }
+        let fake = FakeMaps(maps: [
+            "fake.A": ["a": "a", "b": "b", "c": "c"],
+            "fake.C": ["a": "d", "b": "e", "c": "f"],
+            "fake.B": ["a": "α", "b": "β", "c": "γ"],
+        ])
+        let fakeConverter = TextConverter(settingsManager: settings, mapProvider: fake)
+
+        let result = fakeConverter.convert("abc")
+
+        XCTAssertEqual(result?.targetLayoutID, "fake.B")
+        XCTAssertEqual(result?.text, "αβγ")
+    }
+
     // MARK: - looksLikeWrongLayout
 
     func testLooksLikeWrongLayout_LatinForRussian() {

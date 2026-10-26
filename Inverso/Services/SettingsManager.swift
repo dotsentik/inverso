@@ -228,15 +228,6 @@ final class SettingsManager: ObservableObject {
         }
     }
 
-    /// Layout to convert into for text typed in `sourceID`.
-    func targetLayoutID(forSource sourceID: String) -> String? {
-        TargetLayoutResolver.targetID(
-            forSource: sourceID,
-            ordered: enabledLayouts.map(\.id),
-            overrides: targetOverrides
-        )
-    }
-
     func incrementConversionCount() {
         conversionCount += 1
     }
