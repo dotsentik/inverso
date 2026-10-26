@@ -1,0 +1,53 @@
+{
+  "fill": {
+    "automatic-gradient": "extended-srgb:0.10980,0.13725,0.34510,1.00000"
+  },
+  "groups": [
+    {
+      "name": "Letters",
+      "layers": [
+        {
+          "image-name": "letter-i.svg",
+          "name": "letter-i",
+          "glass": false
+        },
+        {
+          "image-name": "letter-bang.svg",
+          "name": "letter-bang",
+          "glass": false
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.25
+      },
+      "translucency": {
+        "enabled": false,
+        "value": 0
+      }
+    },
+    {
+      "name": "Arrows",
+      "layers": [
+        {
+          "image-name": "arrows.svg",
+          "name": "arrows",
+          "glass": true
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.4
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.4
+      }
+    }
+  ],
+  "supported-platforms": {
+    "squares": [
+      "macOS"
+    ]
+  }
+}
