@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.10] - 2026-10-26
+
 ### Fixed
 
 - The conversion log records the layouts the conversion actually used; with a custom
@@ -106,7 +108,8 @@ The history of the LangSwitcher repository starts with this version.
   Greedy Line).
 - Update errors are logged with the error domain, code and the feed's HTTP status.
 
-[Unreleased]: https://github.com/dotsentik/inverso/compare/v1.2.9...HEAD
+[Unreleased]: https://github.com/dotsentik/inverso/compare/v1.2.10...HEAD
+[1.2.10]: https://github.com/dotsentik/inverso/compare/v1.2.9...v1.2.10
 [1.2.9]: https://github.com/dotsentik/inverso/compare/v1.2.8...v1.2.9
 [1.2.8]: https://github.com/dotsentik/inverso/releases/tag/v1.2.8
 [1.2.7]: https://github.com/dotsentik/inverso/releases/tag/v1.2.7
