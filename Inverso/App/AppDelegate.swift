@@ -1,5 +1,4 @@
 import Cocoa
-import Darwin
 
 /// Starts the app: loads the keyboard layouts, starts the conversion coordinator and asks
 /// for the permissions it needs. The conversion itself lives in ConversionCoordinator.
@@ -73,13 +72,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #if DEBUG
             startDevelopmentAids()
         #endif
-
-        DispatchQueue.main.async {
-            malloc_zone_pressure_relief(nil, 0)
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            malloc_zone_pressure_relief(nil, 0)
-        }
     }
 
     @objc private func enabledInputSourcesDidChange() {

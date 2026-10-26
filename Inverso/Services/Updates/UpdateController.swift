@@ -112,14 +112,10 @@ private final class SettingsUpdaterDriver: UpdaterDriving {
 }
 
 /// Production `UpdaterDriving` backed by Sparkle's `SPUStandardUpdaterController`.
-/// Defers instantiating Sparkle's controller until the user checks for updates or the
-/// background schedule delay elapses, keeping launch and idle footprint minimal.
+/// Sparkle starts with the app; until then the settings are read from and written to defaults.
 @MainActor
 final class SparkleUpdaterDriver: UpdaterDriving {
-    private static let defaultStartupDelay: Duration = .seconds(120)
-
     private let defaults: UserDefaults
-    private let startupDelay: Duration
     private let controllerStarter: (@MainActor () -> Void)?
     private var standardController: SPUStandardUpdaterController?
     /// Sparkle keeps its delegates weakly.
@@ -127,20 +123,14 @@ final class SparkleUpdaterDriver: UpdaterDriving {
     private var updaterDelegate: FeedErrorLoggingDelegate?
     private let canCheckSubject = CurrentValueSubject<Bool, Never>(false)
     private var cancellable: AnyCancellable?
-    private var deferredStartTask: Task<Void, Never>?
     private(set) var isStarted = false
 
-    var isDeferredStartScheduled: Bool {
-        deferredStartTask != nil
-    }
-
+    /// `controllerStarter` replaces creating Sparkle's controller in tests.
     init(
         defaults: UserDefaults = .standard,
-        startupDelay: Duration = SparkleUpdaterDriver.defaultStartupDelay,
         controllerStarter: (@MainActor () -> Void)? = nil
     ) {
         self.defaults = defaults
-        self.startupDelay = startupDelay
         self.controllerStarter = controllerStarter
     }
 
@@ -149,7 +139,6 @@ final class SparkleUpdaterDriver: UpdaterDriving {
         if let standardController {
             return standardController
         }
-        cancelDeferredStart()
         let userDriverDelegate = MenuBarAppUserDriverDelegate()
         let updaterDelegate = FeedErrorLoggingDelegate()
         let controller = SPUStandardUpdaterController(
@@ -170,30 +159,6 @@ final class SparkleUpdaterDriver: UpdaterDriving {
         return controller
     }
 
-    private func startScheduledController() {
-        cancelDeferredStart()
-        if let controllerStarter {
-            controllerStarter()
-            return
-        }
-        ensureController()
-    }
-
-    private func scheduleDeferredStart() {
-        cancelDeferredStart()
-        let delay = startupDelay
-        deferredStartTask = Task { [weak self] in
-            try? await Task.sleep(for: delay)
-            guard !Task.isCancelled, let self, self.automaticallyChecksForUpdates else { return }
-            self.startScheduledController()
-        }
-    }
-
-    private func cancelDeferredStart() {
-        deferredStartTask?.cancel()
-        deferredStartTask = nil
-    }
-
     var automaticallyChecksForUpdates: Bool {
         get {
             if let standardController {
@@ -207,13 +172,6 @@ final class SparkleUpdaterDriver: UpdaterDriving {
                 standardController.updater.automaticallyChecksForUpdates = newValue
             } else {
                 defaults.set(newValue, forKey: SettingsKeys.sparkleEnableAutomaticChecks)
-                if newValue {
-                    if isStarted {
-                        scheduleDeferredStart()
-                    }
-                } else {
-                    cancelDeferredStart()
-                }
             }
         }
     }
@@ -240,13 +198,13 @@ final class SparkleUpdaterDriver: UpdaterDriving {
     }
 
     func startUpdater() {
+        guard !isStarted else { return }
         isStarted = true
-        canCheckSubject.send(true)
-        guard automaticallyChecksForUpdates, standardController == nil else {
-            standardController?.startUpdater()
+        if let controllerStarter {
+            controllerStarter()
             return
         }
-        scheduleDeferredStart()
+        ensureController()
     }
 
     func checkForUpdates() {

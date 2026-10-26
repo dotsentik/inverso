@@ -121,55 +121,44 @@ final class UpdateControllerTests: XCTestCase {
         XCTAssertEqual(driver.checkForUpdatesCount, 1)
     }
 
-    func testSparkleDriverSchedulesStartWhenAutomaticChecksEnabledAfterLaunch() async throws {
+    func testSparkleDriverStartsControllerAtLaunchEvenWithAutomaticChecksOff() throws {
         let suiteName = "UpdateControllerTests.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
         defer { defaults.removePersistentDomain(forName: suiteName) }
 
         defaults.set(false, forKey: SettingsKeys.sparkleEnableAutomaticChecks)
         var controllerStartCount = 0
-        let driver = SparkleUpdaterDriver(
-            defaults: defaults,
-            startupDelay: .milliseconds(20),
-            controllerStarter: { controllerStartCount += 1 }
-        )
+        let driver = SparkleUpdaterDriver(defaults: defaults, controllerStarter: { controllerStartCount += 1 })
 
-        XCTAssertFalse(driver.automaticallyChecksForUpdates)
+        XCTAssertFalse(driver.isStarted)
         driver.startUpdater()
+        driver.startUpdater()
+
         XCTAssertTrue(driver.isStarted)
-        XCTAssertFalse(driver.isDeferredStartScheduled)
-
-        try await Task.sleep(for: .milliseconds(50))
-        XCTAssertEqual(controllerStartCount, 0)
-
-        driver.automaticallyChecksForUpdates = true
-        XCTAssertTrue(driver.isDeferredStartScheduled)
-
-        try await Task.sleep(for: .milliseconds(60))
         XCTAssertEqual(controllerStartCount, 1)
-        XCTAssertFalse(driver.isDeferredStartScheduled)
     }
 
-    func testSparkleDriverCancelsScheduledStartWhenAutomaticChecksDisabledBeforeDelay() async throws {
+    /// The menu item stays disabled until Sparkle reports it can check, not from the moment of launch.
+    func testSparkleDriverDoesNotReportCanCheckBeforeSparkleDoes() {
+        let driver = SparkleUpdaterDriver(defaults: .standard, controllerStarter: {})
+        let controller = UpdateController(driver: driver)
+
+        driver.startUpdater()
+
+        XCTAssertFalse(controller.canCheckForUpdates)
+    }
+
+    func testSparkleDriverKeepsSettingsInDefaultsBeforeStart() throws {
         let suiteName = "UpdateControllerTests.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
         defer { defaults.removePersistentDomain(forName: suiteName) }
-
-        var controllerStartCount = 0
-        let driver = SparkleUpdaterDriver(
-            defaults: defaults,
-            startupDelay: .milliseconds(80),
-            controllerStarter: { controllerStartCount += 1 }
-        )
-
-        driver.startUpdater()
-        XCTAssertTrue(driver.isDeferredStartScheduled)
+        let driver = SparkleUpdaterDriver(defaults: defaults, controllerStarter: {})
 
         driver.automaticallyChecksForUpdates = false
-        XCTAssertFalse(driver.isDeferredStartScheduled)
+        driver.updateCheckInterval = 3_600
 
-        try await Task.sleep(for: .milliseconds(120))
-        XCTAssertEqual(controllerStartCount, 0)
+        XCTAssertEqual(defaults.object(forKey: SettingsKeys.sparkleEnableAutomaticChecks) as? Bool, false)
+        XCTAssertEqual(driver.updateCheckInterval, 3_600)
     }
 
     // MARK: - Feed error logging
