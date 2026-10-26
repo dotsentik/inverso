@@ -81,6 +81,7 @@
 		E10000010000000000000116 /* OverlayTextSelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000116 /* OverlayTextSelectionTests.swift */; };
 		E10000010000000000000117 /* AboutPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000117 /* AboutPanelTests.swift */; };
 		E10000010000000000000119 /* SettingsKeysTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000119 /* SettingsKeysTests.swift */; };
+		E10000010000000000000306 /* URLStaticStringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000306 /* URLStaticStringTests.swift */; };
 		E10000010000000000000244 /* ConversionLogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000244 /* ConversionLogStore.swift */; };
 		E10000010000000000000245 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000245 /* HotkeyManager.swift */; };
 		E10000010000000000000246 /* LaunchAtLoginHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000246 /* LaunchAtLoginHelper.swift */; };
@@ -94,6 +95,7 @@
 		E10000010000000000000254 /* LayoutCharacterMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000254 /* LayoutCharacterMap.swift */; };
 		E10000010000000000000255 /* LayoutSwitchMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000255 /* LayoutSwitchMode.swift */; };
 		E10000010000000000000263 /* SettingsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000263 /* SettingsKeys.swift */; };
+		E10000010000000000000305 /* URL+StaticString.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000305 /* URL+StaticString.swift */; };
 		E10000010000000000000256 /* SmartConversionMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000256 /* SmartConversionMode.swift */; };
 		E10000010000000000000258 /* UpdateConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000258 /* UpdateConfig.swift */; };
 		E10000010000000000000259 /* UpdaterSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000259 /* UpdaterSettings.swift */; };
@@ -192,6 +194,7 @@
 		E10000020000000000000116 /* OverlayTextSelectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayTextSelectionTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000117 /* AboutPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutPanelTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000119 /* SettingsKeysTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsKeysTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000306 /* URLStaticStringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLStaticStringTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000244 /* ConversionLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionLogStore.swift; sourceTree = "<group>"; };
 		E10000020000000000000245 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
 		E10000020000000000000246 /* LaunchAtLoginHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginHelper.swift; sourceTree = "<group>"; };
@@ -205,6 +208,7 @@
 		E10000020000000000000254 /* LayoutCharacterMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutCharacterMap.swift; sourceTree = "<group>"; };
 		E10000020000000000000255 /* LayoutSwitchMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutSwitchMode.swift; sourceTree = "<group>"; };
 		E10000020000000000000263 /* SettingsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsKeys.swift; sourceTree = "<group>"; };
+		E10000020000000000000305 /* URL+StaticString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+StaticString.swift"; sourceTree = "<group>"; };
 		E10000020000000000000256 /* SmartConversionMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartConversionMode.swift; sourceTree = "<group>"; };
 		E10000020000000000000258 /* UpdateConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateConfig.swift; sourceTree = "<group>"; };
 		E10000020000000000000259 /* UpdaterSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdaterSettings.swift; sourceTree = "<group>"; };
@@ -314,6 +318,7 @@
 				E10000020000000000000116 /* OverlayTextSelectionTests.swift */,
 				E10000020000000000000117 /* AboutPanelTests.swift */,
 				E10000020000000000000119 /* SettingsKeysTests.swift */,
+				E10000020000000000000306 /* URLStaticStringTests.swift */,
 			);
 			path = InversoTests;
 			sourceTree = "<group>";
@@ -458,6 +463,7 @@
 				E10000020000000000000253 /* KeyboardLayout.swift */,
 				E10000020000000000000255 /* LayoutSwitchMode.swift */,
 				E10000020000000000000263 /* SettingsKeys.swift */,
+				E10000020000000000000305 /* URL+StaticString.swift */,
 				E10000020000000000000256 /* SmartConversionMode.swift */,
 			);
 			path = Models;
@@ -637,6 +643,7 @@
 				E10000010000000000000254 /* LayoutCharacterMap.swift in Sources */,
 				E10000010000000000000255 /* LayoutSwitchMode.swift in Sources */,
 				E10000010000000000000263 /* SettingsKeys.swift in Sources */,
+				E10000010000000000000305 /* URL+StaticString.swift in Sources */,
 				E10000010000000000000256 /* SmartConversionMode.swift in Sources */,
 				E10000010000000000000258 /* UpdateConfig.swift in Sources */,
 				E10000010000000000000259 /* UpdaterSettings.swift in Sources */,
@@ -668,6 +675,7 @@
 				E10000010000000000000116 /* OverlayTextSelectionTests.swift in Sources */,
 				E10000010000000000000117 /* AboutPanelTests.swift in Sources */,
 				E10000010000000000000119 /* SettingsKeysTests.swift in Sources */,
+				E10000010000000000000306 /* URLStaticStringTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

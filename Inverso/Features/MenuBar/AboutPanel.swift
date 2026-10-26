@@ -4,9 +4,8 @@ import AppKit
 /// Only the short version is shown ("Version 1.2.7"): it already contains the build number.
 enum AboutPanel {
     /// The project this app is forked from, and its license.
-    static let originalProjectURL = URL(string: "https://github.com/reg2005/langSwitcher") ?? URL(fileURLWithPath: "/")
-    static let originalLicenseURL =
-        URL(string: "https://github.com/reg2005/langSwitcher/blob/main/LICENSE") ?? URL(fileURLWithPath: "/")
+    static let originalProjectURL = URL(staticString: "https://github.com/reg2005/langSwitcher")
+    static let originalLicenseURL = URL(staticString: "https://github.com/reg2005/langSwitcher/blob/main/LICENSE")
 
     @MainActor
     static func options(l10n: LocalizationManager) -> [NSApplication.AboutPanelOptionKey: Any] {
