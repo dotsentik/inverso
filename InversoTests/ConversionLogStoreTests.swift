@@ -50,4 +50,28 @@ final class ConversionLogStoreTests: XCTestCase {
         XCTAssertEqual(byInput[Array(emoji.utf8)]?.outputText.utf8.map { $0 }, Array(cyrillic.utf8))
         XCTAssertEqual(byInput[Array(long.utf8)]?.outputText.utf8.map { $0 }, Array(long.utf8))
     }
+
+    func testClearAllRightAfterLogDoesNotResurrectEntry() async {
+        store.loadIfNeeded()
+        await store.flush()
+
+        add("ghbdtn")
+        store.clearAll()
+        await store.flush()
+
+        XCTAssertTrue(store.logs.isEmpty)
+    }
+
+    func testDeleteRightAfterLogDoesNotResurrectEntry() async throws {
+        store.loadIfNeeded()
+        add("first")
+        await store.flush()
+        let firstID = try XCTUnwrap(store.logs.first?.id)
+
+        add("second")
+        store.delete(id: firstID)
+        await store.flush()
+
+        XCTAssertEqual(store.logs.map(\.inputText), ["second"])
+    }
 }

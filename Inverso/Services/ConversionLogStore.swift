@@ -59,17 +59,36 @@ final class ConversionLogStore: ObservableObject {
 
     // MARK: - Lifecycle
 
+    /// Number of the latest database operation issued from the main actor and of the latest one
+    /// whose snapshot was applied. Every operation ends with a fresh snapshot; only the snapshot
+    /// of the newest operation is applied, so a stale one never overwrites newer (optimistic) edits.
+    private var issuedOperation = 0
+    private var appliedOperation = 0
+
+    private func beginOperation() -> Int {
+        issuedOperation += 1
+        return issuedOperation
+    }
+
+    private func applySnapshot(_ entries: [ConversionLog], operation: Int) {
+        guard operation >= appliedOperation, operation == issuedOperation else { return }
+        appliedOperation = operation
+        logs = entries
+    }
+
     /// Lazily opens the database and loads existing entries on the background queue.
     func loadIfNeeded() {
+        let operation = beginOperation()
         backend.load { [weak self] entries in
-            self?.logs = entries
+            self?.applySnapshot(entries, operation: operation)
         }
     }
 
     /// Closes the SQLite connection on the background queue and clears in-memory entries.
     func close() {
+        let operation = beginOperation()
         backend.close { [weak self] in
-            self?.logs = []
+            self?.applySnapshot([], operation: operation)
         }
     }
 
@@ -97,6 +116,7 @@ final class ConversionLogStore: ObservableObject {
         conversionMode: String
     ) {
         let timestamp = Date().timeIntervalSince1970
+        let operation = beginOperation()
         backend.insert(
             timestamp: timestamp,
             inputText: inputText,
@@ -105,7 +125,7 @@ final class ConversionLogStore: ObservableObject {
             targetLayout: targetLayout,
             conversionMode: conversionMode
         ) { [weak self] entries in
-            self?.logs = entries
+            self?.applySnapshot(entries, operation: operation)
         }
     }
 
@@ -114,27 +134,35 @@ final class ConversionLogStore: ObservableObject {
         if let index = logs.firstIndex(where: { $0.id == id }) {
             logs[index].isCorrect = isCorrect
         }
-        backend.updateRating(id: id, isCorrect: isCorrect)
+        let operation = beginOperation()
+        backend.updateRating(id: id, isCorrect: isCorrect) { [weak self] entries in
+            self?.applySnapshot(entries, operation: operation)
+        }
     }
 
     func delete(id: Int64) {
         logs.removeAll { $0.id == id }
-        backend.delete(id: id)
+        let operation = beginOperation()
+        backend.delete(id: id) { [weak self] entries in
+            self?.applySnapshot(entries, operation: operation)
+        }
     }
 
     /// Deletes the oldest entries so that at most `max` remain. 0 = unlimited, nothing is deleted.
     func trim(toMaxEntries max: Int) {
         guard max > 0 else { return }
+        let operation = beginOperation()
         backend.trim(toMaxEntries: max) { [weak self] entries in
-            if let entries {
-                self?.logs = entries
-            }
+            self?.applySnapshot(entries, operation: operation)
         }
     }
 
     func clearAll() {
         logs.removeAll()
-        backend.clearAll()
+        let operation = beginOperation()
+        backend.clearAll { [weak self] entries in
+            self?.applySnapshot(entries, operation: operation)
+        }
     }
 
     // MARK: - Export
@@ -251,6 +279,24 @@ private final class DatabaseBackend: @unchecked Sendable {
         }
     }
 
+    /// Runs `work` on the queue, then delivers a fresh snapshot of all entries to the main actor.
+    private func enqueue(
+        _ work: @escaping @Sendable (OpaquePointer) -> Void,
+        completion: @escaping @MainActor @Sendable ([ConversionLog]) -> Void
+    ) {
+        hasDispatchedWork = true
+        queue.async {
+            guard let db = self.openIfNeeded() else { return }
+            work(db)
+            let entries = self.fetchAll(db: db)
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated {
+                    completion(entries)
+                }
+            }
+        }
+    }
+
     func insert(
         timestamp: Double,
         inputText: String,
@@ -260,146 +306,118 @@ private final class DatabaseBackend: @unchecked Sendable {
         conversionMode: String,
         completion: @escaping @MainActor @Sendable ([ConversionLog]) -> Void
     ) {
-        hasDispatchedWork = true
-        queue.async {
-            guard let db = self.openIfNeeded() else { return }
+        enqueue(
+            { db in
+                let sql = """
+                    INSERT INTO conversion_log (timestamp, input_text, output_text, source_layout, target_layout, conversion_mode, is_correct)
+                    VALUES (?, ?, ?, ?, ?, ?, NULL);
+                    """
 
-            let sql = """
-                INSERT INTO conversion_log (timestamp, input_text, output_text, source_layout, target_layout, conversion_mode, is_correct)
-                VALUES (?, ?, ?, ?, ?, ?, NULL);
-                """
-
-            var stmt: OpaquePointer?
-            guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
-                Log.logStore.error("Failed to prepare INSERT")
-                return
-            }
-            defer { sqlite3_finalize(stmt) }
-
-            sqlite3_bind_double(stmt, 1, timestamp)
-            sqlite3_bind_text(stmt, 2, inputText, -1, sqliteTransient)
-            sqlite3_bind_text(stmt, 3, outputText, -1, sqliteTransient)
-            sqlite3_bind_text(stmt, 4, sourceLayout, -1, sqliteTransient)
-            sqlite3_bind_text(stmt, 5, targetLayout, -1, sqliteTransient)
-            sqlite3_bind_text(stmt, 6, conversionMode, -1, sqliteTransient)
-
-            if sqlite3_step(stmt) == SQLITE_DONE {
-                Log.logStore.debug(
-                    "Logged conversion '\(inputText, privacy: .private)' -> '\(outputText, privacy: .private)'")
-                let entries = self.fetchAll(db: db)
-                DispatchQueue.main.async {
-                    MainActor.assumeIsolated {
-                        completion(entries)
-                    }
+                var stmt: OpaquePointer?
+                guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+                    Log.logStore.error("Failed to prepare INSERT")
+                    return
                 }
-            } else {
-                Log.logStore.error("INSERT failed")
-            }
-        }
-    }
+                defer { sqlite3_finalize(stmt) }
 
-    func updateRating(id: Int64, isCorrect: Bool?) {
-        hasDispatchedWork = true
-        queue.async {
-            guard let db = self.openIfNeeded() else { return }
+                sqlite3_bind_double(stmt, 1, timestamp)
+                sqlite3_bind_text(stmt, 2, inputText, -1, sqliteTransient)
+                sqlite3_bind_text(stmt, 3, outputText, -1, sqliteTransient)
+                sqlite3_bind_text(stmt, 4, sourceLayout, -1, sqliteTransient)
+                sqlite3_bind_text(stmt, 5, targetLayout, -1, sqliteTransient)
+                sqlite3_bind_text(stmt, 6, conversionMode, -1, sqliteTransient)
 
-            let sql = "UPDATE conversion_log SET is_correct = ? WHERE id = ?;"
-
-            var stmt: OpaquePointer?
-            guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
-                Log.logStore.error("Failed to prepare UPDATE")
-                return
-            }
-            defer { sqlite3_finalize(stmt) }
-
-            if let isCorrect {
-                sqlite3_bind_int(stmt, 1, isCorrect ? 1 : 0)
-            } else {
-                sqlite3_bind_null(stmt, 1)
-            }
-            sqlite3_bind_int64(stmt, 2, id)
-
-            _ = sqlite3_step(stmt)
-        }
-    }
-
-    func delete(id: Int64) {
-        hasDispatchedWork = true
-        queue.async {
-            guard let db = self.openIfNeeded() else { return }
-
-            let sql = "DELETE FROM conversion_log WHERE id = ?;"
-
-            var stmt: OpaquePointer?
-            guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else { return }
-            defer { sqlite3_finalize(stmt) }
-
-            sqlite3_bind_int64(stmt, 1, id)
-            _ = sqlite3_step(stmt)
-        }
-    }
-
-    func trim(
-        toMaxEntries max: Int,
-        completion: @escaping @MainActor @Sendable ([ConversionLog]?) -> Void
-    ) {
-        hasDispatchedWork = true
-        queue.async {
-            guard let db = self.openIfNeeded() else { return }
-
-            let sql = """
-                DELETE FROM conversion_log WHERE id NOT IN (
-                    SELECT id FROM conversion_log ORDER BY timestamp DESC LIMIT ?
-                );
-                """
-
-            var stmt: OpaquePointer?
-            guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
-                Log.logStore.error("Failed to prepare TRIM")
-                return
-            }
-            defer { sqlite3_finalize(stmt) }
-
-            sqlite3_bind_int(stmt, 1, Int32(max))
-
-            if sqlite3_step(stmt) == SQLITE_DONE {
-                let deleted = sqlite3_changes(db)
-                if deleted > 0 {
-                    Log.logStore.info("Trimmed \(deleted) old entries (max: \(max))")
-                    let entries = self.fetchAll(db: db)
-                    DispatchQueue.main.async {
-                        MainActor.assumeIsolated {
-                            completion(entries)
-                        }
-                    }
+                if sqlite3_step(stmt) == SQLITE_DONE {
+                    Log.logStore.debug(
+                        "Logged conversion '\(inputText, privacy: .private)' -> '\(outputText, privacy: .private)'")
                 } else {
-                    DispatchQueue.main.async {
-                        MainActor.assumeIsolated {
-                            completion(nil)
-                        }
-                    }
+                    Log.logStore.error("INSERT failed")
                 }
-            } else {
-                Log.logStore.error("TRIM failed")
-            }
-        }
+            }, completion: completion)
     }
 
-    func clearAll() {
-        hasDispatchedWork = true
-        queue.async {
-            guard let db = self.openIfNeeded() else { return }
+    func updateRating(
+        id: Int64, isCorrect: Bool?, completion: @escaping @MainActor @Sendable ([ConversionLog]) -> Void
+    ) {
+        enqueue(
+            { db in
+                let sql = "UPDATE conversion_log SET is_correct = ? WHERE id = ?;"
 
-            let sql = "DELETE FROM conversion_log;"
-            var errMsg: UnsafeMutablePointer<CChar>?
-            if sqlite3_exec(db, sql, nil, nil, &errMsg) == SQLITE_OK {
-                Log.logStore.info("Cleared all logs")
-            }
-            sqlite3_free(errMsg)
-        }
+                var stmt: OpaquePointer?
+                guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+                    Log.logStore.error("Failed to prepare UPDATE")
+                    return
+                }
+                defer { sqlite3_finalize(stmt) }
+
+                if let isCorrect {
+                    sqlite3_bind_int(stmt, 1, isCorrect ? 1 : 0)
+                } else {
+                    sqlite3_bind_null(stmt, 1)
+                }
+                sqlite3_bind_int64(stmt, 2, id)
+
+                _ = sqlite3_step(stmt)
+            }, completion: completion)
+    }
+
+    func delete(id: Int64, completion: @escaping @MainActor @Sendable ([ConversionLog]) -> Void) {
+        enqueue(
+            { db in
+                let sql = "DELETE FROM conversion_log WHERE id = ?;"
+
+                var stmt: OpaquePointer?
+                guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else { return }
+                defer { sqlite3_finalize(stmt) }
+
+                sqlite3_bind_int64(stmt, 1, id)
+                _ = sqlite3_step(stmt)
+            }, completion: completion)
+    }
+
+    func trim(toMaxEntries max: Int, completion: @escaping @MainActor @Sendable ([ConversionLog]) -> Void) {
+        enqueue({ db in self.trimRows(db: db, toMaxEntries: max) }, completion: completion)
+    }
+
+    func clearAll(completion: @escaping @MainActor @Sendable ([ConversionLog]) -> Void) {
+        enqueue(
+            { db in
+                let sql = "DELETE FROM conversion_log;"
+                var errMsg: UnsafeMutablePointer<CChar>?
+                if sqlite3_exec(db, sql, nil, nil, &errMsg) == SQLITE_OK {
+                    Log.logStore.info("Cleared all logs")
+                }
+                sqlite3_free(errMsg)
+            }, completion: completion)
     }
 
     // MARK: - Private Queue-Isolated Helpers
+
+    private func trimRows(db: OpaquePointer, toMaxEntries max: Int) {
+        let sql = """
+            DELETE FROM conversion_log WHERE id NOT IN (
+                SELECT id FROM conversion_log ORDER BY timestamp DESC LIMIT ?
+            );
+            """
+
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+            Log.logStore.error("Failed to prepare TRIM")
+            return
+        }
+        defer { sqlite3_finalize(stmt) }
+
+        sqlite3_bind_int(stmt, 1, Int32(max))
+
+        if sqlite3_step(stmt) == SQLITE_DONE {
+            let deleted = sqlite3_changes(db)
+            if deleted > 0 {
+                Log.logStore.info("Trimmed \(deleted) old entries (max: \(max))")
+            }
+        } else {
+            Log.logStore.error("TRIM failed")
+        }
+    }
 
     private func openIfNeeded() -> OpaquePointer? {
         if let db {
