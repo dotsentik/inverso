@@ -44,8 +44,8 @@ final class ConversionCoordinator {
         l10n: LocalizationManager,
         conversionLogStore: @autoclosure @escaping @MainActor () -> ConversionLogStore,
         hud: @autoclosure @escaping @MainActor () -> ConversionHUD,
-        hotkeyManager: HotkeyManager = HotkeyManager(),
-        accessibilityService: @autoclosure @escaping @MainActor () -> AccessibilityService = AccessibilityService(),
+        hotkeyManager: HotkeyManager,
+        accessibilityService: @autoclosure @escaping @MainActor () -> AccessibilityService,
         notificationFeedback: FeedbackProviding? = nil,
         soundFeedback: FeedbackProviding? = nil,
         silentFeedback: FeedbackProviding? = nil

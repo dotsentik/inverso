@@ -18,11 +18,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) lazy var inputSourceMonitor = InputSourceMonitor()
     private(set) lazy var updateController = UpdateController()
     private(set) lazy var launchAtLoginHelper = LaunchAtLoginHelper()
+    private(set) lazy var hotkeyManager = HotkeyManager()
+    /// Created on the first conversion, as before: nothing at launch needs it.
+    private(set) lazy var accessibilityService = AccessibilityService()
     private(set) lazy var conversionCoordinator = ConversionCoordinator(
         settingsManager: settingsManager,
         l10n: l10n,
         conversionLogStore: self.conversionLogStore,
-        hud: self.conversionHUD
+        hud: self.conversionHUD,
+        hotkeyManager: hotkeyManager,
+        accessibilityService: self.accessibilityService
     )
 
     /// Value of kTISNotifyEnabledKeyboardInputSourcesChanged (the C global is not concurrency-safe).

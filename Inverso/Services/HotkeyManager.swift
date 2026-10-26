@@ -121,11 +121,13 @@ struct KeyChordTrigger: HotkeyTrigger {
 }
 
 /// Global hotkey: a modifier + key shortcut, or a double tap of Shift.
+/// NSEvent delivers monitor events on the main thread.
+@MainActor
 final class HotkeyManager {
 
     typealias Action = () -> Void
 
-    private static let keyNames: [Int: String] = [
+    nonisolated private static let keyNames: [Int: String] = [
         kVK_ANSI_A: "A", kVK_ANSI_S: "S", kVK_ANSI_D: "D", kVK_ANSI_F: "F", kVK_ANSI_H: "H",
         kVK_ANSI_G: "G", kVK_ANSI_Z: "Z", kVK_ANSI_X: "X", kVK_ANSI_C: "C", kVK_ANSI_V: "V",
         kVK_ANSI_B: "B", kVK_ANSI_Q: "Q", kVK_ANSI_W: "W", kVK_ANSI_E: "E", kVK_ANSI_R: "R",
@@ -148,7 +150,7 @@ final class HotkeyManager {
     private var flagsGlobalMonitor: Any?
     private var flagsLocalMonitor: Any?
 
-    deinit {
+    isolated deinit {
         unregister()
     }
 
@@ -172,21 +174,24 @@ final class HotkeyManager {
 
         if trigger.monitorsFlagsChanged {
             flagsGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
-                self?.processFlagsChanged(event)
+                MainActor.assumeIsolated { self?.processFlagsChanged(event) }
             }
             flagsLocalMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
-                self?.processFlagsChanged(event)
+                MainActor.assumeIsolated { self?.processFlagsChanged(event) }
                 return event
             }
         }
 
         keyDownGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            _ = self?.processKeyDown(event)
+            MainActor.assumeIsolated { _ = self?.processKeyDown(event) }
         }
         keyDownLocalMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self else { return event }
-            let matched = self.processKeyDown(event)
-            return (matched && (self.trigger?.consumesMatchedKeyDown ?? false)) ? nil : event
+            let consumed = MainActor.assumeIsolated {
+                guard let self else { return false }
+                let matched = self.processKeyDown(event)
+                return matched && (self.trigger?.consumesMatchedKeyDown ?? false)
+            }
+            return consumed ? nil : event
         }
     }
 
@@ -235,7 +240,7 @@ final class HotkeyManager {
     // MARK: - Display
 
     /// "⌃⌥⇧⌘" symbols of the modifiers, in the standard macOS order.
-    static func symbols(for modifiers: NSEvent.ModifierFlags) -> String {
+    nonisolated static func symbols(for modifiers: NSEvent.ModifierFlags) -> String {
         var symbols = ""
         if modifiers.contains(.control) { symbols += "⌃" }
         if modifiers.contains(.option) { symbols += "⌥" }
@@ -245,7 +250,7 @@ final class HotkeyManager {
     }
 
     /// Name of the key on a US keyboard, or "Key<code>" for keys without one.
-    static func keyName(for keyCode: UInt16) -> String {
+    nonisolated static func keyName(for keyCode: UInt16) -> String {
         keyNames[Int(keyCode)] ?? "Key\(keyCode)"
     }
 }

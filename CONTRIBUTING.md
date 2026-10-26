@@ -123,7 +123,7 @@ appcast.xml                    Sparkle update feed
 
 ### Composition Root
 
-`InversoApp` and `AppDelegate` (`Inverso/App/`) act as the single Composition Root. At startup they instantiate `SettingsManager`, `LocalizationManager`, `ConversionLogStore`, `InputSourceMonitor`, `UpdateController`, `ConversionHUD`, `HotkeyManager`, `AccessibilityService`, and `ConversionCoordinator`, injecting dependencies explicitly via initializers and SwiftUI `@EnvironmentObject` rather than global singletons.
+`InversoApp` and `AppDelegate` (`Inverso/App/`) act as the single Composition Root. `AppDelegate` creates `SettingsManager`, `LocalizationManager`, `ConversionLogStore`, `InputSourceMonitor`, `UpdateController`, `ConversionHUD`, `HotkeyManager`, `AccessibilityService`, and `ConversionCoordinator`, and passes them explicitly through initializers (to SwiftUI views through `@EnvironmentObject`). `ConversionCoordinator` has no default dependencies; it receives `ConversionLogStore`, `ConversionHUD`, and `AccessibilityService` as autoclosures, so they are created on first use rather than at launch.
 
 ### Pure Core (`Inverso/Core`)
 
@@ -131,7 +131,7 @@ appcast.xml                    Sparkle update feed
 
 ### Adding an Application Rule (`AppRuleRegistry`)
 
-`AppRuleRegistry` (`Inverso/Services/TextAccess/AppRuleRegistry.swift`) resolves the active `FocusMode` (`.overlay(pid)`, `.terminal`, `.clipboardOnly`, or `.standard`):
+`AppRuleRegistry` (`Inverso/Services/TextAccess/AppRuleRegistry.swift`) is the only place that decides the focus: `ConversionCoordinator.convert()` calls `AppRuleRegistry.currentFocusMode()` once per conversion, shows the hint for `.terminal`, and otherwise passes the `FocusMode` (`.overlay(pid)`, `.clipboardOnly`, or `.standard`) to every `AccessibilityService.replace…(in:using:)` call. `TerminalApps` and `ClipboardOnlyApps` are plain lists with `matches(...)`:
 
 1. If the app is a terminal emulator where synthetic text replacement should be skipped, add its bundle identifier to `TerminalApps.bundleIDs` (`Inverso/Services/TextAccess/TerminalApps.swift`).
 2. If the app has broken Accessibility text writes and must always use `⌘C`/`⌘V`, add its bundle identifier or bundle-structure check to `ClipboardOnlyApps` (`Inverso/Services/TextAccess/ClipboardOnlyApps.swift`).
@@ -149,10 +149,10 @@ Visual and audio notifications after a conversion implement `FeedbackProviding` 
 
 ### Adding a Text Access Strategy (`TextAccessStrategy`)
 
-`AccessibilityService` (`Inverso/Services/TextAccess/AccessibilityService.swift`) resolves how to select, read, and replace text through `TextAccessStrategy` (`Inverso/Services/TextAccess/TextAccessStrategy.swift`):
+`AccessibilityService` (`Inverso/Services/TextAccess/AccessibilityService.swift`) maps the `FocusMode` it receives to a `TextAccessStrategy` (`Inverso/Services/TextAccess/TextAccessStrategy.swift`) that says how to select, read, and replace text:
 
 1. Add or update cases on `TextAccessStrategy.SelectionMethod`, `ReadMethod`, or `ReplaceMethod`, and define a static preset on `TextAccessStrategy` (alongside `.standard`, `.clipboardOnly`, and `.overlay`).
-2. Update `TextAccessStrategy.resolve(for:)` and `TextAccessStrategy.resolve(overlayFocused:clipboardOnly:)` to map the target focus mode or flags to the new preset, and handle any new method case in `AccessibilityService`.
+2. Update `TextAccessStrategy.resolve(for:)` to map the focus mode to the new preset, and handle any new method case in `AccessibilityService`.
 3. Add unit tests with fake `SelectedTextAccess` / `PasteboardAccess` / `KeystrokeSender` in `InversoTests/AccessibilityServiceTests.swift`.
 
 ## Troubleshooting updates
