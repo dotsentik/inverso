@@ -54,6 +54,11 @@ final class SettingsKeysTests: XCTestCase {
         XCTAssertEqual(Set(SettingsKeys.allPreferenceKeys).count, SettingsKeys.allPreferenceKeys.count)
     }
 
+    func testHotkeyModifiersDefaultMatchesAppKitOption() {
+        XCTAssertEqual(SettingsKeys.Defaults.hotkeyModifiers, NSEvent.ModifierFlags.option.rawValue)
+        XCTAssertEqual(SettingsKeys.Defaults.hotkeyModifiers, 524_288)
+    }
+
     func testDefaultValues() {
         XCTAssertEqual(SettingsKeys.Defaults.disabledLayoutIDs, [])
         XCTAssertEqual(SettingsKeys.Defaults.targetOverrides, [:])

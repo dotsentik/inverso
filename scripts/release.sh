@@ -56,7 +56,7 @@ SCHEME="Inverso"
 DERIVED="build/dist-derived"
 DIST="dist"
 # The published feed (read only here) and the one prepared for this release.
-APPCAST="${APPCAST:-appcast.xml}"
+INVERSO_APPCAST="${INVERSO_APPCAST:-appcast.xml}"
 DIST_APPCAST="$DIST/appcast.xml"
 RELEASE_NOTES="$DIST/release-notes.md"
 CHANGELOG="CHANGELOG.md"
@@ -93,10 +93,10 @@ if [[ "$SIGN_IDENTITY" != "-" ]]; then
         fail "code signing identity '$SIGN_IDENTITY' not found in the Keychain (see README, Releasing)"
 fi
 
-if [[ -f "$APPCAST" ]]; then
-    LATEST_BUILD="$(sed -n 's/.*<sparkle:version>\([0-9]*\)<\/sparkle:version>.*/\1/p' "$APPCAST" | sort -n | tail -1)"
+if [[ -f "$INVERSO_APPCAST" ]]; then
+    LATEST_BUILD="$(sed -n 's/.*<sparkle:version>\([0-9]*\)<\/sparkle:version>.*/\1/p' "$INVERSO_APPCAST" | sort -n | tail -1)"
     if [[ -n "$LATEST_BUILD" && "$BUILD" -le "$LATEST_BUILD" ]]; then
-        fail "CURRENT_PROJECT_VERSION ($BUILD) must be greater than the latest build in $APPCAST ($LATEST_BUILD)"
+        fail "CURRENT_PROJECT_VERSION ($BUILD) must be greater than the latest build in $INVERSO_APPCAST ($LATEST_BUILD)"
     fi
 fi
 
@@ -369,7 +369,7 @@ Nothing has been published. To publish $VERSION (build $BUILD), see CONTRIBUTING
        gh release create v$VERSION $DIST/$ZIP_NAME --title "Inverso $VERSION" --notes-file $RELEASE_NOTES
   4. Publish the feed entry, in a commit of its own:
        scripts/apply-appcast.sh
-       git add $APPCAST
+       git add $INVERSO_APPCAST
        git commit -m "Publish appcast for v$VERSION"
        git push origin main
   5. After up to 5 minutes (raw.githubusercontent.com cache):

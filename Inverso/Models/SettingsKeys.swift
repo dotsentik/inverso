@@ -1,5 +1,3 @@
-import AppKit
-
 /// UserDefaults keys and default values used across the app.
 enum SettingsKeys {
     /// Stores `layoutOrder`; the old name is kept for compatibility.
@@ -52,7 +50,8 @@ enum SettingsKeys {
         static let useDoubleShift = true
         /// ANSI S key (0x01), used with Option when double Shift is off.
         static let hotkeyKeyCode: UInt16 = 0x01
-        static let hotkeyModifiers: UInt = NSEvent.ModifierFlags.option.rawValue
+        /// `NSEvent.ModifierFlags.option.rawValue`, written out so this file does not need AppKit.
+        static let hotkeyModifiers: UInt = 1 << 19
         static let conversionFeedback: ConversionFeedback = .hud
         static let playSounds = true
         static let smartConversionMode: SmartConversionMode = .greedyLine
