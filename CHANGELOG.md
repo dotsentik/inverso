@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Conversion sound is now a custom one
+
 ## [1.2.10] - 2026-10-26
 
 ### Fixed
