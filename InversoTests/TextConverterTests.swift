@@ -5,34 +5,31 @@ import XCTest
 @MainActor
 final class TextConverterTests: XCTestCase {
 
-    // We need a SettingsManager with known layouts for deterministic testing.
-    // SettingsManager() will pick up system layouts which may vary,
-    // so tests must check that at least US+Russian are present for core tests.
+    // The converter runs on an isolated SettingsManager with a fixed U.S. + Russian pair and
+    // the built-in tables, so results do not depend on the host's enabled input sources.
 
     private var converter: TextConverter!
+    private var previousUseSystemLayouts = true
+    private var suiteName = ""
 
     override func setUp() async throws {
         try await super.setUp()
+        previousUseSystemLayouts = LayoutMaps.useSystemLayouts
         LayoutMaps.useSystemLayouts = false
-        let settings = SettingsManager()
-        // Ensure we have at least US and Russian layouts for testing
-        let hasUS = settings.enabledLayouts.contains {
-            $0.id.lowercased().contains("us") || $0.id.lowercased().contains("abc")
-        }
-        let hasRU = settings.enabledLayouts.contains { $0.id.lowercased().contains("russian") }
-        if !hasUS || !hasRU {
-            // Set up minimal layout pair for testing
-            settings.enabledLayouts = [
-                KeyboardLayout(id: "com.apple.keylayout.US", localizedName: "U.S.", languageCode: "en"),
-                KeyboardLayout(id: "com.apple.keylayout.Russian", localizedName: "Russian", languageCode: "ru"),
-            ]
-        }
+        suiteName = "com.dotsentik.inversoTests.converter.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        let settings = SettingsManager(defaults: defaults)
+        settings.enabledLayouts = [
+            KeyboardLayout(id: "com.apple.keylayout.US", localizedName: "U.S.", languageCode: "en"),
+            KeyboardLayout(id: "com.apple.keylayout.Russian", localizedName: "Russian", languageCode: "ru"),
+        ]
         converter = TextConverter(settingsManager: settings)
     }
 
     override func tearDown() async throws {
         converter = nil
-        LayoutMaps.useSystemLayouts = true
+        UserDefaults(suiteName: suiteName)?.removePersistentDomain(forName: suiteName)
+        LayoutMaps.useSystemLayouts = previousUseSystemLayouts
         try await super.tearDown()
     }
 
