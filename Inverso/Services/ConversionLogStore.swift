@@ -179,6 +179,9 @@ final class ConversionLogStore: ObservableObject {
 
 // MARK: - Background SQLite Worker
 
+/// Tells SQLite to copy bound text right away, so it does not depend on the lifetime of the Swift string.
+private let sqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+
 private final class DatabaseBackend: @unchecked Sendable {
 
     private lazy var queue = DispatchQueue(label: "com.inverso.conversionLogStore", qos: .utility)
@@ -274,11 +277,11 @@ private final class DatabaseBackend: @unchecked Sendable {
             defer { sqlite3_finalize(stmt) }
 
             sqlite3_bind_double(stmt, 1, timestamp)
-            sqlite3_bind_text(stmt, 2, (inputText as NSString).utf8String, -1, nil)
-            sqlite3_bind_text(stmt, 3, (outputText as NSString).utf8String, -1, nil)
-            sqlite3_bind_text(stmt, 4, (sourceLayout as NSString).utf8String, -1, nil)
-            sqlite3_bind_text(stmt, 5, (targetLayout as NSString).utf8String, -1, nil)
-            sqlite3_bind_text(stmt, 6, (conversionMode as NSString).utf8String, -1, nil)
+            sqlite3_bind_text(stmt, 2, inputText, -1, sqliteTransient)
+            sqlite3_bind_text(stmt, 3, outputText, -1, sqliteTransient)
+            sqlite3_bind_text(stmt, 4, sourceLayout, -1, sqliteTransient)
+            sqlite3_bind_text(stmt, 5, targetLayout, -1, sqliteTransient)
+            sqlite3_bind_text(stmt, 6, conversionMode, -1, sqliteTransient)
 
             if sqlite3_step(stmt) == SQLITE_DONE {
                 Log.logStore.debug(

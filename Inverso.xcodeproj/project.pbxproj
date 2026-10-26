@@ -17,6 +17,7 @@
 		E10000010000000000000112 /* KeyboardFocusOwnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000112 /* KeyboardFocusOwnerTests.swift */; };
 		E10000010000000000000107 /* SystemLayoutMapsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000107 /* SystemLayoutMapsTests.swift */; };
 		E10000010000000000000118 /* ConversionLogMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000118 /* ConversionLogMigrationTests.swift */; };
+		E10000010000000000000268 /* ConversionLogStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000268 /* ConversionLogStoreTests.swift */; };
 		E10000010000000000000108 /* ConversionLogTableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000108 /* ConversionLogTableTests.swift */; };
 		E10000010000000000000109 /* MenuShortcutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000109 /* MenuShortcutTests.swift */; };
 		E10000010000000000000110 /* ConversionHUDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000110 /* ConversionHUDTests.swift */; };
@@ -123,6 +124,7 @@
 		E10000020000000000000106 /* SystemPasteboardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemPasteboardTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000112 /* KeyboardFocusOwnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardFocusOwnerTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000107 /* SystemLayoutMapsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemLayoutMapsTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000268 /* ConversionLogStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionLogStoreTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000118 /* ConversionLogMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionLogMigrationTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000108 /* ConversionLogTableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionLogTableTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000109 /* MenuShortcutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuShortcutTests.swift; sourceTree = "<group>"; };
@@ -293,6 +295,7 @@
 				E10000020000000000000112 /* KeyboardFocusOwnerTests.swift */,
 				E10000020000000000000107 /* SystemLayoutMapsTests.swift */,
 				E10000020000000000000118 /* ConversionLogMigrationTests.swift */,
+				E10000020000000000000268 /* ConversionLogStoreTests.swift */,
 				E10000020000000000000108 /* ConversionLogTableTests.swift */,
 				E10000020000000000000109 /* MenuShortcutTests.swift */,
 				E10000020000000000000110 /* ConversionHUDTests.swift */,
@@ -642,6 +645,7 @@
 				E10000010000000000000112 /* KeyboardFocusOwnerTests.swift in Sources */,
 				E10000010000000000000107 /* SystemLayoutMapsTests.swift in Sources */,
 				E10000010000000000000118 /* ConversionLogMigrationTests.swift in Sources */,
+				E10000010000000000000268 /* ConversionLogStoreTests.swift in Sources */,
 				E10000010000000000000108 /* ConversionLogTableTests.swift in Sources */,
 				E10000010000000000000109 /* MenuShortcutTests.swift in Sources */,
 				E10000010000000000000110 /* ConversionHUDTests.swift in Sources */,
