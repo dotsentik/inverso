@@ -107,8 +107,10 @@ final class ConversionCoordinator {
             Log.app.debug("Conversion already in progress, ignoring trigger")
             return
         }
+        // One focus decision per conversion; every text access step below uses it.
+        let focusMode = AppRuleRegistry.currentFocusMode()
         // Terminals: no keystrokes, no pasteboard, no text changes; only the hint.
-        if AppRuleRegistry.isTerminalFocused() {
+        if focusMode == .terminal {
             Log.app.info("Terminal has the focus, conversion is not supported")
             let hint = l10n.localized("alert.terminalNotSupported")
             hudFeedback.showMessage(hint)
@@ -116,12 +118,12 @@ final class ConversionCoordinator {
         }
         conversionInProgress = true
         Task {
-            await runConversion()
+            await runConversion(in: focusMode)
             conversionInProgress = false
         }
     }
 
-    private func runConversion() async {
+    private func runConversion(in focusMode: AppRuleRegistry.FocusMode) async {
         let hasPermission = AccessibilityService.hasAccessibilityPermission
         Log.app.debug("convert() called, hasAccessibilityPermission=\(hasPermission)")
 
@@ -137,7 +139,7 @@ final class ConversionCoordinator {
         }
 
         var capture = Capture()
-        let success = await accessibilityService.replaceSelection { [weak self] text in
+        let success = await accessibilityService.replaceSelection(in: focusMode) { [weak self] text in
             Log.app.debug("replaceSelection got text: '\(text, privacy: .private)' (len=\(text.count))")
             capture.input = text
             guard let result = self?.textConverter.convert(text) else {
@@ -155,12 +157,12 @@ final class ConversionCoordinator {
             finishConversion(capture, mode: .direct)
         } else {
             Log.app.debug("No selected text, trying smart conversion")
-            await runSmartConversion()
+            await runSmartConversion(in: focusMode)
         }
     }
 
     /// Without a selection, the Smart Conversion mode decides what to convert.
-    private func runSmartConversion() async {
+    private func runSmartConversion(in focusMode: AppRuleRegistry.FocusMode) async {
         let mode = settingsManager.smartConversionMode
         Log.app.debug("runSmartConversion() mode=\(mode.rawValue)")
 
@@ -168,16 +170,16 @@ final class ConversionCoordinator {
         case .disabled:
             Log.app.debug("Smart conversion is disabled")
         case .lastWord:
-            await convertLastWord()
+            await convertLastWord(in: focusMode)
         case .greedyLine:
-            await convertLineGreedily()
+            await convertLineGreedily(in: focusMode)
         }
     }
 
     /// Selects one word left and converts it if it looks like the wrong layout.
-    private func convertLastWord() async {
+    private func convertLastWord(in focusMode: AppRuleRegistry.FocusMode) async {
         var capture = Capture()
-        let success = await accessibilityService.replaceLastWord { [weak self] text in
+        let success = await accessibilityService.replaceLastWord(in: focusMode) { [weak self] text in
             guard let self else { return nil }
             Log.app.debug("lastWord got: '\(text, privacy: .private)'")
             guard textConverter.looksLikeWrongLayout(text) else { return nil }
@@ -193,9 +195,9 @@ final class ConversionCoordinator {
     }
 
     /// Selects to the line start and converts the wrong-layout tail of the line.
-    private func convertLineGreedily() async {
+    private func convertLineGreedily(in focusMode: AppRuleRegistry.FocusMode) async {
         var capture = Capture()
-        let success = await accessibilityService.replaceLineBeforeCursor { [weak self] lineText in
+        let success = await accessibilityService.replaceLineBeforeCursor(in: focusMode) { [weak self] lineText in
             guard let self else { return nil }
             Log.app.debug("greedyLine got line: '\(lineText, privacy: .private)' (len=\(lineText.count))")
             capture.input = lineText

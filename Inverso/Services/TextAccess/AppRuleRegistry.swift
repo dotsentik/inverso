@@ -14,6 +14,12 @@ enum AppRuleRegistry {
         case clipboardOnly
         /// A regular app: try AX selection access first, then fall back to ⌘C/⌘V.
         case standard
+
+        /// PID of the overlay that owns keyboard focus, if any.
+        var overlayPID: pid_t? {
+            if case .overlay(let pid) = self { return pid }
+            return nil
+        }
     }
 
     /// Resolves the focus mode from the active overlay PID and frontmost app metadata.
@@ -35,11 +41,6 @@ enum AppRuleRegistry {
         return .standard
     }
 
-    /// PID of the overlay process that currently owns keyboard focus, if any.
-    static func overlayPID() -> pid_t? {
-        KeyboardFocusOwner.overlayPID()
-    }
-
     /// Resolves the live focus mode from the window server and frontmost application.
     @MainActor
     static func currentFocusMode() -> FocusMode {
@@ -49,26 +50,5 @@ enum AppRuleRegistry {
             frontmostBundleURL: app?.bundleURL,
             overlayPID: KeyboardFocusOwner.overlayPID()
         )
-    }
-
-    /// True when a terminal is frontmost and no system overlay is open above it.
-    @MainActor
-    static func isTerminalFocused() -> Bool {
-        let frontmost = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
-        guard TerminalApps.matches(bundleID: frontmost) else { return false }
-        return focusMode(
-            frontmostBundleID: frontmost,
-            overlayPID: KeyboardFocusOwner.overlayPID()
-        ) == .terminal
-    }
-
-    /// True when the frontmost application requires clipboard-only text access.
-    @MainActor
-    static func isClipboardOnlyFrontmost() -> Bool {
-        guard let app = NSWorkspace.shared.frontmostApplication else { return false }
-        return focusMode(
-            frontmostBundleID: app.bundleIdentifier,
-            frontmostBundleURL: app.bundleURL
-        ) == .clipboardOnly
     }
 }

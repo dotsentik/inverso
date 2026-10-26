@@ -32,16 +32,17 @@ final class TerminalAppsTests: XCTestCase {
     }
 
     func testTerminalInFrontHasFocus() {
-        XCTAssertTrue(TerminalApps.hasFocus(frontmostBundleID: "com.apple.Terminal", overlayFocused: false))
+        XCTAssertEqual(AppRuleRegistry.focusMode(frontmostBundleID: "com.apple.Terminal"), .terminal)
     }
 
     /// Spotlight or an Open/Save panel above a terminal takes the keyboard focus.
     func testOverlayAboveTerminalHasFocus() {
-        XCTAssertFalse(TerminalApps.hasFocus(frontmostBundleID: "com.apple.Terminal", overlayFocused: true))
+        XCTAssertEqual(
+            AppRuleRegistry.focusMode(frontmostBundleID: "com.apple.Terminal", overlayPID: 4242), .overlay(4242))
     }
 
     func testOtherAppInFront() {
-        XCTAssertFalse(TerminalApps.hasFocus(frontmostBundleID: "com.apple.TextEdit", overlayFocused: false))
+        XCTAssertEqual(AppRuleRegistry.focusMode(frontmostBundleID: "com.apple.TextEdit"), .standard)
     }
 
     @MainActor
@@ -117,15 +118,10 @@ final class TerminalAppsTests: XCTestCase {
         )
     }
 
-    func testTextAccessStrategyResolveForFocusModeAndFlags() {
+    func testTextAccessStrategyResolveForFocusMode() {
         XCTAssertNil(TextAccessStrategy.resolve(for: .terminal))
         XCTAssertEqual(TextAccessStrategy.resolve(for: .overlay(1234)), .overlay)
         XCTAssertEqual(TextAccessStrategy.resolve(for: .clipboardOnly), .clipboardOnly)
         XCTAssertEqual(TextAccessStrategy.resolve(for: .standard), .standard)
-
-        XCTAssertEqual(TextAccessStrategy.resolve(overlayFocused: true, clipboardOnly: false), .overlay)
-        XCTAssertEqual(TextAccessStrategy.resolve(overlayFocused: true, clipboardOnly: true), .overlay)
-        XCTAssertEqual(TextAccessStrategy.resolve(overlayFocused: false, clipboardOnly: true), .clipboardOnly)
-        XCTAssertEqual(TextAccessStrategy.resolve(overlayFocused: false, clipboardOnly: false), .standard)
     }
 }

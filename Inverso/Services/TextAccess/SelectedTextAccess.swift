@@ -14,4 +14,11 @@ protocol SelectedTextAccess {
     /// Selects `range` via kAXSelectedTextRangeAttribute. False if the attribute is not
     /// settable or the element reports another range afterwards.
     func setSelectedRange(_ range: NSRange) -> Bool
+    /// Access to the focused element of the overlay process `pid` (Spotlight, Open/Save panels)
+    /// instead of the system-wide focus; nil keeps the system-wide focus.
+    func focused(onOverlay pid: pid_t?) -> SelectedTextAccess
+}
+
+extension SelectedTextAccess {
+    func focused(onOverlay pid: pid_t?) -> SelectedTextAccess { self }
 }

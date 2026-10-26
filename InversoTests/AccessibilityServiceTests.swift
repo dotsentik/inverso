@@ -97,6 +97,8 @@ final class FakeTargetApp: KeystrokeSender {
 /// Accessibility access of the focused element. Default: the app does not support it.
 @MainActor
 final class FakeSelectedText: SelectedTextAccess {
+    /// Overlay PIDs the service focused this access on, one per conversion.
+    private(set) var overlayTargets: [pid_t?] = []
     var text: String?
     /// Selection length reported via AX; nil = not reported.
     var length: Int?
@@ -137,6 +139,11 @@ final class FakeSelectedText: SelectedTextAccess {
         replacements.append(text)
         return replaceResult
     }
+
+    func focused(onOverlay pid: pid_t?) -> SelectedTextAccess {
+        overlayTargets.append(pid)
+        return self
+    }
 }
 
 @MainActor
@@ -154,14 +161,16 @@ final class AccessibilityServiceTests: XCTestCase {
         _ app: FakeTargetApp,
         selection: FakeSelectedText = FakeSelectedText(),
         timing: AccessibilityService.Timing = fastTiming,
-        clipboardOnly: Bool = false,
-        overlayFocused: Bool = false
-    ) -> AccessibilityService {
-        AccessibilityService(
-            pasteboard: app.pasteboard, keystrokes: app, selection: selection, timing: timing,
-            isClipboardOnlyApp: { clipboardOnly }, isOverlayFocused: { overlayFocused }
+        focus: AppRuleRegistry.FocusMode = .standard
+    ) -> FocusedService {
+        FocusedService(
+            service: AccessibilityService(
+                pasteboard: app.pasteboard, keystrokes: app, selection: selection, timing: timing),
+            focus: focus
         )
     }
+
+    private static let overlay = AppRuleRegistry.FocusMode.overlay(4242)
 
     // MARK: - Spotlight / Open-Save panels
 
@@ -171,7 +180,7 @@ final class AccessibilityServiceTests: XCTestCase {
         let selection = FakeSelectedText()
         selection.replaceResult = .replaced
 
-        let ok = await makeService(app, selection: selection, overlayFocused: true).replaceSelection { _ in "привет" }
+        let ok = await makeService(app, selection: selection, focus: Self.overlay).replaceSelection { _ in "привет" }
 
         XCTAssertTrue(ok)
         XCTAssertEqual(app.sent, [.copy, .typeText("привет")])
@@ -185,7 +194,7 @@ final class AccessibilityServiceTests: XCTestCase {
         let app = FakeTargetApp(pasteboard: pasteboard, selection: "ghbdtn")
         let selection = FakeSelectedText(text: "ghbdtn", length: 6)
 
-        let ok = await makeService(app, selection: selection, overlayFocused: true).replaceSelection { _ in "привет" }
+        let ok = await makeService(app, selection: selection, focus: Self.overlay).replaceSelection { _ in "привет" }
 
         XCTAssertTrue(ok)
         XCTAssertEqual(app.sent, [.typeText("привет")])
@@ -197,8 +206,8 @@ final class AccessibilityServiceTests: XCTestCase {
         let app = FakeTargetApp(pasteboard: FakePasteboard(), selection: "ghbdtn")
         let selection = FakeSelectedText(text: "ghbdtn", length: 6)
 
-        let ok = await makeService(app, selection: selection, clipboardOnly: true, overlayFocused: true)
-            .replaceSelection { _ in "привет" }
+        let focus = AppRuleRegistry.focusMode(frontmostBundleID: "com.microsoft.VSCode", overlayPID: 4242)
+        let ok = await makeService(app, selection: selection, focus: focus).replaceSelection { _ in "привет" }
 
         XCTAssertTrue(ok)
         XCTAssertEqual(selection.textReads, 1)
@@ -208,7 +217,7 @@ final class AccessibilityServiceTests: XCTestCase {
     func testOverlay_LastWordIsSelectedThenTyped() async {
         let app = FakeTargetApp(pasteboard: FakePasteboard(), selection: "ghbdtn")
 
-        let ok = await makeService(app, overlayFocused: true).replaceLastWord { _ in "привет" }
+        let ok = await makeService(app, focus: Self.overlay).replaceLastWord { _ in "привет" }
 
         XCTAssertTrue(ok)
         XCTAssertEqual(app.sent, [.selectWordLeft, .copy, .typeText("привет")])
@@ -217,11 +226,38 @@ final class AccessibilityServiceTests: XCTestCase {
     func testOverlay_KeystrokesGoToTheKeyWindow() async {
         let app = FakeTargetApp(pasteboard: FakePasteboard(), selection: "ghbdtn")
 
-        _ = await makeService(app, overlayFocused: true).replaceSelection { _ in "привет" }
+        _ = await makeService(app, focus: Self.overlay).replaceSelection { _ in "привет" }
         XCTAssertEqual(app.keyWindowRoutings, 1)
 
         _ = await makeService(app).replaceSelection { _ in "привет" }
         XCTAssertEqual(app.keyWindowRoutings, 1, "normal apps: no rerouting")
+    }
+
+    func testOverlay_AXAccessTargetsTheOverlayFromFocusMode() async {
+        let app = FakeTargetApp(pasteboard: FakePasteboard(), selection: "ghbdtn")
+        let selection = FakeSelectedText(text: "ghbdtn", length: 6)
+
+        _ = await makeService(app, selection: selection, focus: Self.overlay).replaceSelection { _ in "привет" }
+        _ = await makeService(app, selection: selection).replaceSelection { _ in "привет" }
+
+        XCTAssertEqual(selection.overlayTargets, [4242, nil])
+    }
+
+    func testTerminal_NoKeystrokesNoPasteboard() async {
+        let pasteboard = FakePasteboard(text: "user clipboard")
+        let app = FakeTargetApp(pasteboard: pasteboard, selection: "ghbdtn")
+        let selection = FakeSelectedText(text: "ghbdtn", length: 6)
+        let service = makeService(app, selection: selection, focus: .terminal)
+
+        let selected = await service.replaceSelection { _ in "привет" }
+        let word = await service.replaceLastWord { _ in "привет" }
+        let line = await service.replaceLineBeforeCursor { _ in "привет" }
+
+        XCTAssertFalse(selected || word || line)
+        XCTAssertTrue(app.sent.isEmpty)
+        XCTAssertEqual(selection.textReads, 0)
+        XCTAssertTrue(pasteboard.temporaryWrites.isEmpty)
+        XCTAssertEqual(pasteboard.string(), "user clipboard")
     }
 
     func testOverlay_LastWordIsSelectedViaAXRange() async {
@@ -230,7 +266,7 @@ final class AccessibilityServiceTests: XCTestCase {
         selection.state = .init(value: "hello ghbdtn", selectedRange: NSRange(location: 12, length: 0))
         var received: String?
 
-        let ok = await makeService(app, selection: selection, overlayFocused: true).replaceLastWord { text in
+        let ok = await makeService(app, selection: selection, focus: Self.overlay).replaceLastWord { text in
             received = text
             return "привет"
         }
@@ -246,7 +282,7 @@ final class AccessibilityServiceTests: XCTestCase {
         let selection = FakeSelectedText()
         selection.state = .init(value: "ghbdtn vbh", selectedRange: NSRange(location: 10, length: 0))
 
-        let ok = await makeService(app, selection: selection, overlayFocused: true)
+        let ok = await makeService(app, selection: selection, focus: Self.overlay)
             .replaceLineBeforeCursor { _ in "привет мир" }
 
         XCTAssertTrue(ok)
@@ -260,7 +296,7 @@ final class AccessibilityServiceTests: XCTestCase {
         selection.state = .init(value: "ghbdtn", selectedRange: NSRange(location: 3, length: 3))
         var converterCalled = false
 
-        let ok = await makeService(app, selection: selection, overlayFocused: true).replaceSelection { _ in
+        let ok = await makeService(app, selection: selection, focus: Self.overlay).replaceSelection { _ in
             converterCalled = true
             return "x"
         }
@@ -276,7 +312,7 @@ final class AccessibilityServiceTests: XCTestCase {
         selection.state = .init(value: "ghbdtn", selectedRange: NSRange(location: 3, length: 3))
         var received: String?
 
-        let ok = await makeService(app, selection: selection, overlayFocused: true).replaceLastWord { text in
+        let ok = await makeService(app, selection: selection, focus: Self.overlay).replaceLastWord { text in
             received = text
             return "при"
         }
@@ -292,7 +328,7 @@ final class AccessibilityServiceTests: XCTestCase {
         let selection = FakeSelectedText()
         selection.state = .init(value: "ghbdtn", selectedRange: NSRange(location: 0, length: 6))
 
-        let ok = await makeService(app, selection: selection, overlayFocused: true).replaceSelection { _ in "привет" }
+        let ok = await makeService(app, selection: selection, focus: Self.overlay).replaceSelection { _ in "привет" }
 
         XCTAssertTrue(ok)
         XCTAssertTrue(selection.rangeWrites.isEmpty)
@@ -305,7 +341,7 @@ final class AccessibilityServiceTests: XCTestCase {
         selection.state = .init(value: "ghbdtn", selectedRange: NSRange(location: 6, length: 0))
         selection.rangeSettable = false
 
-        let ok = await makeService(app, selection: selection, overlayFocused: true).replaceLastWord { _ in "привет" }
+        let ok = await makeService(app, selection: selection, focus: Self.overlay).replaceLastWord { _ in "привет" }
 
         // The fake's AX selection stays empty after the keystroke: as in a field without AX updates
         XCTAssertFalse(ok)
@@ -318,7 +354,7 @@ final class AccessibilityServiceTests: XCTestCase {
         let selection = FakeSelectedText()
         selection.state = .init(value: "hello", selectedRange: NSRange(location: 5, length: 0))
 
-        let ok = await makeService(app, selection: selection, overlayFocused: true).replaceLastWord { _ in nil }
+        let ok = await makeService(app, selection: selection, focus: Self.overlay).replaceLastWord { _ in nil }
 
         XCTAssertFalse(ok)
         XCTAssertEqual(selection.rangeWrites, [NSRange(location: 0, length: 5), NSRange(location: 5, length: 0)])
@@ -330,7 +366,7 @@ final class AccessibilityServiceTests: XCTestCase {
         let selection = FakeSelectedText()
         selection.state = .init(value: "", selectedRange: NSRange(location: 0, length: 0))
 
-        let ok = await makeService(app, selection: selection, overlayFocused: true).replaceLastWord { _ in "x" }
+        let ok = await makeService(app, selection: selection, focus: Self.overlay).replaceLastWord { _ in "x" }
 
         XCTAssertFalse(ok)
         XCTAssertEqual(app.sent, [])
@@ -708,7 +744,7 @@ final class AccessibilityServiceTests: XCTestCase {
         var pasted: String?
         app.onPaste = { pasted = pasteboard.string() }
 
-        let ok = await makeService(app, selection: selection, clipboardOnly: true).replaceSelection { _ in "привет" }
+        let ok = await makeService(app, selection: selection, focus: .clipboardOnly).replaceSelection { _ in "привет" }
 
         XCTAssertTrue(ok)
         XCTAssertEqual(app.sent, [.copy, .paste])
@@ -773,5 +809,28 @@ final class AccessibilityServiceTests: XCTestCase {
                 after: "👍 привет"),
             .replaced
         )
+    }
+}
+
+/// An `AccessibilityService` bound to one focus mode, as `ConversionCoordinator` uses it per conversion.
+@MainActor
+private struct FocusedService {
+    let service: AccessibilityService
+    let focus: AppRuleRegistry.FocusMode
+
+    func replaceSelection(using converter: (String) -> String?) async -> Bool {
+        await service.replaceSelection(in: focus, using: converter)
+    }
+
+    func replaceLastWord(using converter: (String) -> String?) async -> Bool {
+        await service.replaceLastWord(in: focus, using: converter)
+    }
+
+    func replaceLineBeforeCursor(using converter: (String) -> String?) async -> Bool {
+        await service.replaceLineBeforeCursor(in: focus, using: converter)
+    }
+
+    func waitForPasteboardChange(from count: Int, timeout: Duration) async -> Bool {
+        await service.waitForPasteboardChange(from: count, timeout: timeout)
     }
 }

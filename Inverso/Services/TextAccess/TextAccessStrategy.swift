@@ -71,15 +71,4 @@ struct TextAccessStrategy: Equatable {
             return .standard
         }
     }
-
-    /// Resolves the text access strategy from focus flags.
-    static func resolve(overlayFocused: Bool, clipboardOnly: Bool) -> TextAccessStrategy {
-        if overlayFocused {
-            return .overlay
-        }
-        if clipboardOnly {
-            return .clipboardOnly
-        }
-        return .standard
-    }
 }

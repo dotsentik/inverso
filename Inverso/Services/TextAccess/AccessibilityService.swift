@@ -26,25 +26,17 @@ final class AccessibilityService {
     private let keystrokes: KeystrokeSender
     private let selection: SelectedTextAccess
     private let timing: Timing
-    /// True if the frontmost app must not be read or written via AX text attributes.
-    private let isClipboardOnlyApp: @MainActor () -> Bool
-    /// True if Spotlight or an Open/Save panel has the keyboard focus (see KeyboardFocusOwner).
-    private let isOverlayFocused: @MainActor () -> Bool
 
     init(
         pasteboard: PasteboardAccess = SystemPasteboard(),
         keystrokes: KeystrokeSender = CGEventKeystrokeSender(),
         selection: SelectedTextAccess = AXSelectedTextAccess(),
-        timing: Timing = Timing(),
-        isClipboardOnlyApp: @escaping @MainActor () -> Bool = AppRuleRegistry.isClipboardOnlyFrontmost,
-        isOverlayFocused: @escaping @MainActor () -> Bool = { AppRuleRegistry.overlayPID() != nil }
+        timing: Timing = Timing()
     ) {
         self.pasteboard = pasteboard
         self.keystrokes = keystrokes
         self.selection = selection
         self.timing = timing
-        self.isClipboardOnlyApp = isClipboardOnlyApp
-        self.isOverlayFocused = isOverlayFocused
     }
 
     // MARK: - Permission
@@ -66,20 +58,34 @@ final class AccessibilityService {
 
     // MARK: - Replacing Text
 
+    // Each method takes the focus mode resolved by `AppRuleRegistry` for this conversion.
+    // In a terminal they do nothing and return false.
+
     /// Converts the current selection. Returns false if nothing was selected or converted.
-    func replaceSelection(using converter: (String) -> String?) async -> Bool {
-        await copyConvertPaste(select: nil, label: "replaceSelection", converter: converter)
+    func replaceSelection(
+        in focusMode: AppRuleRegistry.FocusMode,
+        using converter: (String) -> String?
+    ) async -> Bool {
+        await copyConvertPaste(select: nil, focusMode: focusMode, label: "replaceSelection", converter: converter)
     }
 
     /// Selects from the cursor to the line start (⌘⇧←) and converts it. The converter decides
     /// which part to convert and returns the whole replacement line.
-    func replaceLineBeforeCursor(using converter: (String) -> String?) async -> Bool {
-        await copyConvertPaste(select: .selectToLineStart, label: "replaceLineBeforeCursor", converter: converter)
+    func replaceLineBeforeCursor(
+        in focusMode: AppRuleRegistry.FocusMode,
+        using converter: (String) -> String?
+    ) async -> Bool {
+        await copyConvertPaste(
+            select: .selectToLineStart, focusMode: focusMode, label: "replaceLineBeforeCursor", converter: converter)
     }
 
     /// Selects the word before the cursor (⇧⌥←) and converts it.
-    func replaceLastWord(using converter: (String) -> String?) async -> Bool {
-        await copyConvertPaste(select: .selectWordLeft, label: "replaceLastWord", converter: converter)
+    func replaceLastWord(
+        in focusMode: AppRuleRegistry.FocusMode,
+        using converter: (String) -> String?
+    ) async -> Bool {
+        await copyConvertPaste(
+            select: .selectWordLeft, focusMode: focusMode, label: "replaceLastWord", converter: converter)
     }
 
     /// Reads the selection via AX (kAXSelectedTextAttribute) or, failing that, ⌘C; replaces it
@@ -93,40 +99,48 @@ final class AccessibilityService {
     ///   is restored (AX) or collapsed with → so the cursor stays where the user left it.
     private func copyConvertPaste(
         select: Keystroke?,
+        focusMode: AppRuleRegistry.FocusMode,
         label: String,
         converter: (String) -> String?
     ) async -> Bool {
+        guard let strategy = TextAccessStrategy.resolve(for: focusMode) else {
+            Log.focus.debug("\(label, privacy: .public): terminal has the focus, no text access")
+            return false
+        }
         var savedContents: PasteboardSnapshot?
         var ownChangeCount = 0
-        let strategy = currentStrategy()
         let keystrokes = strategy.routesKeystrokesToKeyWindow ? self.keystrokes.routedToKeyWindow() : self.keystrokes
+        let selection = self.selection.focused(onOverlay: focusMode.overlayPID)
         if strategy == .overlay {
             Log.focus.debug("\(label, privacy: .public): Spotlight / Open-Save panel has the focus")
         } else if strategy.readMethod == .pasteboardOnly {
             Log.accessibility.debug("\(label, privacy: .public): clipboard-only app, skipping AX text access")
         }
 
-        switch await prepareSelection(select: select, strategy: strategy, keystrokes: keystrokes, label: label) {
+        switch await prepareSelection(
+            select: select, strategy: strategy, selection: selection, keystrokes: keystrokes, label: label)
+        {
         case .abort:
             return false
         case .ready(let selectionToRestore):
             // With nothing selected, ⌘C in CodeMirror (Obsidian) and VS Code copies the whole
             // current line, and ⌘V would then insert the converted line at the cursor instead of
             // replacing anything. So don't copy when AX reports an empty selection.
-            if await selectionIsEmpty(afterSelecting: select != nil) {
+            if await selectionIsEmpty(selection, afterSelecting: select != nil) {
                 Log.accessibility.debug("\(label, privacy: .public): AX reports an empty selection, nothing to copy")
                 return false
             }
 
             let selectedText = await readSelectedText(
                 strategy: strategy,
+                selection: selection,
                 keystrokes: keystrokes,
                 label: label,
                 savedContents: &savedContents,
                 ownChangeCount: &ownChangeCount
             )
             guard let selectedText else {
-                if select != nil { undoSelection(selectionToRestore, keystrokes: keystrokes) }
+                if select != nil { undoSelection(selectionToRestore, selection: selection, keystrokes: keystrokes) }
                 if let savedContents { restoreIfUntouched(savedContents, ownChangeCount: ownChangeCount) }
                 return false
             }
@@ -136,7 +150,7 @@ final class AccessibilityService {
 
             guard let convertedText = converter(selectedText) else {
                 Log.accessibility.debug("\(label, privacy: .public): converter returned nil")
-                if select != nil { undoSelection(selectionToRestore, keystrokes: keystrokes) }
+                if select != nil { undoSelection(selectionToRestore, selection: selection, keystrokes: keystrokes) }
                 if let savedContents { restoreIfUntouched(savedContents, ownChangeCount: ownChangeCount) }
                 return false
             }
@@ -144,6 +158,7 @@ final class AccessibilityService {
             await writeConvertedText(
                 convertedText,
                 strategy: strategy,
+                selection: selection,
                 keystrokes: keystrokes,
                 label: label,
                 savedContents: savedContents,
@@ -160,17 +175,10 @@ final class AccessibilityService {
         case abort
     }
 
-    private func currentStrategy() -> TextAccessStrategy {
-        // The clipboard-only check looks at the frontmost app, which is not the one with the
-        // focus while an overlay is open.
-        let overlayFocused = isOverlayFocused()
-        let clipboardOnly = overlayFocused ? false : isClipboardOnlyApp()
-        return TextAccessStrategy.resolve(overlayFocused: overlayFocused, clipboardOnly: clipboardOnly)
-    }
-
     private func prepareSelection(
         select: Keystroke?,
         strategy: TextAccessStrategy,
+        selection: SelectedTextAccess,
         keystrokes: KeystrokeSender,
         label: String
     ) async -> SelectionPreparation {
@@ -212,6 +220,7 @@ final class AccessibilityService {
 
     private func readSelectedText(
         strategy: TextAccessStrategy,
+        selection: SelectedTextAccess,
         keystrokes: KeystrokeSender,
         label: String,
         savedContents: inout PasteboardSnapshot?,
@@ -237,6 +246,7 @@ final class AccessibilityService {
     private func writeConvertedText(
         _ convertedText: String,
         strategy: TextAccessStrategy,
+        selection: SelectedTextAccess,
         keystrokes: KeystrokeSender,
         label: String,
         savedContents: PasteboardSnapshot?,
@@ -294,7 +304,7 @@ final class AccessibilityService {
     }
 
     /// Puts the selection back as it was before we selected the text to convert.
-    private func undoSelection(_ range: NSRange?, keystrokes: KeystrokeSender) {
+    private func undoSelection(_ range: NSRange?, selection: SelectedTextAccess, keystrokes: KeystrokeSender) {
         if let range, selection.setSelectedRange(range) { return }
         keystrokes.send(.rightArrow)
     }
@@ -303,7 +313,7 @@ final class AccessibilityService {
 
     /// True only if AX positively reports an empty selection; unknown counts as not empty.
     /// After a selection keystroke, waits for the app to apply it (Electron updates AX lazily).
-    private func selectionIsEmpty(afterSelecting: Bool) async -> Bool {
+    private func selectionIsEmpty(_ selection: SelectedTextAccess, afterSelecting: Bool) async -> Bool {
         let clock = ContinuousClock()
         let deadline = clock.now.advanced(by: timing.selectionTimeout)
         while !Task.isCancelled {
