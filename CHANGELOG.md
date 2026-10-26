@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.12] - 2026-10-26
+
+### Changed
+
+- New app icon
+- Custom menu bar icon
+
 ## [1.2.11] - 2026-10-26
 
 ### Changed
@@ -114,7 +121,8 @@ The history of the LangSwitcher repository starts with this version.
   Greedy Line).
 - Update errors are logged with the error domain, code and the feed's HTTP status.
 
-[Unreleased]: https://github.com/dotsentik/inverso/compare/v1.2.11...HEAD
+[Unreleased]: https://github.com/dotsentik/inverso/compare/v1.2.12...HEAD
+[1.2.12]: https://github.com/dotsentik/inverso/compare/v1.2.11...v1.2.12
 [1.2.11]: https://github.com/dotsentik/inverso/compare/v1.2.10...v1.2.11
 [1.2.10]: https://github.com/dotsentik/inverso/compare/v1.2.9...v1.2.10
 [1.2.9]: https://github.com/dotsentik/inverso/compare/v1.2.8...v1.2.9
