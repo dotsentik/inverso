@@ -41,26 +41,7 @@ enum LayoutCharacterMap {
 
     static func characterMap(for layoutID: String) -> [Character: Character]? {
         let lowered = layoutID.lowercased()
-        let match: (pattern: String, map: [Character: Character])? =
-            if lowered.contains("russian") {
-                ("russian", russian)
-            } else if lowered.contains("ukrainian") {
-                ("ukrainian", ukrainian)
-            } else if lowered.contains("german") {
-                ("german", german)
-            } else if lowered.contains("french") {
-                ("french", french)
-            } else if lowered.contains("spanish") {
-                ("spanish", spanish)
-            } else if lowered.contains("british") {
-                ("british", qwertyUS)
-            } else if lowered.contains("abc") {
-                ("abc", qwertyUS)
-            } else if lowered.contains("us") {
-                ("us", qwertyUS)
-            } else {
-                nil
-            }
+        let match = allMaps.first { lowered.contains($0.pattern) }
         if let match {
             Log.layouts.debug(
                 "characterMap: '\(layoutID, privacy: .public)' matched pattern '\(match.pattern, privacy: .public)'")

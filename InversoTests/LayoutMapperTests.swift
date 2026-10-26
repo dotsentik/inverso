@@ -705,6 +705,35 @@ final class LayoutMapperTests: XCTestCase {
     }
 }
 
+// MARK: - Pattern order
+
+extension LayoutMapperTests {
+    func testCharacterMapPatternOrder() {
+        let cases: [(String, [Character: Character])] = [
+            ("com.apple.keylayout.Russian", LayoutCharacterMap.russian),
+            ("com.apple.keylayout.RussianWin", LayoutCharacterMap.russian),
+            ("com.apple.keylayout.Ukrainian-PC", LayoutCharacterMap.ukrainian),
+            ("com.apple.keylayout.German", LayoutCharacterMap.german),
+            ("com.apple.keylayout.French", LayoutCharacterMap.french),
+            ("com.apple.keylayout.Spanish", LayoutCharacterMap.spanish),
+            ("com.apple.keylayout.British", LayoutCharacterMap.qwertyUS),
+            ("com.apple.keylayout.ABC", LayoutCharacterMap.qwertyUS),
+            ("com.apple.keylayout.US", LayoutCharacterMap.qwertyUS),
+        ]
+        for (id, expected) in cases {
+            XCTAssertEqual(LayoutCharacterMap.characterMap(for: id), expected, id)
+        }
+        XCTAssertNil(LayoutCharacterMap.characterMap(for: "com.example.Greek"))
+    }
+
+    func testAllMapsPutsRussianBeforeUS() throws {
+        let patterns = LayoutCharacterMap.allMaps.map(\.pattern)
+        let russian = try XCTUnwrap(patterns.firstIndex(of: "russian"))
+        let us = try XCTUnwrap(patterns.firstIndex(of: "us"))
+        XCTAssertLessThan(russian, us)
+    }
+}
+
 // Tests run against the shared maps unless they inject a provider.
 extension LayoutMapper {
     static func convert(text: String, from sourceLayoutID: String, to targetLayoutID: String) -> String? {

@@ -73,13 +73,6 @@ struct LayoutMaps: LayoutMapProviding {
         }
     }
 
-    static func invalidateCache() {
-        state.withLock { state in
-            state.reverseCache.removeAll()
-            state.characterSetCache.removeAll()
-        }
-    }
-
     /// Rebuilds the maps of all enabled keyboard layouts. Call on launch and when input sources change.
     @MainActor
     static func reloadFromSystem() {
