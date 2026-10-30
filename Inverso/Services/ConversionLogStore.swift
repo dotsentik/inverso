@@ -30,8 +30,21 @@ final class ConversionLogStore: ObservableObject {
         // Data directory of the app's former name
         let legacyDir = appSupport.appendingPathComponent("LangSwitcher", isDirectory: true)
         migrateLegacyLog(from: legacyDir, to: dir)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(
+            at: dir, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        // An existing directory keeps its old mode otherwise
+        try? FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: dir.path)
         return dir.appendingPathComponent(databaseFileName).path
+    }
+
+    /// The log holds the user's text: only the owner may read the database or its -wal / -shm
+    /// files. SQLite gives new -wal / -shm files the mode of the database file.
+    nonisolated static func restrictPermissions(
+        ofDatabaseAt path: String, fileManager: FileManager = .default
+    ) {
+        for suffix in ["", "-wal", "-shm"] where fileManager.fileExists(atPath: path + suffix) {
+            try? fileManager.setAttributes([.posixPermissions: 0o600], ofItemAtPath: path + suffix)
+        }
     }
 
     /// Copies the log from `legacyDir` on the first launch: only when `legacyDir` exists and
@@ -456,6 +469,7 @@ private final class DatabaseBackend: @unchecked Sendable {
         guard let handle else { return nil }
         db = handle
         createTableIfNeeded(db: handle)
+        ConversionLogStore.restrictPermissions(ofDatabaseAt: path)
         return handle
     }
 

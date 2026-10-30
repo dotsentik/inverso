@@ -52,6 +52,26 @@ final class ConversionLogStoreTests: XCTestCase {
         XCTAssertEqual(byInput[Array(long.utf8)]?.outputText.utf8.map { $0 }, Array(long.utf8))
     }
 
+    func testDatabaseFilesAreOwnerOnly() async throws {
+        add("secret")
+        await store.flush()
+        let path = root.appendingPathComponent("log.sqlite").path
+        // Files that already exist with wide permissions are tightened too
+        for suffix in ["-wal", "-shm"] where !FileManager.default.fileExists(atPath: path + suffix) {
+            FileManager.default.createFile(atPath: path + suffix, contents: nil)
+        }
+        for suffix in ["", "-wal", "-shm"] {
+            try FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: path + suffix)
+        }
+
+        ConversionLogStore.restrictPermissions(ofDatabaseAt: path)
+
+        for suffix in ["", "-wal", "-shm"] {
+            let mode = try FileManager.default.attributesOfItem(atPath: path + suffix)[.posixPermissions] as? Int
+            XCTAssertEqual(mode, 0o600, "log.sqlite\(suffix)")
+        }
+    }
+
     func testClearAllRightAfterLogDoesNotResurrectEntry() async {
         store.loadIfNeeded()
         await store.flush()
