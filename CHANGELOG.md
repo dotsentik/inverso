@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Conversion in Chrome and other Chromium browsers is faster and no longer skipped in search fields (YouTube)
 - A number at the end of the line (e.g. "ghbdtn 45") no longer blocks smart conversion
 
 ## [1.2.13] - 2026-10-27

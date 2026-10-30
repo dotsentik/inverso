@@ -87,6 +87,9 @@ struct AXSelectedTextAccess: SelectedTextAccess {
             result = AXReplaceVerifier.result(before: before, selectedRange: range, inserted: text, after: after)
             if result != .unchanged { break }
         }
+        if result == .unknown {
+            Log.accessibility.debug("AX: replace could not be verified, value differs from both before and expected")
+        }
         Log.accessibility.debug("AX: replace result = \(String(describing: result), privacy: .public)")
         return result
     }

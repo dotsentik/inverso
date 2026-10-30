@@ -759,6 +759,24 @@ final class AccessibilityServiceTests: XCTestCase {
         XCTAssertFalse(ClipboardOnlyApps.matches(bundleID: "com.apple.Notes", bundleURL: nil))
     }
 
+    func testClipboardOnlyApps_MatchesChromiumBrowsers() {
+        let ids = [
+            "com.google.Chrome", "com.google.Chrome.beta", "com.google.Chrome.dev", "com.google.Chrome.canary",
+            "com.brave.Browser", "com.microsoft.edgemac", "company.thebrowser.Browser", "com.vivaldi.Vivaldi",
+            "com.operasoftware.Opera", "org.chromium.Chromium", "com.yandex.desktop.yandex-browser",
+        ]
+        for id in ids {
+            XCTAssertTrue(ClipboardOnlyApps.matches(bundleID: id, bundleURL: nil), id)
+            XCTAssertEqual(AppRuleRegistry.focusMode(frontmostBundleID: id), .clipboardOnly, id)
+        }
+    }
+
+    func testSafariAndFirefoxStayStandard() {
+        for id in ["com.apple.Safari", "org.mozilla.firefox"] {
+            XCTAssertEqual(AppRuleRegistry.focusMode(frontmostBundleID: id), .standard, id)
+        }
+    }
+
     func testClipboardOnlyApps_DetectsElectronFramework() throws {
         let bundle = FileManager.default.temporaryDirectory.appendingPathComponent(
             "ElectronTest-\(UUID().uuidString).app")
