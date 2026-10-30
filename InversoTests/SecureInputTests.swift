@@ -21,7 +21,7 @@ final class SecureInputTests: XCTestCase {
         func playConversionSound() {}
     }
 
-    func testHotkeyInSecureFieldTouchesNothing() throws {
+    func testHotkeyInSecureFieldTouchesNothing() async throws {
         let suiteName = "SecureInputTests.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
         defer { defaults.removePersistentDomain(forName: suiteName) }
@@ -29,24 +29,34 @@ final class SecureInputTests: XCTestCase {
         l10n.currentLanguage = "en"
         let pasteboard = FakePasteboard(text: "secret")
         let app = FakeTargetApp(pasteboard: pasteboard, selection: "hunter2")
+        let selection = FakeSelectedText(text: "hunter2")
         let feedback = SpyFeedback()
         let logURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(suiteName).sqlite")
         defer { try? FileManager.default.removeItem(at: logURL) }
+        let settings = SettingsManager(defaults: defaults)
+        // Every path past the check would log: the AX selection, smart conversion, the log
+        settings.loggingEnabled = true
 
         let coordinator = ConversionCoordinator(
-            settingsManager: SettingsManager(defaults: defaults),
+            settingsManager: settings,
             l10n: l10n,
             conversionLogStore: ConversionLogStore(databaseURL: logURL),
             hotkeyManager: HotkeyManager(),
             accessibilityService: AccessibilityService(
-                pasteboard: pasteboard, keystrokes: app, selection: FakeSelectedText()),
+                pasteboard: pasteboard, keystrokes: app, selection: selection),
             feedbackProviders: FeedbackProviders(hud: feedback),
             soundPlayer: SilentSound(),
             secureInput: FakeSecureInput(active: true)
         )
 
         coordinator.convert()
+        // A conversion runs in a Task: give one a chance to start before checking
+        try await Task.sleep(for: .milliseconds(300))
 
+        XCTAssertEqual(selection.textReads, 0, "the selection may not be read via AX")
+        XCTAssertTrue(selection.replacements.isEmpty)
+        XCTAssertTrue(selection.rangeWrites.isEmpty)
+        XCTAssertTrue(selection.overlayTargets.isEmpty)
         XCTAssertTrue(app.sent.isEmpty, "no keystroke may be sent")
         XCTAssertEqual(pasteboard.changeCount, 0, "the pasteboard must not be touched")
         XCTAssertEqual(pasteboard.text, "secret")
