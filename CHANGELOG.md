@@ -7,10 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.14] - 2026-10-30
+
 ### Fixed
 
-- Conversion in Chrome and other Chromium browsers is faster and no longer skipped in search fields (YouTube)
 - A number at the end of the line (e.g. "ghbdtn 45") no longer blocks smart conversion
+- Conversion in Chrome and other Chromium browsers is faster and more reliable
+
+### Changed
+
+- Conversion is disabled in password fields
+- Update checks are stricter: the signature of an update is verified before it is unpacked
 
 ## [1.2.13] - 2026-10-27
 
