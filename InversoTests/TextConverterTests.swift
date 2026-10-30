@@ -400,4 +400,35 @@ final class TextConverterTests: XCTestCase {
         XCTAssertEqual(boundary?.keep, "")
         XCTAssertEqual(boundary?.convert, "ghbdtn rfr ltkf 123")
     }
+
+    // MARK: - Neutral (digit-only) tokens
+
+    func testConvertLine_TrailingNumberDoesNotBlockConversion() {
+        XCTAssertEqual(converter.convertLineGreedily("ghbdtn 45")?.text, "привет 45")
+        XCTAssertEqual(converter.convertLineGreedily("это 185")?.text, "'nj 185")
+        XCTAssertEqual(converter.convertLineGreedily("это 45")?.text, "'nj 45")
+    }
+
+    func testConvertLine_NumberInMiddleStaysInPlace() {
+        XCTAssertEqual(converter.convertLineGreedily("ghbdtn 2024 rfr")?.text, "привет 2024 как")
+    }
+
+    func testFindBoundary_OnlyNumbers_ReturnsNil() {
+        XCTAssertNil(converter.findWrongLayoutBoundary(in: "12345"))
+        XCTAssertNil(converter.findWrongLayoutBoundary(in: "12 345"))
+    }
+
+    func testFindBoundary_MixedLineWithTrailingNumber_ConvertsWholeLine() {
+        // Same as "Привет ghbdtn": every lettered word switches script, the number is ignored.
+        let boundary = converter.findWrongLayoutBoundary(in: "Привет ghbdtn 45")
+        XCTAssertEqual(boundary?.keep, "")
+        XCTAssertEqual(boundary?.convert, "Привет ghbdtn 45")
+    }
+
+    func testFindBoundary_LeadingNumberStaysInKeep() {
+        let boundary = converter.findWrongLayoutBoundary(in: "2025 ghbdtn 45")
+        XCTAssertEqual(boundary?.keep, "2025 ")
+        XCTAssertEqual(boundary?.convert, "ghbdtn 45")
+        XCTAssertEqual(converter.convertLineGreedily("2025 ghbdtn 45")?.text, "2025 привет 45")
+    }
 }

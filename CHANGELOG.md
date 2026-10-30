@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- A number at the end of the line (e.g. "ghbdtn 45") no longer blocks smart conversion
+
 ## [1.2.13] - 2026-10-27
 
 ### Changed

@@ -176,7 +176,8 @@ final class TextConverter {
         guard preferences.enabledLayoutIDs.count >= 2 else { return nil }
 
         let tokens = tokenize(text)
-        let wordTokens = tokens.filter { !$0.isWhitespaceOrPunctuation }
+        // Digit-only tokens carry no layout signal: they neither count as words nor stop pass 2.
+        let wordTokens = tokens.filter { $0.containsLetter }
         guard !wordTokens.isEmpty else { return nil }
 
         Log.conversion.debug(
@@ -187,12 +188,16 @@ final class TextConverter {
         let wrongCount = wordTokens.filter { looksLikeWrongLayout($0) }.count
         Log.conversion.debug("findWrongLayoutBoundary: \(wrongCount)/\(wordTokens.count) words look wrong-layout")
 
-        if wrongCount == wordTokens.count {
+        // Digits before the first word stay in keep, so those lines go through pass 2.
+        let firstWordIndex = tokens.firstIndex { $0.containsLetter } ?? 0
+        let hasLeadingNumber = tokens[..<firstWordIndex].contains { $0.contains { $0.isNumber } }
+
+        if wrongCount == wordTokens.count && !hasLeadingNumber {
             Log.conversion.debug("findWrongLayoutBoundary: ALL words are wrong-layout, converting entire line")
             return (keep: "", convert: text)
         }
         // One ambiguous word should not stop a longer line from converting
-        if wordTokens.count >= Self.wholeLineMinimumWords
+        if !hasLeadingNumber && wordTokens.count >= Self.wholeLineMinimumWords
             && Double(wrongCount) / Double(wordTokens.count) >= Self.wholeLineWrongShare
         {
             Log.conversion.debug(
@@ -205,7 +210,7 @@ final class TextConverter {
         var wrongStartIndex = tokens.count
         for index in stride(from: tokens.count - 1, through: 0, by: -1) {
             let token = tokens[index]
-            if token.isWhitespaceOrPunctuation { continue }
+            if !token.containsLetter { continue }
             if looksLikeWrongLayout(token) {
                 wrongStartIndex = index
                 Log.conversion.debug(
@@ -280,8 +285,8 @@ final class TextConverter {
 }
 
 extension String {
-    /// True if the string has no letters or digits.
-    fileprivate var isWhitespaceOrPunctuation: Bool {
-        allSatisfy { !$0.isLetter && !$0.isNumber }
+    /// True if the string has at least one letter.
+    fileprivate var containsLetter: Bool {
+        contains { $0.isLetter }
     }
 }
