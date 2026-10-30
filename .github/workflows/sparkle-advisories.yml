@@ -1,0 +1,33 @@
+name: Sparkle advisories
+
+# Dependabot does not read Package.resolved inside the Xcode project, so it never alerts
+# on Sparkle. This checks Sparkle's published security advisories against the pinned version.
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Inverso.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved'
+      - 'scripts/check-sparkle-advisories.sh'
+  schedule:
+    # Daily 05:23 UTC
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check pinned Sparkle
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      with:
+        persist-credentials: false
+
+    - name: Check advisories
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: scripts/check-sparkle-advisories.sh
