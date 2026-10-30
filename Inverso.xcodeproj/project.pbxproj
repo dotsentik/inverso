@@ -77,8 +77,10 @@
 		E10000010000000000000243 /* SystemPasteboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000243 /* SystemPasteboard.swift */; };
 		E10000010000000000000257 /* KeyboardFocusOwner.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000257 /* KeyboardFocusOwner.swift */; };
 		E10000010000000000000261 /* TerminalApps.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000261 /* TerminalApps.swift */; };
+		E10000010000000000000902 /* SecureInputDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000902 /* SecureInputDetector.swift */; };
 		E10000010000000000000262 /* OverlayTextSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000262 /* OverlayTextSelection.swift */; };
 		E10000010000000000000115 /* TerminalAppsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000115 /* TerminalAppsTests.swift */; };
+		E10000010000000000000903 /* SecureInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000903 /* SecureInputTests.swift */; };
 		E10000010000000000000116 /* OverlayTextSelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000116 /* OverlayTextSelectionTests.swift */; };
 		E10000010000000000000117 /* AboutPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000117 /* AboutPanelTests.swift */; };
 		E10000010000000000000119 /* SettingsKeysTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000119 /* SettingsKeysTests.swift */; };
@@ -192,8 +194,10 @@
 		E10000020000000000000243 /* SystemPasteboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemPasteboard.swift; sourceTree = "<group>"; };
 		E10000020000000000000257 /* KeyboardFocusOwner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardFocusOwner.swift; sourceTree = "<group>"; };
 		E10000020000000000000261 /* TerminalApps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalApps.swift; sourceTree = "<group>"; };
+		E10000020000000000000902 /* SecureInputDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureInputDetector.swift; sourceTree = "<group>"; };
 		E10000020000000000000262 /* OverlayTextSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayTextSelection.swift; sourceTree = "<group>"; };
 		E10000020000000000000115 /* TerminalAppsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalAppsTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000903 /* SecureInputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureInputTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000116 /* OverlayTextSelectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayTextSelectionTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000117 /* AboutPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutPanelTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000119 /* SettingsKeysTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsKeysTests.swift; sourceTree = "<group>"; };
@@ -320,6 +324,7 @@
 				E10000020000000000000113 /* UpdateConfigTests.swift */,
 				E10000020000000000000114 /* UpdateControllerTests.swift */,
 				E10000020000000000000115 /* TerminalAppsTests.swift */,
+				E10000020000000000000903 /* SecureInputTests.swift */,
 				E10000020000000000000116 /* OverlayTextSelectionTests.swift */,
 				E10000020000000000000117 /* AboutPanelTests.swift */,
 				E10000020000000000000119 /* SettingsKeysTests.swift */,
@@ -429,6 +434,7 @@
 				E10000020000000000000242 /* SelectedTextAccess.swift */,
 				E10000020000000000000243 /* SystemPasteboard.swift */,
 				E10000020000000000000261 /* TerminalApps.swift */,
+				E10000020000000000000902 /* SecureInputDetector.swift */,
 				E10000020000000000000266 /* TextAccessStrategy.swift */,
 				E10000020000000000000262 /* OverlayTextSelection.swift */,
 			);
@@ -635,6 +641,7 @@
 				E10000010000000000000243 /* SystemPasteboard.swift in Sources */,
 				E10000010000000000000257 /* KeyboardFocusOwner.swift in Sources */,
 				E10000010000000000000261 /* TerminalApps.swift in Sources */,
+				E10000010000000000000902 /* SecureInputDetector.swift in Sources */,
 				E10000010000000000000266 /* TextAccessStrategy.swift in Sources */,
 				E10000010000000000000262 /* OverlayTextSelection.swift in Sources */,
 				E10000010000000000000244 /* ConversionLogStore.swift in Sources */,
@@ -679,6 +686,7 @@
 				E10000010000000000000113 /* UpdateConfigTests.swift in Sources */,
 				E10000010000000000000114 /* UpdateControllerTests.swift in Sources */,
 				E10000010000000000000115 /* TerminalAppsTests.swift in Sources */,
+				E10000010000000000000903 /* SecureInputTests.swift in Sources */,
 				E10000010000000000000116 /* OverlayTextSelectionTests.swift in Sources */,
 				E10000010000000000000117 /* AboutPanelTests.swift in Sources */,
 				E10000010000000000000119 /* SettingsKeysTests.swift in Sources */,

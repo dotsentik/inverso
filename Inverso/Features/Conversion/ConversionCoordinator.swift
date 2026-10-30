@@ -28,6 +28,7 @@ final class ConversionCoordinator {
     private let accessibilityServiceFactory: @MainActor () -> AccessibilityService
     private let feedbackProviders: FeedbackProviders
     private let soundPlayer: SoundPlaying
+    private let secureInput: SecureInputDetecting
     private lazy var textConverter = TextConverter(
         preferences: settingsManager,
         mapProvider: LayoutMaps.shared,
@@ -41,7 +42,8 @@ final class ConversionCoordinator {
         hotkeyManager: HotkeyManager,
         accessibilityService: @autoclosure @escaping @MainActor () -> AccessibilityService,
         feedbackProviders: FeedbackProviders,
-        soundPlayer: SoundPlaying
+        soundPlayer: SoundPlaying,
+        secureInput: SecureInputDetecting = SecureInputDetector()
     ) {
         self.settingsManager = settingsManager
         self.l10n = l10n
@@ -50,6 +52,7 @@ final class ConversionCoordinator {
         self.accessibilityServiceFactory = accessibilityService
         self.feedbackProviders = feedbackProviders
         self.soundPlayer = soundPlayer
+        self.secureInput = secureInput
     }
 
     /// The chain drives the shared pasteboard, so only one conversion may run at a time.
@@ -96,6 +99,11 @@ final class ConversionCoordinator {
     func convert() {
         guard !conversionInProgress else {
             Log.app.debug("Conversion already in progress, ignoring trigger")
+            return
+        }
+        // Password fields: no keystrokes, no pasteboard, no logging; only the hint.
+        if secureInput.isSecureInputActive() {
+            feedbackProviders.provider(for: .hud).showMessage(l10n.localized("alert.secureFieldNotSupported"))
             return
         }
         // One focus decision per conversion; every text access step below uses it.
