@@ -155,6 +155,19 @@ Visual and audio notifications after a conversion implement `FeedbackProviding` 
 2. Update `TextAccessStrategy.resolve(for:)` to map the focus mode to the new preset, and handle any new method case in `AccessibilityService`.
 3. Add unit tests with fake `SelectedTextAccess` / `PasteboardAccess` / `KeystrokeSender` in `InversoTests/AccessibilityServiceTests.swift`.
 
+## Library validation entitlement
+
+`Inverso.entitlements` contains `com.apple.security.cs.disable-library-validation`. Releases
+are signed with a self-signed certificate that has no Team ID, so the hardened runtime
+would refuse to load the embedded Sparkle framework (it has a different signature) without
+it; `release.sh` checks that the entitlement is present. Do not add
+`com.apple.security.cs.allow-dyld-environment-variables`, and do not `dlopen` paths outside
+the app bundle, `/System` or `/usr/lib`.
+
+When releases move to a Developer ID certificate, remove this entitlement: the app and
+Sparkle will then share one Team ID and library validation can stay on. Update the check in
+`release.sh` in the same change.
+
 ## Troubleshooting updates
 
 Sparkle shows “Update Error” when it can't load the update feed or the archive, or the archive fails verification:

@@ -44,6 +44,11 @@ final class UpdateConfigTests: XCTestCase {
         XCTAssertEqual(info[UpdateConfig.InfoKey.enableAutomaticChecks] as? Bool, true)
     }
 
+    func testInfoPlistVerifiesUpdateSignatureBeforeExtraction() {
+        // Sparkle checks the EdDSA signature of the archive before unpacking it
+        XCTAssertEqual(info["SUVerifyUpdateBeforeExtraction"] as? Bool, true)
+    }
+
     func testPublicEDKeyIsEd25519Key() throws {
         let key = try XCTUnwrap(info[UpdateConfig.InfoKey.publicEDKey] as? String)
         let data = try XCTUnwrap(Data(base64Encoded: key), "SUPublicEDKey is not base64")
