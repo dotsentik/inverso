@@ -42,22 +42,36 @@ final class ConversionLogStore: ObservableObject {
     nonisolated static func restrictPermissions(
         ofDatabaseAt path: String, fileManager: FileManager = .default
     ) {
-        for suffix in ["", "-wal", "-shm"] where fileManager.fileExists(atPath: path + suffix) {
+        // setAttributes follows symbolic links: never change the mode of a file they point to
+        for suffix in ["", "-wal", "-shm"]
+        where fileManager.fileExists(atPath: path + suffix) && !isNonRegularItem(atPath: path + suffix) {
             try? fileManager.setAttributes([.posixPermissions: 0o600], ofItemAtPath: path + suffix)
         }
     }
 
+    /// True if something other than a regular file (a symbolic link, a directory) is at `path`.
+    /// The last path component is not resolved.
+    nonisolated static func isNonRegularItem(atPath path: String, fileManager: FileManager = .default) -> Bool {
+        guard let attributes = try? fileManager.attributesOfItem(atPath: path) else { return false }
+        return attributes[.type] as? FileAttributeType != .typeRegular
+    }
+
     /// Copies the log from `legacyDir` on the first launch: only when `legacyDir` exists and
     /// `dir` does not. `legacyDir` is left untouched. Returns true if the log was copied.
+    /// Symbolic links are not followed: only a real directory with a regular file is copied.
     @discardableResult
     nonisolated static func migrateLegacyLog(
         from legacyDir: URL, to dir: URL, fileManager: FileManager = .default
     ) -> Bool {
-        guard fileManager.fileExists(atPath: legacyDir.path), !fileManager.fileExists(atPath: dir.path) else {
+        func type(at url: URL) -> FileAttributeType? {
+            // attributesOfItem does not resolve a symbolic link at the end of the path
+            (try? fileManager.attributesOfItem(atPath: url.path))?[.type] as? FileAttributeType
+        }
+        guard type(at: legacyDir) == .typeDirectory, !fileManager.fileExists(atPath: dir.path) else {
             return false
         }
         let legacyLog = legacyDir.appendingPathComponent(databaseFileName)
-        guard fileManager.fileExists(atPath: legacyLog.path) else { return false }
+        guard type(at: legacyLog) == .typeRegular else { return false }
         do {
             try fileManager.createDirectory(at: dir, withIntermediateDirectories: true)
             try fileManager.copyItem(at: legacyLog, to: dir.appendingPathComponent(databaseFileName))
@@ -428,7 +442,8 @@ private final class DatabaseBackend: @unchecked Sendable {
         }
         defer { sqlite3_finalize(stmt) }
 
-        sqlite3_bind_int(stmt, 1, Int32(max))
+        // 64-bit: Int32(max) traps on a large limit written to defaults by hand
+        sqlite3_bind_int64(stmt, 1, Int64(max))
 
         if sqlite3_step(stmt) == SQLITE_DONE {
             let deleted = sqlite3_changes(db)
@@ -456,6 +471,14 @@ private final class DatabaseBackend: @unchecked Sendable {
 
         Log.logStore.debug("Opening database at \(path, privacy: .private)")
 
+        // A symbolic link in place of the database would make us write to (and chmod) whatever
+        // it points to. Not SQLITE_OPEN_NOFOLLOW: it also rejects links higher up the path
+        // (/var, a relocated Application Support).
+        guard !ConversionLogStore.isNonRegularItem(atPath: path) else {
+            Log.logStore.error("Database path is not a regular file, not opening it")
+            return nil
+        }
+
         var handle: OpaquePointer?
         if sqlite3_open(path, &handle) != SQLITE_OK {
             let err = handle.flatMap { String(cString: sqlite3_errmsg($0)) } ?? "unknown"
@@ -468,6 +491,9 @@ private final class DatabaseBackend: @unchecked Sendable {
 
         guard let handle else { return nil }
         db = handle
+        // Deleted and cleared entries are overwritten on disk, not just unlinked from the
+        // b-tree (the macOS build has this on by default; don't rely on it).
+        sqlite3_exec(handle, "PRAGMA secure_delete = ON;", nil, nil, nil)
         createTableIfNeeded(db: handle)
         ConversionLogStore.restrictPermissions(ofDatabaseAt: path)
         return handle
@@ -508,15 +534,20 @@ private final class DatabaseBackend: @unchecked Sendable {
         }
         defer { sqlite3_finalize(stmt) }
 
+        // NULL comes back as a nil pointer: a database copied from an older version may have one
+        func text(_ column: Int32) -> String {
+            sqlite3_column_text(stmt, column).map { String(cString: $0) } ?? ""
+        }
+
         var results: [ConversionLog] = []
         while sqlite3_step(stmt) == SQLITE_ROW {
             let id = sqlite3_column_int64(stmt, 0)
             let timestamp = Date(timeIntervalSince1970: sqlite3_column_double(stmt, 1))
-            let inputText = String(cString: sqlite3_column_text(stmt, 2))
-            let outputText = String(cString: sqlite3_column_text(stmt, 3))
-            let sourceLayout = String(cString: sqlite3_column_text(stmt, 4))
-            let targetLayout = String(cString: sqlite3_column_text(stmt, 5))
-            let conversionMode = String(cString: sqlite3_column_text(stmt, 6))
+            let inputText = text(2)
+            let outputText = text(3)
+            let sourceLayout = text(4)
+            let targetLayout = text(5)
+            let conversionMode = text(6)
 
             let isCorrect: Bool?
             if sqlite3_column_type(stmt, 7) == SQLITE_NULL {

@@ -63,6 +63,27 @@ final class ConversionLogMigrationTests: XCTestCase {
         XCTAssertEqual(copied, "first")
     }
 
+    func testDoesNotFollowASymlinkedOldLog() throws {
+        let foreign = root.appendingPathComponent("foreign-file")
+        try Data("foreign".utf8).write(to: foreign)
+        try FileManager.default.createDirectory(at: legacyDir, withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(
+            at: legacyDir.appendingPathComponent(fileName), withDestinationURL: foreign)
+
+        XCTAssertFalse(ConversionLogStore.migrateLegacyLog(from: legacyDir, to: dir))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: dir.appendingPathComponent(fileName).path))
+    }
+
+    func testDoesNotFollowASymlinkedOldDirectory() throws {
+        let foreignDir = root.appendingPathComponent("foreign-dir", isDirectory: true)
+        try FileManager.default.createDirectory(at: foreignDir, withIntermediateDirectories: true)
+        try Data("foreign".utf8).write(to: foreignDir.appendingPathComponent(fileName))
+        try FileManager.default.createSymbolicLink(at: legacyDir, withDestinationURL: foreignDir)
+
+        XCTAssertFalse(ConversionLogStore.migrateLegacyLog(from: legacyDir, to: dir))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: dir.appendingPathComponent(fileName).path))
+    }
+
     @MainActor
     func testDatabaseIsOpenedLazilyAndClosedWhenLoggingDisabled() async throws {
         let dbURL = root.appendingPathComponent("lazy_test.sqlite")
