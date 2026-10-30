@@ -155,6 +155,21 @@ Visual and audio notifications after a conversion implement `FeedbackProviding` 
 2. Update `TextAccessStrategy.resolve(for:)` to map the focus mode to the new preset, and handle any new method case in `AccessibilityService`.
 3. Add unit tests with fake `SelectedTextAccess` / `PasteboardAccess` / `KeystrokeSender` in `InversoTests/AccessibilityServiceTests.swift`.
 
+## Running a debug build without re-granting Accessibility
+
+macOS ties the Accessibility permission to the code signature. Debug builds are signed ad hoc,
+so every rebuild looks like a new app and the system asks again. Build with a persistent
+signature instead; the designated requirement then stays the same between builds and the
+permission is granted once:
+
+```bash
+xcodebuild build -project Inverso.xcodeproj -scheme Inverso -configuration Debug \
+  CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="Inverso Release" DEVELOPMENT_TEAM=""
+```
+
+This needs the "Inverso Release" certificate in your keychain. Test runs never ask for the
+permission: the app skips the prompt when it hosts tests (`AppEnvironment.isRunningTests`).
+
 ## Library validation entitlement
 
 `Inverso.entitlements` contains `com.apple.security.cs.disable-library-validation`. Releases

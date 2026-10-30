@@ -61,7 +61,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let trusted = AccessibilityService.hasAccessibilityPermission
         Log.app.info("Initial AXIsProcessTrusted = \(trusted)")
-        if !trusted {
+        if !trusted && !AppEnvironment.isRunningTests {
             Log.app.info("Requesting accessibility permission prompt")
             AccessibilityService.requestAccessibilityPermission()
         }

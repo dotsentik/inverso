@@ -49,7 +49,7 @@ final class UpdateController: ObservableObject {
     /// Starts the updater and its schedule. Call once at launch.
     func start() {
         // Unit tests run inside the app; they must not check for updates.
-        guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
+        guard !AppEnvironment.isRunningTests else { return }
         driver.startUpdater()
         Log.app.info(
             "Updater started, automatic checks \(self.automaticallyChecksForUpdates ? "on" : "off", privacy: .public)")
