@@ -47,6 +47,20 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 
+# Signing keys and certificate exports: never commit them
+*.p12
+*.pfx
+*.pem
+*.key
+*.p8
+*.keychain
+*.keychain-db
+# Sparkle EdDSA private key exports (generate_keys -x <file>)
+*ed25519*
+*eddsa*
+*private*key*
+sparkle_private*
+
 # Project
 /dist
 AGENTS.md
