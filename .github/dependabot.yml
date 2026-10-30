@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # Keeps the SHA-pinned actions in .github/workflows current (the version comment too).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  # Swift: there is no Package.swift; Sparkle is resolved by the Xcode project
+  # (Package.resolved inside Inverso.xcodeproj), which the dependency graph does not list,
+  # so a "swift" entry would find nothing. Sparkle is watched by
+  # .github/workflows/sparkle-advisories.yml instead.
