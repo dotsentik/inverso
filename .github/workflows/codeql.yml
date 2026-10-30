@@ -38,12 +38,14 @@ jobs:
         queries: security-extended
 
     - name: Build
+      # Under the CodeQL tracer "My Mac" shows up as x86_64, which the arm64-only Debug
+      # configuration doesn't build for; a generic destination builds ARCHS (arm64).
       run: |
         xcodebuild build \
           -project Inverso.xcodeproj \
           -scheme Inverso \
           -configuration Debug \
-          -destination 'platform=macOS' \
+          -destination 'generic/platform=macOS' \
           CODE_SIGN_IDENTITY="-" \
           CODE_SIGNING_REQUIRED=NO \
           CODE_SIGNING_ALLOWED=NO
