@@ -131,6 +131,8 @@ xcodebuild build \
     ONLY_ACTIVE_ARCH=NO \
     CODE_SIGN_IDENTITY="-" \
     CODE_SIGN_STYLE=Manual \
+    ENABLE_CODE_COVERAGE=NO \
+    CLANG_COVERAGE_MAPPING=NO \
     OTHER_SWIFT_FLAGS="\$(inherited) $PREFIX_MAPS_SWIFT" \
     OTHER_CFLAGS="\$(inherited) $PREFIX_MAPS_CLANG" \
     DEBUG_INFORMATION_FORMAT=dwarf-with-dsym \
@@ -155,8 +157,8 @@ SPARKLE="$APP/Contents/Frameworks/Sparkle.framework"
 [[ -d "$SPARKLE" ]] || fail "Sparkle.framework is not embedded in the app"
 SPARKLE_B="$SPARKLE/Versions/B"
 
-# Remove unused XPCServices (not needed without App Sandbox)
-rm -rf "$SPARKLE_B/XPCServices"
+# Remove unused XPCServices (not needed without App Sandbox), and the top-level link to them
+rm -rf "$SPARKLE_B/XPCServices" "$SPARKLE/XPCServices"
 
 # Prune Sparkle localizations except Base, en, ru
 for lproj in "$SPARKLE_B"/Resources/*.lproj; do
@@ -227,6 +229,18 @@ if LEAKS="$(grep -rlaF "$DERIVED/" "$APP")"; then
     fail "$DERIVED/ paths found in: $LEAKS"
 fi
 echo "/Users/: 0 occurrences in every slice and in the whole app"
+# The scheme's test settings turn on code coverage for every build: an instrumented app
+# links the profiling runtime and writes default.profraw (or LLVM_PROFILE_FILE) on exit.
+for arch in $(lipo -archs "$BINARY"); do
+    lipo "$BINARY" -thin "$arch" -output "$WORK/slice"
+    if size -m "$WORK/slice" | grep -q __llvm_prf; then
+        fail "the $arch slice is built with code coverage instrumentation"
+    fi
+done
+echo "Code coverage instrumentation: none"
+if DANGLING="$(find "$APP" -type l ! -exec test -e {} \; -print)" && [[ -n "$DANGLING" ]]; then
+    fail "dangling symbolic links in the app: $DANGLING"
+fi
 PLIST_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Contents/Info.plist")"
 PLIST_BUILD="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Contents/Info.plist")"
 [[ "$PLIST_VERSION" == "$VERSION" && "$PLIST_BUILD" == "$BUILD" ]] ||
