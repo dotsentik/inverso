@@ -14,6 +14,7 @@ final class ConversionHUD: FeedbackProviding {
     private(set) var panel: NSPanel?
     private(set) var hostingView: NSHostingView<ConversionHUDView>?
     private var hideTask: Task<Void, Never>?
+    private var orderOutTask: Task<Void, Never>?
 
     private static let topMargin: CGFloat = 8
     private static let slideDistance: CGFloat = 8
@@ -54,6 +55,7 @@ final class ConversionHUD: FeedbackProviding {
         let finalFrame = Self.frame(size: hosting.fittingSize, on: Self.screenWithMouse())
 
         hideTask?.cancel()
+        orderOutTask?.cancel()
         panel.setAccessibilityLabel(content.spokenText)
 
         if panel.isVisible && panel.alphaValue > 0 {
@@ -90,10 +92,14 @@ final class ConversionHUD: FeedbackProviding {
         NSAnimationContext.runAnimationGroup { context in
             context.duration = Self.fadeOutDuration
             panel.animator().alphaValue = 0
-        } completionHandler: { [weak panel] in
-            Task { @MainActor in
-                if let panel, panel.alphaValue == 0 { panel.orderOut(nil) }
-            }
+        }
+        // Remove the panel by timer, not by the animation's completion handler: animations do not run
+        // when the screen is asleep or locked, and the panel would stay on screen (invisible) forever.
+        orderOutTask?.cancel()
+        orderOutTask = Task { [weak panel] in
+            try? await Task.sleep(for: .seconds(Self.fadeOutDuration + 0.05))
+            guard !Task.isCancelled else { return }
+            panel?.orderOut(nil)
         }
     }
 

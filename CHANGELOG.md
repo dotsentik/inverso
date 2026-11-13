@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The conversion sound is now the standard macOS system sound (Tink) instead of a bundled custom file
+
+### Fixed
+
+- The conversion HUD is now removed by a timer instead of the fade-out animation's completion handler, so it can no longer stay on screen (invisible) when animations do not run, e.g. with the display asleep
+
 ## [1.2.14] - 2026-10-30
 
 ### Fixed
