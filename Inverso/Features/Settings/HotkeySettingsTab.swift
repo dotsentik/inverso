@@ -9,7 +9,9 @@ struct HotkeySettingsTab: View {
         Form {
             Section {
                 LabeledContent(l10n.localized("hotkey.current")) {
-                    Text(settingsManager.hotkeyDescription)
+                    Text(
+                        settingsManager.useDoubleShift
+                            ? l10n.localized("hotkey.doubleShiftDescription") : settingsManager.hotkeyDescription)
                 }
             } footer: {
                 Text(l10n.localized("hotkey.description"))
@@ -26,11 +28,11 @@ struct HotkeySettingsTab: View {
             if !settingsManager.useDoubleShift {
                 Section(l10n.localized("hotkey.customTitle")) {
                     HotkeyRecorderView(
-                        keyCode: $settingsManager.hotkeyKeyCode,
-                        modifiers: Binding(
-                            get: { settingsManager.hotkeyModifierFlags },
-                            set: { settingsManager.hotkeyModifierFlags = $0 }
-                        )
+                        keyCode: settingsManager.hotkeyKeyCode,
+                        modifiers: settingsManager.hotkeyModifierFlags,
+                        onRecord: { keyCode, modifiers in
+                            settingsManager.setHotkey(keyCode: keyCode, modifiers: modifiers)
+                        }
                     )
                 }
             }

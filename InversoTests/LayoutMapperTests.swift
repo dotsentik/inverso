@@ -755,4 +755,29 @@ extension TargetLayoutResolver {
     static func targetID(forSource sourceID: String, ordered: [String], overrides: [String: String] = [:]) -> String? {
         targetID(forSource: sourceID, ordered: ordered, overrides: overrides, mapProvider: LayoutMaps.shared)
     }
+
+    func testABCQWERTZResolvesToGermanMap() throws {
+        let map = try XCTUnwrap(LayoutCharacterMap.characterMap(for: "com.apple.keylayout.ABC-QWERTZ"))
+        XCTAssertEqual(map["y"], "z")
+        XCTAssertEqual(map["z"], "y")
+    }
+
+    func testABCAZERTYResolvesToFrenchMap() throws {
+        let map = try XCTUnwrap(LayoutCharacterMap.characterMap(for: "com.apple.keylayout.ABC-AZERTY"))
+        XCTAssertEqual(map["q"], "a")
+        XCTAssertEqual(map["a"], "q")
+    }
+
+    func testCanadianFrenchIsQWERTY() throws {
+        let map = try XCTUnwrap(LayoutCharacterMap.characterMap(for: "com.apple.keylayout.CanadianFrench-PC"))
+        XCTAssertEqual(map["q"], "q")
+        XCTAssertEqual(map["a"], "a")
+    }
+
+    func testPlainFrenchAndABCKeepTheirMaps() throws {
+        let french = try XCTUnwrap(LayoutCharacterMap.characterMap(for: "com.apple.keylayout.French"))
+        XCTAssertEqual(french["q"], "a")
+        let abc = try XCTUnwrap(LayoutCharacterMap.characterMap(for: "com.apple.keylayout.ABC"))
+        XCTAssertEqual(abc["q"], "q")
+    }
 }

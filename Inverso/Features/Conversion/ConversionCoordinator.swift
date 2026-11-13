@@ -12,12 +12,20 @@ final class ConversionCoordinator {
         case greedyLine
     }
 
-    /// What one conversion read and produced. Fields stay nil until the converter runs.
+    /// What one conversion changed: only the converted part, never the kept rest of the line.
+    /// Fields stay nil until the converter produces a result.
     private struct Capture {
         var input: String?
         var output: String?
         var sourceLayoutID: String?
         var targetLayoutID: String?
+
+        mutating func record(_ result: TextConverter.ConversionResult) {
+            input = result.originalSegment
+            output = result.convertedSegment
+            sourceLayoutID = result.sourceLayoutID
+            targetLayoutID = result.targetLayoutID
+        }
     }
 
     private let settingsManager: SettingsManager
@@ -32,7 +40,8 @@ final class ConversionCoordinator {
     private lazy var textConverter = TextConverter(
         preferences: settingsManager,
         mapProvider: LayoutMaps.shared,
-        currentLayoutID: { KeyboardLayoutDetector.currentLayout()?.id }
+        currentLayoutID: { KeyboardLayoutDetector.currentLayout()?.id },
+        wordValidator: SpellCheckerWordValidator()
     )
 
     init(
@@ -62,15 +71,19 @@ final class ConversionCoordinator {
 
     // MARK: - Hotkey
 
+    /// While the shortcut recorder listens, the hotkey is off and setting changes wait for it to end.
+    private var isHotkeyPaused = false
+
     /// Registers the hotkey and re-registers it whenever its settings change.
     func start() {
         registerHotkey()
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(hotkeySettingsDidChange),
-            name: .hotkeySettingsChanged,
-            object: nil
-        )
+        let center = NotificationCenter.default
+        center.addObserver(
+            self, selector: #selector(hotkeySettingsDidChange), name: .hotkeySettingsChanged, object: nil)
+        center.addObserver(
+            self, selector: #selector(hotkeyRecordingDidStart), name: .hotkeyRecordingStarted, object: nil)
+        center.addObserver(
+            self, selector: #selector(hotkeyRecordingDidEnd), name: .hotkeyRecordingEnded, object: nil)
     }
 
     private func registerHotkey() {
@@ -91,6 +104,17 @@ final class ConversionCoordinator {
     }
 
     @objc private func hotkeySettingsDidChange() {
+        guard !isHotkeyPaused else { return }
+        registerHotkey()
+    }
+
+    @objc private func hotkeyRecordingDidStart() {
+        isHotkeyPaused = true
+        hotkeyManager.unregister()
+    }
+
+    @objc private func hotkeyRecordingDidEnd() {
+        isHotkeyPaused = false
         registerHotkey()
     }
 
@@ -138,26 +162,27 @@ final class ConversionCoordinator {
         }
 
         var capture = Capture()
-        let success = await accessibilityService.replaceSelection(in: focusMode) { [weak self] text in
+        let outcome = await accessibilityService.replaceSelection(in: focusMode) { [weak self] text in
             Log.app.debug("replaceSelection got text: '\(text, privacy: .private)' (len=\(text.count))")
-            capture.input = text
             guard let result = self?.textConverter.convert(text) else {
                 Log.app.debug("convert returned nil")
                 return nil
             }
-            capture.output = result.text
-            capture.sourceLayoutID = result.sourceLayoutID
-            capture.targetLayoutID = result.targetLayoutID
+            capture.record(result)
             Log.app.debug("convert returned: '\(result.text, privacy: .private)'")
             return result.text
         }
 
-        if success {
+        switch outcome {
+        case .replaced:
             Log.app.info("Direct conversion succeeded")
             finishConversion(capture, mode: .direct)
-        } else {
+        case .nothingSelected:
             Log.app.debug("No selected text, trying smart conversion")
             await runSmartConversion(in: focusMode)
+        case .notConverted:
+            // A selection exists: selecting more text around it would touch what the user did not select.
+            Log.app.debug("Selected text was not converted; smart conversion skipped")
         }
     }
 
@@ -179,18 +204,15 @@ final class ConversionCoordinator {
     /// Selects one word left and converts it if it looks like the wrong layout.
     private func convertLastWord(in focusMode: AppRuleRegistry.FocusMode) async {
         var capture = Capture()
-        let success = await accessibilityService.replaceLastWord(in: focusMode) { [weak self] text in
+        let outcome = await accessibilityService.replaceLastWord(in: focusMode) { [weak self] text in
             guard let self else { return nil }
             Log.app.debug("lastWord got: '\(text, privacy: .private)'")
             guard textConverter.looksLikeWrongLayout(text) else { return nil }
-            capture.input = text
             guard let result = textConverter.convert(text) else { return nil }
-            capture.output = result.text
-            capture.sourceLayoutID = result.sourceLayoutID
-            capture.targetLayoutID = result.targetLayoutID
+            capture.record(result)
             return result.text
         }
-        if success {
+        if outcome == .replaced {
             finishConversion(capture, mode: .lastWord)
         }
     }
@@ -198,17 +220,14 @@ final class ConversionCoordinator {
     /// Selects to the line start and converts the wrong-layout tail of the line.
     private func convertLineGreedily(in focusMode: AppRuleRegistry.FocusMode) async {
         var capture = Capture()
-        let success = await accessibilityService.replaceLineBeforeCursor(in: focusMode) { [weak self] lineText in
+        let outcome = await accessibilityService.replaceLineBeforeCursor(in: focusMode) { [weak self] lineText in
             guard let self else { return nil }
             Log.app.debug("greedyLine got line: '\(lineText, privacy: .private)' (len=\(lineText.count))")
-            capture.input = lineText
-            let result = textConverter.convertLineGreedily(lineText)
-            capture.output = result?.text
-            capture.sourceLayoutID = result?.sourceLayoutID
-            capture.targetLayoutID = result?.targetLayoutID
-            return result?.text
+            guard let result = textConverter.convertLineGreedily(lineText) else { return nil }
+            capture.record(result)
+            return result.text
         }
-        if success {
+        if outcome == .replaced {
             finishConversion(capture, mode: .greedyLine)
         }
     }
@@ -216,7 +235,7 @@ final class ConversionCoordinator {
     private func finishConversion(_ capture: Capture, mode: Mode) {
         settingsManager.incrementConversionCount()
         logConversion(capture, mode: mode)
-        switchLayoutIfNeeded(targetLayoutID: capture.targetLayoutID)
+        switchLayoutIfNeeded(for: capture)
         playSoundIfEnabled()
         showFeedback(for: capture)
     }
@@ -240,14 +259,13 @@ final class ConversionCoordinator {
 
     // MARK: - Layout Switch
 
-    /// Switches the system keyboard layout to the target, as configured.
-    /// Every mode switches here: this is only called after a conversion took place.
-    private func switchLayoutIfNeeded(targetLayoutID: String?) {
-        guard let targetLayoutID else { return }
-        switch settingsManager.layoutSwitchMode {
-        case .always, .ifLastWordConverted, .ifAnyWordConverted:
-            KeyboardLayoutDetector.switchLayout(to: targetLayoutID)
-        }
+    /// Switches the system keyboard layout to the target, as the Layout Switch mode says.
+    private func switchLayoutIfNeeded(for capture: Capture) {
+        guard let targetLayoutID = capture.targetLayoutID,
+            let input = capture.input, let output = capture.output,
+            settingsManager.layoutSwitchMode.shouldSwitchLayout(original: input, converted: output)
+        else { return }
+        KeyboardLayoutDetector.switchLayout(to: targetLayoutID)
     }
 
     // MARK: - Feedback

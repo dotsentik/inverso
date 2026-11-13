@@ -7,28 +7,33 @@ final class TextConverter {
 
     /// Converted text with the layout it was detected in and the layout it was converted into.
     struct ConversionResult {
+        /// The full replacement for the text passed in (for a line: kept part + converted part).
         let text: String
         let sourceLayoutID: String
         let targetLayoutID: String
+        /// The part of the input that was converted; the whole input unless only a line's tail was.
+        let originalSegment: String
+        /// `originalSegment` after conversion.
+        let convertedSegment: String
     }
-
-    /// A line converts as a whole when at least this share of its words switch script…
-    private static let wholeLineWrongShare = 0.7
-    /// …and it has at least this many words.
-    private static let wholeLineMinimumWords = 3
 
     private let preferences: any ConversionPreferences
     private let mapProvider: any LayoutMapProviding
     private let currentLayoutIDProvider: () -> String?
+    private let wordValidator: (any WordValidating)?
 
+    /// - Parameter wordValidator: keeps correctly typed words before a line's wrong-layout tail;
+    ///   without it only the script tells them apart.
     init(
         preferences: any ConversionPreferences,
         mapProvider: any LayoutMapProviding,
-        currentLayoutID: @escaping () -> String?
+        currentLayoutID: @escaping () -> String?,
+        wordValidator: (any WordValidating)? = nil
     ) {
         self.preferences = preferences
         self.mapProvider = mapProvider
         self.currentLayoutIDProvider = currentLayoutID
+        self.wordValidator = wordValidator
     }
 
     // MARK: - Conversion
@@ -54,7 +59,12 @@ final class TextConverter {
             return nil
         }
         Log.conversion.debug("convert: detected source layout = '\(sourceID, privacy: .public)'")
+        return convert(text, from: sourceID)
+    }
 
+    /// Converts `text` typed in `sourceID` into the target layout.
+    private func convert(_ text: String, from sourceID: String) -> ConversionResult? {
+        let layouts = preferences.enabledLayoutIDs
         guard
             let targetID = TargetLayoutResolver.targetID(
                 forSource: sourceID,
@@ -65,41 +75,46 @@ final class TextConverter {
             layouts.contains(targetID)
         else {
             Log.conversion.debug("convert: no target layout found different from source")
-            guard let firstLayoutID = layouts.first,
-                let result = LayoutMapper.convert(
-                    text: text,
-                    from: sourceID,
-                    to: firstLayoutID,
-                    mapProvider: mapProvider
-                )
-            else { return nil }
-            return ConversionResult(text: result, sourceLayoutID: sourceID, targetLayoutID: firstLayoutID)
+            return nil
         }
 
         Log.conversion.debug(
             "convert: converting from '\(sourceID, privacy: .public)' to '\(targetID, privacy: .public)'")
-        let result = LayoutMapper.convert(
-            text: text,
-            from: sourceID,
-            to: targetID,
-            mapProvider: mapProvider
-        )
-        Log.conversion.debug("convert: result = '\(result ?? "nil", privacy: .private)'")
-        return result.map { ConversionResult(text: $0, sourceLayoutID: sourceID, targetLayoutID: targetID) }
+        guard
+            let byKey = LayoutMapper.convert(
+                text: text,
+                from: sourceID,
+                to: targetID,
+                mapProvider: mapProvider
+            )
+        else { return nil }
+        let result = restoringEdgePunctuation(original: text, converted: byKey, targetID: targetID)
+        Log.conversion.debug("convert: result = '\(result, privacy: .private)'")
+        // Digits, punctuation, emoji: nothing to write back, log or switch the layout for.
+        guard result != text else {
+            Log.conversion.debug("convert: result equals input, nothing to convert")
+            return nil
+        }
+        return ConversionResult(
+            text: result, sourceLayoutID: sourceID, targetLayoutID: targetID,
+            originalSegment: text, convertedSegment: result)
     }
 
     /// Converts only the wrong-layout part of a line. Returns the whole replacement line
     /// (kept part + converted part), or nil if there is nothing to convert.
     func convertLineGreedily(_ text: String) -> ConversionResult? {
         guard let boundary = findWrongLayoutBoundary(in: text) else { return nil }
-        guard let converted = convert(boundary.convert) else {
+        // The tail's layout comes from the boundary: re-detecting it on the tail with its attached
+        // punctuation could pick another layout.
+        guard let converted = convert(boundary.convert, from: boundary.sourceLayoutID) else {
             Log.conversion.debug("convertLineGreedily: convert failed for '\(boundary.convert, privacy: .private)'")
             return nil
         }
         let result = boundary.keep + converted.text
         Log.conversion.debug("convertLineGreedily: '\(text, privacy: .private)' → '\(result, privacy: .private)'")
         return ConversionResult(
-            text: result, sourceLayoutID: converted.sourceLayoutID, targetLayoutID: converted.targetLayoutID)
+            text: result, sourceLayoutID: converted.sourceLayoutID, targetLayoutID: converted.targetLayoutID,
+            originalSegment: boundary.convert, convertedSegment: converted.text)
     }
 
     // MARK: - Wrong Layout Detection
@@ -163,69 +178,60 @@ final class TextConverter {
     }
 
     /// Splits a line (cursor to line start) into the part to keep and the wrong-layout part
-    /// to convert. Returns nil if no part of the line looks like the wrong layout.
+    /// to convert. Returns nil if the end of the line does not look like the wrong layout.
     ///
-    /// Pass 1 checks the whole line: if all words (or most of a longer line) switch script,
-    /// everything converts, as in "ghbdtn rfr ltkf lheu". Per-word gibberish scoring does not
-    /// work here: many wrong-layout words ("lheu" = "друг") look like valid English.
-    ///
-    /// Pass 2 scans words right to left and stops at the first one that does not switch
-    /// script, for mixed lines like "Привет ghbdtn rfr". Punctuation attached to the first
-    /// converted word ("123 §krf") converts with it.
-    func findWrongLayoutBoundary(in text: String) -> (keep: String, convert: String)? {
-        guard preferences.enabledLayoutIDs.count >= 2 else { return nil }
+    /// The wrong-layout part is the run of words at the end of the line typed in the same
+    /// layout as the last word: "Привет, как дела? ntcn" converts only "ntcn", and
+    /// "ghbdtn rfr ltkf lheu" converts as a whole. The run stops at the first word with a
+    /// letter outside that layout, one that would not switch script, or (with a word
+    /// validator) a correctly typed word: "Открой файл сщташп" converts only "сщташп". The last
+    /// word always converts: the hotkey was pressed for it. Without a dictionary for the
+    /// language a correct word of the same script as the tail converts with it.
+    /// Digit-only tokens carry no layout signal and never stop the run;
+    /// digits and spaces before the run's first word stay in keep. Punctuation attached to the
+    /// first converted word ("2025 §krf") converts with it.
+    func findWrongLayoutBoundary(in text: String) -> (keep: String, convert: String, sourceLayoutID: String)? {
+        let layouts = preferences.enabledLayoutIDs
+        guard layouts.count >= 2 else { return nil }
 
         let tokens = tokenize(text)
-        // Digit-only tokens carry no layout signal: they neither count as words nor stop pass 2.
-        let wordTokens = tokens.filter { $0.containsLetter }
-        guard !wordTokens.isEmpty else { return nil }
-
+        guard let lastWord = tokens.last(where: { $0.containsLetter }) else { return nil }
+        guard looksLikeWrongLayout(lastWord) else {
+            Log.conversion.debug("findWrongLayoutBoundary: last word does not look like the wrong layout")
+            return nil
+        }
+        guard
+            let sourceID = LayoutMapper.detectSourceLayout(
+                text: lastWord,
+                candidateLayouts: detectionCandidates(layouts),
+                mapProvider: mapProvider
+            ),
+            let sourceCharacters = mapProvider.characterSet(for: sourceID)
+        else { return nil }
         Log.conversion.debug(
-            "findWrongLayoutBoundary: \(tokens.count) tokens (\(wordTokens.count) words) from '\(text, privacy: .private)'"
+            "findWrongLayoutBoundary: \(tokens.count) tokens, tail layout '\(sourceID, privacy: .public)' in '\(text, privacy: .private)'"
         )
 
-        // Pass 1: the whole line
-        let wrongCount = wordTokens.filter { looksLikeWrongLayout($0) }.count
-        Log.conversion.debug("findWrongLayoutBoundary: \(wrongCount)/\(wordTokens.count) words look wrong-layout")
+        let targetID = TargetLayoutResolver.targetID(
+            forSource: sourceID, ordered: layouts, overrides: preferences.targetOverrides, mapProvider: mapProvider)
+        let lastWordIndex = tokens.lastIndex { $0.containsLetter }
 
-        // Digits before the first word stay in keep, so those lines go through pass 2.
-        let firstWordIndex = tokens.firstIndex { $0.containsLetter } ?? 0
-        let hasLeadingNumber = tokens[..<firstWordIndex].contains { $0.contains { $0.isNumber } }
-
-        if wrongCount == wordTokens.count && !hasLeadingNumber {
-            Log.conversion.debug("findWrongLayoutBoundary: ALL words are wrong-layout, converting entire line")
-            return (keep: "", convert: text)
-        }
-        // One ambiguous word should not stop a longer line from converting
-        if !hasLeadingNumber && wordTokens.count >= Self.wholeLineMinimumWords
-            && Double(wrongCount) / Double(wordTokens.count) >= Self.wholeLineWrongShare
-        {
-            Log.conversion.debug(
-                "findWrongLayoutBoundary: \(wrongCount)/\(wordTokens.count) words wrong (>=70%), converting entire line"
-            )
-            return (keep: "", convert: text)
-        }
-
-        // Pass 2: right to left until the first word that does not switch script
+        // Right to left while the words are typed in the tail's layout.
         var wrongStartIndex = tokens.count
         for index in stride(from: tokens.count - 1, through: 0, by: -1) {
             let token = tokens[index]
-            if !token.containsLetter { continue }
-            if looksLikeWrongLayout(token) {
-                wrongStartIndex = index
+            guard token.containsLetter else { continue }
+            let isTypedInSource = token.allSatisfy { !$0.isLetter || sourceCharacters.contains($0) }
+            let isCorrect =
+                index != lastWordIndex && isCorrectlyTyped(token, sourceID: sourceID, targetID: targetID)
+            guard isTypedInSource && !isCorrect && looksLikeWrongLayout(token) else {
                 Log.conversion.debug(
-                    "findWrongLayoutBoundary: token[\(index)] '\(token, privacy: .private)' = wrong layout")
-            } else {
-                Log.conversion.debug(
-                    "findWrongLayoutBoundary: token[\(index)] '\(token, privacy: .private)' = OK, stopping")
+                    "findWrongLayoutBoundary: token[\(index)] '\(token, privacy: .private)' stops the run")
                 break
             }
+            wrongStartIndex = index
         }
-
-        guard wrongStartIndex < tokens.count else {
-            Log.conversion.debug("findWrongLayoutBoundary: no wrong-layout tokens found")
-            return nil
-        }
+        guard wrongStartIndex < tokens.count else { return nil }
 
         var keep = tokens[..<wrongStartIndex].joined()
         var convert = tokens[wrongStartIndex...].joined()
@@ -239,8 +245,89 @@ final class TextConverter {
         Log.conversion.debug(
             "findWrongLayoutBoundary: keep='\(keep, privacy: .private)' convert='\(convert, privacy: .private)'")
 
-        guard !convert.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
-        return (keep: keep, convert: convert)
+        return (keep: keep, convert: convert, sourceLayoutID: sourceID)
+    }
+
+    /// True if `word` is a real word of the source layout's language whose conversion is not a
+    /// real word of the target's: "файл" (→ "afqk") is typed correctly. A word that is a real
+    /// word both ways is ambiguous and does not count.
+    private func isCorrectlyTyped(_ word: String, sourceID: String, targetID: String?) -> Bool {
+        guard let wordValidator, !word.contains(where: \.isNumber),
+            let sourceLanguage = preferences.languageCode(forLayoutID: sourceID),
+            wordValidator.isWord(word, languageCode: sourceLanguage) == true
+        else { return false }
+        guard let targetID, let targetLanguage = preferences.languageCode(forLayoutID: targetID),
+            let converted = LayoutMapper.convert(text: word, from: sourceID, to: targetID, mapProvider: mapProvider)
+        else { return true }
+        return wordValidator.isWord(converted, languageCode: targetLanguage) != true
+    }
+
+    // MARK: - Edge Punctuation
+
+    /// Punctuation people type as punctuation in either layout. At a word's edge it stays as typed.
+    private static let sentencePunctuation: Set<Character> = [
+        ",", ".", "!", "?", ":", ";", "\"", "'", "«", "»", "„", "“", "”", "(", ")", "-", "–", "—", "…",
+    ]
+
+    /// LayoutMapper converts punctuation at a word's edges by key, so "ntcn," becomes "тестб" and
+    /// "руддщ." becomes "hello/". For each whitespace-separated word, the sentence punctuation at
+    /// its edges goes back to what was typed ("тест,", "hello."), unless the by-key word is a
+    /// real word of the target language: "[kt," → "хлеб", "'nj" → "это", "pyf." → "знаю". When
+    /// both are words, a trailing edge stays punctuation ("ntcn." → "тест.", not "тестю").
+    /// Punctuation between letters ("k.,k." → "люблю") always converts by key.
+    private func restoringEdgePunctuation(original: String, converted: String, targetID: String) -> String {
+        let originalChars = Array(original)
+        let convertedChars = Array(converted)
+        // LayoutMapper maps one character to one and keeps whitespace, so the strings line up.
+        guard originalChars.count == convertedChars.count else { return converted }
+        let targetLanguage = preferences.languageCode(forLayoutID: targetID)
+
+        var result = convertedChars
+        var start = 0
+        while start < originalChars.count {
+            guard !originalChars[start].isWhitespace else {
+                start += 1
+                continue
+            }
+            var end = start
+            while end < originalChars.count && !originalChars[end].isWhitespace { end += 1 }
+            restoreEdges(of: start..<end, original: originalChars, into: &result, targetLanguage: targetLanguage)
+            start = end
+        }
+        return String(result)
+    }
+
+    private func restoreEdges(
+        of word: Range<Int>, original: [Character], into result: inout [Character], targetLanguage: String?
+    ) {
+        func isEdge(_ index: Int) -> Bool {
+            !original[index].isLetter && Self.sentencePunctuation.contains(original[index])
+        }
+        var leading = word.lowerBound
+        while leading < word.upperBound && isEdge(leading) { leading += 1 }
+        var trailing = word.upperBound
+        while trailing > leading && isEdge(trailing - 1) { trailing -= 1 }
+        let edges = Array(word.lowerBound..<leading) + Array(trailing..<word.upperBound)
+        // Nothing to restore if every edge character already came out as typed or as punctuation.
+        guard edges.contains(where: { result[$0] != original[$0] && result[$0].isLetter }) else {
+            for index in edges where result[index] != original[index] { result[index] = original[index] }
+            return
+        }
+        var restored = result
+        for index in edges { restored[index] = original[index] }
+        if let targetLanguage, let wordValidator {
+            func isWord(_ chars: ArraySlice<Character>) -> Bool {
+                let core = String(chars).trimmingCharacters(in: .letters.inverted)
+                return !core.isEmpty && wordValidator.isWord(core, languageCode: targetLanguage) == true
+            }
+            if isWord(result[word]) {
+                // Both are words ("тестю" / "тест.", "это" / "'то"): punctuation is far more common at
+                // a word's end, a letter at its start.
+                let trailingBecameLetter = (trailing..<word.upperBound).contains { result[$0].isLetter }
+                if !isWord(restored[word]) || !trailingBecameLetter { return }
+            }
+        }
+        result = restored
     }
 
     // MARK: - Detection Order

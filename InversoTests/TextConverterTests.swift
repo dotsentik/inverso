@@ -172,22 +172,22 @@ final class TextConverterTests: XCTestCase {
     }
 
     func testFindBoundary_MixedLine_CyrillicThenLatin() {
-        // "Привет ghbdtn" — both words trigger looksLikeWrongLayout (both scripts switch
-        // when converted). Without a dictionary, the algorithm can't distinguish "correct
-        // Cyrillic" from "wrong-layout Cyrillic". Pass 1 sees ALL words as wrong → converts entire line.
+        // The tail is typed in U.S.; "Привет" has letters outside that layout and stays.
         let boundary = converter.findWrongLayoutBoundary(in: "Привет ghbdtn")
-        XCTAssertNotNil(boundary)
-        XCTAssertEqual(boundary?.keep, "")
-        XCTAssertEqual(boundary?.convert, "Привет ghbdtn")
+        XCTAssertEqual(boundary?.keep, "Привет ")
+        XCTAssertEqual(boundary?.convert, "ghbdtn")
     }
 
     func testFindBoundary_MixedLine_MultipleCyrillicThenLatin() {
-        // Same reasoning: all words (Cyrillic and Latin) switch script when converted,
-        // so Pass 1 fires and converts the entire line.
         let boundary = converter.findWrongLayoutBoundary(in: "Привет мир ghbdtn rfr")
-        XCTAssertNotNil(boundary)
-        XCTAssertEqual(boundary?.keep, "")
-        XCTAssertEqual(boundary?.convert, "Привет мир ghbdtn rfr")
+        XCTAssertEqual(boundary?.keep, "Привет мир ")
+        XCTAssertEqual(boundary?.convert, "ghbdtn rfr")
+    }
+
+    func testFindBoundary_MixedLine_LatinThenCyrillic() {
+        let boundary = converter.findWrongLayoutBoundary(in: "I said руддщ")
+        XCTAssertEqual(boundary?.keep, "I said ")
+        XCTAssertEqual(boundary?.convert, "руддщ")
     }
 
     func testFindBoundary_EmptyString() {
@@ -223,13 +223,21 @@ final class TextConverterTests: XCTestCase {
     }
 
     func testConvertLineGreedy_MixedLine() {
-        // Both "Привет" and "ghbdtn" look like wrong layout to the heuristic
-        // (both switch script when converted), so Pass 1 converts the entire line.
-        // "Привет ghbdtn" with source=ABC → converts all to Russian (Привет stays mostly same
-        // since Cyrillic chars aren't in the US map, ghbdtn→привет).
-        let result = converter.convertLineGreedily("Привет ghbdtn")?.text
-        XCTAssertNotNil(result)
-        // The full line is converted as one unit via convert
+        XCTAssertEqual(converter.convertLineGreedily("Привет ghbdtn")?.text, "Привет привет")
+        XCTAssertEqual(converter.convertLineGreedily("Привет, как дела? ntcn")?.text, "Привет, как дела? тест")
+        XCTAssertEqual(converter.convertLineGreedily("I said руддщ")?.text, "I said hello")
+    }
+
+    func testConvertLineGreedy_MixedLine_SegmentsCoverOnlyTheTail() throws {
+        let result = try XCTUnwrap(converter.convertLineGreedily("Привет, как дела? ntcn"))
+        XCTAssertEqual(result.originalSegment, "ntcn")
+        XCTAssertEqual(result.convertedSegment, "тест")
+    }
+
+    func testConvertLineGreedy_LastWordDefinesTheTail() {
+        // Without a dictionary the last word always counts as the wrong-layout one;
+        // earlier words of the other script stay as typed.
+        XCTAssertEqual(converter.convertLineGreedily("ntcn Привет")?.text, "ntcn Ghbdtn")
     }
 
     func testConvertLineGreedy_NothingToConvert_Numbers() {
@@ -329,12 +337,11 @@ final class TextConverterTests: XCTestCase {
     }
 
     func testFindBoundary_WithLeadingPunctuation() {
-        // "- ghbdtn" has 1 word token ("ghbdtn") and punctuation/whitespace ("- ").
-        // Only 1 word, and it's wrong-layout → Pass 1 sees 1/1 = 100% wrong → converts entire line.
+        // The dash is separated from the word by a space, so it is not attached and stays.
         let boundary = converter.findWrongLayoutBoundary(in: "- ghbdtn")
-        XCTAssertNotNil(boundary)
-        XCTAssertEqual(boundary?.keep, "")
-        XCTAssertEqual(boundary?.convert, "- ghbdtn")
+        XCTAssertEqual(boundary?.keep, "- ")
+        XCTAssertEqual(boundary?.convert, "ghbdtn")
+        XCTAssertEqual(converter.convertLineGreedily("- ghbdtn")?.text, "- привет")
     }
 
     // MARK: - Edge case: single character
@@ -381,22 +388,10 @@ final class TextConverterTests: XCTestCase {
         XCTAssertEqual(converter.convertLineGreedily("2025 (ghbdtn")?.text, "2025 (привет")
     }
 
-    // MARK: - Greedy with 70% threshold
+    // MARK: - Whole-line tail
 
-    func testFindBoundary_ThresholdMet() {
-        // 3 words wrong, 1 word correct-ish → 75% wrong → should convert all
-        // This is hard to test without a dictionary, since looksLikeWrongLayout
-        // considers any Latin→Cyrillic switch as "wrong".
-        // So all Latin words will be "wrong" and all Cyrillic words will be "wrong".
-        // A mixed line of Cyrillic+Latin: the Cyrillic words switch to Latin, Latin words switch to Cyrillic.
-        // Both directions = "wrong layout". So a mixed line has ALL words as wrong.
-        // That's actually correct behavior — the 70% threshold handles the case
-        // where one word has only numbers/symbols and doesn't register.
-
-        // Test: 3 Latin words + 1 numeric token
+    func testFindBoundary_TrailingNumberStaysInTheRun() {
         let boundary = converter.findWrongLayoutBoundary(in: "ghbdtn rfr ltkf 123")
-        XCTAssertNotNil(boundary)
-        // All 3 letter-words are wrong, "123" is not a word → 3/3 = 100% → convert all
         XCTAssertEqual(boundary?.keep, "")
         XCTAssertEqual(boundary?.convert, "ghbdtn rfr ltkf 123")
     }
@@ -418,11 +413,138 @@ final class TextConverterTests: XCTestCase {
         XCTAssertNil(converter.findWrongLayoutBoundary(in: "12 345"))
     }
 
-    func testFindBoundary_MixedLineWithTrailingNumber_ConvertsWholeLine() {
-        // Same as "Привет ghbdtn": every lettered word switches script, the number is ignored.
+    func testFindBoundary_MixedLineWithTrailingNumber_ConvertsOnlyTheTail() {
         let boundary = converter.findWrongLayoutBoundary(in: "Привет ghbdtn 45")
-        XCTAssertEqual(boundary?.keep, "")
-        XCTAssertEqual(boundary?.convert, "Привет ghbdtn 45")
+        XCTAssertEqual(boundary?.keep, "Привет ")
+        XCTAssertEqual(boundary?.convert, "ghbdtn 45")
+    }
+
+    // MARK: - Word validator (greedy line)
+
+    private func converterWithDictionary(_ words: [String: Set<String>]) throws -> TextConverter {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        let settings = SettingsManager(defaults: defaults)
+        // A new manager merges in the host's input sources: pin the pair again.
+        settings.enabledLayouts = [
+            KeyboardLayout(id: "com.apple.keylayout.US", localizedName: "U.S.", languageCode: "en"),
+            KeyboardLayout(id: "com.apple.keylayout.Russian", localizedName: "Russian", languageCode: "ru"),
+        ]
+        return TextConverter(
+            preferences: settings, mapProvider: LayoutMaps.shared,
+            currentLayoutID: { KeyboardLayoutDetector.currentLayout()?.id },
+            wordValidator: FakeWordValidator(words: words))
+    }
+
+    func testGreedy_CorrectWordsBeforeTheTailStay() throws {
+        let converter = try converterWithDictionary(["ru": ["открой", "файл"], "en": ["config"]])
+        XCTAssertEqual(converter.convertLineGreedily("Открой файл сщташп")?.text, "Открой файл config")
+        let english = try converterWithDictionary(["en": ["i", "want"], "ru": ["тест"]])
+        XCTAssertEqual(english.convertLineGreedily("I want ntcn")?.text, "I want тест")
+    }
+
+    func testGreedy_WrongLayoutWordsStillConvertWithDictionary() throws {
+        let converter = try converterWithDictionary(["en": ["hello"], "ru": ["привет", "как", "дела"]])
+        XCTAssertEqual(converter.convertLineGreedily("ghbdtn rfr ltkf")?.text, "привет как дела")
+    }
+
+    func testGreedy_LastWordConvertsEvenIfItIsAWord() throws {
+        let converter = try converterWithDictionary(["en": ["hello"]])
+        XCTAssertEqual(converter.convertLineGreedily("hello")?.text, "руддщ")
+    }
+
+    func testGreedy_WordThatIsAWordBothWaysKeepsConverting() throws {
+        // Ambiguous: a real word typed in the source and after conversion. The run goes on.
+        let converter = try converterWithDictionary(["en": ["rfr"], "ru": ["как", "тест"]])
+        XCTAssertEqual(converter.convertLineGreedily("rfr ntcn")?.text, "как тест")
+    }
+
+    func testGreedy_NoDictionaryForTheLanguageFallsBackToScript() throws {
+        let converter = try converterWithDictionary([:])
+        XCTAssertEqual(converter.convertLineGreedily("Открой сщташп")?.text, "Jnrhjq config")
+    }
+
+    func testSpellCheckerValidator_RecognizesWords() throws {
+        let validator = SpellCheckerWordValidator()
+        guard let isWord = validator.isWord("файл", languageCode: "ru") else {
+            throw XCTSkip("No Russian dictionary on this machine")
+        }
+        XCTAssertTrue(isWord)
+        XCTAssertEqual(validator.isWord("сщташп", languageCode: "ru"), false)
+        XCTAssertNil(validator.isWord("word", languageCode: "xx"))
+    }
+
+    // MARK: - Edge punctuation
+
+    func testEdgePunctuation_StaysAsTyped() {
+        XCTAssertEqual(converter.convert("ghbdtn, rfr ltkf?")?.text, "привет, как дела?")
+        XCTAssertEqual(converter.convert("ghbdtn. Rfr ltkf")?.text, "привет. Как дела")
+        XCTAssertEqual(converter.convert("ntcn:")?.text, "тест:")
+        XCTAssertEqual(converter.convert("\"ntcn\"")?.text, "\"тест\"")
+        XCTAssertEqual(converter.convert("руддщ, цщкдв.")?.text, "hello, world.")
+    }
+
+    func testEdgePunctuation_BetweenLettersConvertsByKey() throws {
+        // The inner "." and "," sit between letters; the last "." is at the edge and needs the dictionary.
+        XCTAssertEqual(converter.convert("k.,k.")?.text, "любл.")
+        let withDictionary = try converterWithDictionary(["ru": ["люблю"]])
+        XCTAssertEqual(withDictionary.convert("k.,k.")?.text, "люблю")
+    }
+
+    func testEdgePunctuation_DictionaryKeepsLetterAtTheEdge() throws {
+        let converter = try converterWithDictionary(["ru": ["хлеб", "это", "знаю", "и", "молоко"], "en": []])
+        XCTAssertEqual(converter.convert("[kt, b vjkjrj")?.text, "хлеб и молоко")
+        XCTAssertEqual(converter.convert("'nj")?.text, "это")
+        XCTAssertEqual(converter.convert("pyf.")?.text, "знаю")
+        // Not a word with the letter: the comma stays a comma.
+        XCTAssertEqual(converter.convert("ntcn,")?.text, "тест,")
+    }
+
+    func testEdgePunctuation_BothWordsTrailingStaysPunctuationLeadingBecomesLetter() throws {
+        let converter = try converterWithDictionary(["ru": ["тест", "тестю", "это", "то"]])
+        XCTAssertEqual(converter.convert("ntcn.")?.text, "тест.")
+        XCTAssertEqual(converter.convert("'nj")?.text, "это")
+    }
+
+    func testEdgePunctuation_WithoutDictionaryStaysAsTyped() {
+        XCTAssertEqual(converter.convert("[kt,")?.text, "хле,")
+    }
+
+    func testEdgePunctuation_GreedyLine() {
+        XCTAssertEqual(converter.convertLineGreedily("Ну, ntcn.")?.text, "Ну, тест.")
+    }
+
+    // MARK: - Nothing to convert
+
+    func testConvert_UnchangedTextReturnsNil() {
+        XCTAssertNil(converter.convert("12345"))
+        XCTAssertNil(converter.convert("!!!"))
+    }
+
+    func testConvert_SegmentsAreTheWholeText() throws {
+        let result = try XCTUnwrap(converter.convert("ghbdtn"))
+        XCTAssertEqual(result.originalSegment, "ghbdtn")
+        XCTAssertEqual(result.convertedSegment, "привет")
+    }
+
+    // MARK: - LayoutSwitchMode
+
+    func testLayoutSwitchMode_Always() {
+        XCTAssertTrue(LayoutSwitchMode.always.shouldSwitchLayout(original: "123", converted: "123"))
+    }
+
+    func testLayoutSwitchMode_IfLastWordConverted() {
+        let mode = LayoutSwitchMode.ifLastWordConverted
+        XCTAssertTrue(mode.shouldSwitchLayout(original: "ghbdtn rfr", converted: "привет как"))
+        // Digit-only words do not count as the last word.
+        XCTAssertTrue(mode.shouldSwitchLayout(original: "ghbdtn 45", converted: "привет 45"))
+        // "ü" is on no key of either layout, so the last word did not change.
+        XCTAssertFalse(mode.shouldSwitchLayout(original: "ghbdtn ü", converted: "привет ü"))
+    }
+
+    func testLayoutSwitchMode_IfAnyWordConverted() {
+        let mode = LayoutSwitchMode.ifAnyWordConverted
+        XCTAssertTrue(mode.shouldSwitchLayout(original: "ghbdtn ü", converted: "привет ü"))
+        XCTAssertFalse(mode.shouldSwitchLayout(original: "ü 45", converted: "ü 45"))
     }
 
     func testFindBoundary_LeadingNumberStaysInKeep() {
@@ -430,5 +552,19 @@ final class TextConverterTests: XCTestCase {
         XCTAssertEqual(boundary?.keep, "2025 ")
         XCTAssertEqual(boundary?.convert, "ghbdtn 45")
         XCTAssertEqual(converter.convertLineGreedily("2025 ghbdtn 45")?.text, "2025 привет 45")
+    }
+}
+
+/// Dictionary of lowercased words per language; a language without an entry has no dictionary.
+@MainActor
+private final class FakeWordValidator: WordValidating {
+    private let words: [String: Set<String>]
+
+    init(words: [String: Set<String>]) {
+        self.words = words
+    }
+
+    func isWord(_ word: String, languageCode: String) -> Bool? {
+        words[languageCode].map { $0.contains(word.lowercased()) }
     }
 }

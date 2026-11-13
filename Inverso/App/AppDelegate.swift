@@ -47,6 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.app.debug("Executable: \(Bundle.main.executablePath ?? "unknown", privacy: .public)")
         Log.app.debug("PID: \(ProcessInfo.processInfo.processIdentifier)")
 
+        AXSelectedTextAccess.applyMessagingTimeout()
         ensureInitialSystemLayoutsLoaded()
         _ = settingsManager
         DistributedNotificationCenter.default().addObserver(

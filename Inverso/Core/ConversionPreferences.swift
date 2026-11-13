@@ -7,4 +7,6 @@ protocol ConversionPreferences: AnyObject {
     var enabledLayoutIDs: [String] { get }
     /// Explicit "source → target" layout choices.
     var targetOverrides: [String: String] { get }
+    /// Language of an enabled layout ("en", "ru"…), nil if unknown.
+    func languageCode(forLayoutID layoutID: String) -> String?
 }

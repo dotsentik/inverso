@@ -201,4 +201,53 @@ final class ConversionLogStoreTests: XCTestCase {
 
         XCTAssertEqual(store.logs.count, 2)
     }
+
+    func testClearAllWithLoggingDisabledLeavesNoRowsOnDisk() async {
+        let secret = "disabled-secret-" + UUID().uuidString
+        store.loadIfNeeded()
+        add(secret, output: secret)
+        await store.flush()
+        // Logging switched off: the connection is closed, the file stays
+        store.setLoggingEnabled(false)
+        await store.flush()
+        XCTAssertFalse(store.isDatabaseOpen)
+        XCTAssertTrue(store.databaseFileExists)
+        XCTAssertNotNil(databaseBytes().range(of: Data(secret.utf8)))
+
+        store.clearAll()
+        store.close()
+        await store.flush()
+
+        XCTAssertNil(databaseBytes().range(of: Data(secret.utf8)))
+        store.loadIfNeeded()
+        await store.flush()
+        XCTAssertTrue(store.logs.isEmpty)
+    }
+
+    func testInsertPublishesTheRowWithoutReloadingAndKeepsLimit() async {
+        store.loadIfNeeded()
+        await store.flush()
+        for index in 0..<4 {
+            add("entry \(index)", trimTo: 3)
+        }
+        await store.flush()
+
+        XCTAssertEqual(store.logs.count, 3)
+        XCTAssertEqual(Set(store.logs.map(\.inputText)), ["entry 1", "entry 2", "entry 3"])
+        XCTAssertEqual(Set(store.logs.map(\.id)).count, 3)
+    }
+
+    func testTrimAfterLoweringTheLimit() async {
+        store.loadIfNeeded()
+        for index in 0..<5 {
+            add("entry \(index)")
+        }
+        await store.flush()
+        XCTAssertEqual(store.logs.count, 5)
+
+        store.trim(toMaxEntries: 2)
+        await store.flush()
+
+        XCTAssertEqual(store.logs.count, 2)
+    }
 }

@@ -61,17 +61,25 @@ struct NotificationFeedbackProvider: FeedbackProviding {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert]) { _, _ in }
     }
 
+    /// How long the banner stays in Notification Center before it is removed.
+    private static let removalDelay: TimeInterval = 6
+
     private static func postSystemNotification(input: String, output: String) {
         let content = UNMutableNotificationContent()
         content.title = "Inverso"
         content.body = "\(input) → \(output)"
         content.sound = nil
 
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
+        let identifier = UUID().uuidString
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: nil)
         UNUserNotificationCenter.current().add(request) { error in
             if let error {
                 Log.app.error("Failed to show notification: \(error.localizedDescription, privacy: .public)")
             }
+        }
+        // The banner carries the user's text: don't leave it in Notification Center history
+        DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + removalDelay) {
+            UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [identifier])
         }
     }
 }

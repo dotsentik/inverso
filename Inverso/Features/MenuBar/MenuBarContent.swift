@@ -69,7 +69,7 @@ struct MenuBarContent: View {
             Button(title, action: onConvert)
                 .keyboardShortcut(shortcut)
         } else {
-            let shortcut = settingsManager.useDoubleShift ? "⇧⇧" : settingsManager.hotkeyDescription
+            let shortcut = settingsManager.hotkeyDescription
             Button("\(title)  \(shortcut)", action: onConvert)
         }
     }

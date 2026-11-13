@@ -6,6 +6,8 @@ struct ConversionLogView: View {
     @EnvironmentObject private var settingsManager: SettingsManager
     @EnvironmentObject private var l10n: LocalizationManager
     @State private var showClearConfirmation = false
+    /// A log file is on disk (also when logging is off and the connection is closed).
+    @State private var hasStoredLog = false
     @State private var selection = Set<ConversionLog.ID>()
     @State private var sortOrder = [KeyPathComparator(\ConversionLog.timestamp, order: .reverse)]
 
@@ -61,6 +63,17 @@ struct ConversionLogView: View {
                     description: Text(l10n.localized("log.disabledHint"))
                 )
                 .frame(maxHeight: .infinity)
+
+                if hasStoredLog {
+                    Divider()
+                    HStack {
+                        Spacer()
+                        Button(l10n.localized("log.clearAll"), role: .destructive) {
+                            showClearConfirmation = true
+                        }
+                    }
+                    .padding(12)
+                }
             } else if logStore.logs.isEmpty {
                 ContentUnavailableView(
                     l10n.localized("log.emptyTitle"),
@@ -90,16 +103,29 @@ struct ConversionLogView: View {
         }
         .settingsTabFrame()
         .onAppear {
+            hasStoredLog = logStore.databaseFileExists
             if settingsManager.loggingEnabled {
                 logStore.loadIfNeeded()
             }
         }
         .onChange(of: settingsManager.loggingEnabled) { _, enabled in
             logStore.setLoggingEnabled(enabled)
+            hasStoredLog = logStore.databaseFileExists
+        }
+        // A lower limit takes effect without waiting for the next conversion, but only once the
+        // stepper rests: each click would otherwise delete entries right away.
+        .task(id: settingsManager.logMaxEntries) {
+            try? await Task.sleep(for: .seconds(1.5))
+            guard !Task.isCancelled, settingsManager.loggingEnabled else { return }
+            logStore.trim(toMaxEntries: settingsManager.logMaxEntries)
         }
         .confirmationDialog(l10n.localized("log.clearConfirmTitle"), isPresented: $showClearConfirmation) {
             Button(l10n.localized("log.clearAll"), role: .destructive) {
                 logStore.clearAll()
+                // With logging off, clearing opened the database: close it again
+                if !settingsManager.loggingEnabled {
+                    logStore.close()
+                }
             }
             Button(l10n.localized("log.cancel"), role: .cancel) {}
         } message: {

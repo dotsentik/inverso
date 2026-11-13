@@ -28,7 +28,11 @@ enum LayoutCharacterMap {
 
     /// Layout ID patterns and their maps. Order matters: "russian" contains "us", so the
     /// specific patterns come first and "us" last. Do not reorder.
+    /// The variants of ABC and of French that differ from their base come before it.
     static let allMaps: [(pattern: String, map: [Character: Character])] = [
+        ("abc-qwertz", german),
+        ("abc-azerty", french),
+        ("canadianfrench", qwertyUS),  // Canadian French – CSA is QWERTY
         ("russian", russian),
         ("ukrainian", ukrainian),
         ("german", german),

@@ -83,7 +83,7 @@ xcodebuild build \
   CODE_SIGN_IDENTITY="-"
 ```
 
-The app is at `build/Build/Products/Release/Inverso.app`. Xcode fetches [Sparkle](https://github.com/sparkle-project/Sparkle) 2.10.0 through Swift Package Manager and embeds `Sparkle.framework` in `Contents/Frameworks`. Requires Xcode 26 or later (Swift 6; the app icon is an Icon Composer `.icon` file).
+The app is at `build/Build/Products/Release/Inverso.app`. Xcode fetches [Sparkle](https://github.com/sparkle-project/Sparkle) 2.10.0 through Swift Package Manager and embeds `Sparkle.framework` in `Contents/Frameworks`. Requires Xcode 26 or later (Swift 6.2 for `isolated deinit`; the app icon is an Icon Composer `.icon` file).
 
 Setup notes:
 

@@ -511,6 +511,23 @@
         }
       }
     },
+    "hotkey.doubleShiftDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⇧⇧ (Double Shift)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⇧⇧ (двойной Shift)"
+          }
+        }
+      }
+    },
     "hotkey.doubleShiftHint": {
       "extractionState": "manual",
       "localizations": {
@@ -562,6 +579,40 @@
         }
       }
     },
+    "hotkeyRecorder.commandOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps use ⌘ + key (⌘Q, ⌘S…): add ⌥, ⌃ or ⇧"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘ + клавиша занято приложениями (⌘Q, ⌘S…): добавьте ⌥, ⌃ или ⇧"
+          }
+        }
+      }
+    },
+    "hotkeyRecorder.needsModifier": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use ⌘, ⌥ or ⌃ with the key"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавьте ⌘, ⌥ или ⌃ к клавише"
+          }
+        }
+      }
+    },
     "hotkeyRecorder.pressKey": {
       "extractionState": "manual",
       "localizations": {
@@ -609,6 +660,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Записать"
+          }
+        }
+      }
+    },
+    "hotkeyRecorder.reserved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reserved: Inverso uses this shortcut itself"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Занято: это сочетание использует сам Inverso"
           }
         }
       }

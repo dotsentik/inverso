@@ -45,10 +45,13 @@ final class SettingsManager: ObservableObject {
         }
     }
 
+    /// True while `setHotkey` writes both parts: it posts the change once itself.
+    private var isSettingHotkey = false
+
     @Published var hotkeyKeyCode: UInt16 {
         didSet {
             defaults.set(Int(hotkeyKeyCode), forKey: SettingsKeys.hotkeyKeyCode)
-            if !useDoubleShift {
+            if !useDoubleShift && !isSettingHotkey {
                 NotificationCenter.default.post(name: .hotkeySettingsChanged, object: nil)
             }
         }
@@ -57,7 +60,7 @@ final class SettingsManager: ObservableObject {
     @Published var hotkeyModifiers: UInt {
         didSet {
             defaults.set(hotkeyModifiers, forKey: SettingsKeys.hotkeyModifiers)
-            if !useDoubleShift {
+            if !useDoubleShift && !isSettingHotkey {
                 NotificationCenter.default.post(name: .hotkeySettingsChanged, object: nil)
             }
         }
@@ -68,9 +71,21 @@ final class SettingsManager: ObservableObject {
         set { hotkeyModifiers = newValue.rawValue }
     }
 
+    /// Replaces the custom shortcut and announces the change once, with both parts new.
+    func setHotkey(keyCode: UInt16, modifiers: NSEvent.ModifierFlags) {
+        isSettingHotkey = true
+        hotkeyKeyCode = keyCode
+        hotkeyModifierFlags = modifiers
+        isSettingHotkey = false
+        if !useDoubleShift {
+            NotificationCenter.default.post(name: .hotkeySettingsChanged, object: nil)
+        }
+    }
+
+    /// Symbols only, so it needs no translation; views add the "Double Shift" wording themselves.
     var hotkeyDescription: String {
         if useDoubleShift {
-            return "⇧⇧ (Double Shift)"
+            return "⇧⇧"
         }
         return HotkeyManager.symbols(for: hotkeyModifierFlags) + HotkeyManager.keyName(for: hotkeyKeyCode)
     }
@@ -117,10 +132,10 @@ final class SettingsManager: ObservableObject {
             defaults.object(forKey: SettingsKeys.useDoubleShift) as? Bool
             ?? SettingsKeys.Defaults.useDoubleShift
         // Option+S, used when double Shift is off
-        hotkeyKeyCode = UInt16(
-            defaults.object(forKey: SettingsKeys.hotkeyKeyCode) as? Int
-                ?? Int(SettingsKeys.Defaults.hotkeyKeyCode)
-        )
+        // A hand-edited value outside 0...65535 would trap in UInt16(_:)
+        hotkeyKeyCode =
+            (defaults.object(forKey: SettingsKeys.hotkeyKeyCode) as? Int)
+            .flatMap { UInt16(exactly: $0) } ?? SettingsKeys.Defaults.hotkeyKeyCode
         hotkeyModifiers =
             defaults.object(forKey: SettingsKeys.hotkeyModifiers) as? UInt
             ?? SettingsKeys.Defaults.hotkeyModifiers
@@ -241,4 +256,8 @@ final class SettingsManager: ObservableObject {
 
 extension SettingsManager: ConversionPreferences {
     var enabledLayoutIDs: [String] { enabledLayouts.map(\.id) }
+
+    func languageCode(forLayoutID layoutID: String) -> String? {
+        enabledLayouts.first { $0.id == layoutID }.map(\.languageCode).flatMap { $0 == "unknown" ? nil : $0 }
+    }
 }

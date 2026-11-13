@@ -24,11 +24,15 @@ final class ConversionLogStore: ObservableObject {
 
     nonisolated static let databaseFileName = "conversion_log.sqlite"
 
+    /// Where the log lives by default. Creates nothing.
+    nonisolated fileprivate static var defaultDatabaseDirectory: URL {
+        URL.applicationSupportDirectory.appendingPathComponent("Inverso", isDirectory: true)
+    }
+
     nonisolated fileprivate static func defaultDatabasePath() -> String {
-        let appSupport = URL.applicationSupportDirectory
-        let dir = appSupport.appendingPathComponent("Inverso", isDirectory: true)
+        let dir = defaultDatabaseDirectory
         // Data directory of the app's former name
-        let legacyDir = appSupport.appendingPathComponent("LangSwitcher", isDirectory: true)
+        let legacyDir = URL.applicationSupportDirectory.appendingPathComponent("LangSwitcher", isDirectory: true)
         migrateLegacyLog(from: legacyDir, to: dir)
         try? FileManager.default.createDirectory(
             at: dir, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
@@ -97,6 +101,19 @@ final class ConversionLogStore: ObservableObject {
         return issuedOperation
     }
 
+    /// Publishes the row an insert added, without re-reading the table. Skipped when a snapshot
+    /// operation was issued after the insert (`generation` is the count at that time): that
+    /// snapshot is queued behind the insert, so it already contains the row, and applying the
+    /// row as well could resurrect it after a clear or delete.
+    private func applyInsert(_ result: DatabaseBackend.InsertResult, generation: Int, maxEntries: Int) {
+        guard generation == issuedOperation, let row = result.row else { return }
+        let index = logs.firstIndex { $0.timestamp <= row.timestamp } ?? logs.endIndex
+        logs.insert(row, at: index)
+        if maxEntries > 0, logs.count > maxEntries {
+            logs.removeLast(logs.count - maxEntries)
+        }
+    }
+
     private func applySnapshot(_ entries: [ConversionLog], operation: Int) {
         guard operation >= appliedOperation, operation == issuedOperation else { return }
         appliedOperation = operation
@@ -128,6 +145,11 @@ final class ConversionLogStore: ObservableObject {
         }
     }
 
+    /// True when a log database file exists on disk, whether or not logging is on.
+    var databaseFileExists: Bool {
+        FileManager.default.fileExists(atPath: backend.databasePath)
+    }
+
     /// Waits for all queued database operations and their `@MainActor` state updates to finish.
     func flush() async {
         await backend.flush()
@@ -146,7 +168,7 @@ final class ConversionLogStore: ObservableObject {
         trimTo maxEntries: Int = 0
     ) {
         let timestamp = Date().timeIntervalSince1970
-        let operation = beginOperation()
+        let generation = issuedOperation
         backend.insert(
             timestamp: timestamp,
             inputText: inputText,
@@ -155,8 +177,8 @@ final class ConversionLogStore: ObservableObject {
             targetLayout: targetLayout,
             conversionMode: conversionMode,
             trimTo: maxEntries
-        ) { [weak self] entries in
-            self?.applySnapshot(entries, operation: operation)
+        ) { [weak self] result in
+            self?.applyInsert(result, generation: generation, maxEntries: maxEntries)
         }
     }
 
@@ -241,12 +263,32 @@ final class ConversionLogStore: ObservableObject {
 /// Tells SQLite to copy bound text right away, so it does not depend on the lifetime of the Swift string.
 private let sqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
+/// `@unchecked Sendable` because the compiler cannot see the confinement rules below.
+/// - `queue`, `customDatabaseURL`: immutable, safe from anywhere.
+/// - `db`: touched only on `queue` (every open, query and close runs inside `queue.async`),
+///   except in `deinit`, where no other reference exists.
+/// - `hasDispatchedWork`, `openOnMain`: touched only on the main thread. `openOnMain` mirrors
+///   `db != nil` as of the last completion delivered to the main actor.
+/// Results travel from `queue` to the main actor only as value copies in completions.
 private final class DatabaseBackend: @unchecked Sendable {
 
-    private lazy var queue = DispatchQueue(label: "com.inverso.conversionLogStore", qos: .utility)
+    /// What an insert reports back: the stored row (nil when the INSERT failed).
+    struct InsertResult: Sendable {
+        let row: ConversionLog?
+    }
+
+    private let queue = DispatchQueue(label: "com.inverso.conversionLogStore", qos: .utility)
     private let customDatabaseURL: URL?
     private var db: OpaquePointer?
     private var hasDispatchedWork = false
+    private var openOnMain = false
+
+    /// Path of the database file, without creating anything.
+    var databasePath: String {
+        if let customDatabaseURL { return customDatabaseURL.path }
+        return ConversionLogStore.defaultDatabaseDirectory
+            .appendingPathComponent(ConversionLogStore.databaseFileName).path
+    }
 
     init(databaseURL: URL?) {
         self.customDatabaseURL = databaseURL
@@ -258,9 +300,17 @@ private final class DatabaseBackend: @unchecked Sendable {
         }
     }
 
-    var isOpen: Bool {
-        guard hasDispatchedWork else { return false }
-        return queue.sync { db != nil }
+    /// True once a completion delivered to the main actor saw the connection open. Never blocks.
+    var isOpen: Bool { openOnMain }
+
+    /// Delivers `completion` on the main actor and records whether the connection is open.
+    private func deliver(isOpen: Bool, _ completion: @escaping @MainActor @Sendable () -> Void) {
+        DispatchQueue.main.async {
+            MainActor.assumeIsolated {
+                self.openOnMain = isOpen
+                completion()
+            }
+        }
     }
 
     func load(completion: @escaping @MainActor @Sendable ([ConversionLog]) -> Void) {
@@ -268,11 +318,7 @@ private final class DatabaseBackend: @unchecked Sendable {
         queue.async {
             guard let db = self.openIfNeeded() else { return }
             let entries = self.fetchAll(db: db)
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated {
-                    completion(entries)
-                }
-            }
+            self.deliver(isOpen: true) { completion(entries) }
         }
     }
 
@@ -291,11 +337,7 @@ private final class DatabaseBackend: @unchecked Sendable {
                 self.db = nil
                 Log.logStore.debug("Closed database")
             }
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated {
-                    completion()
-                }
-            }
+            self.deliver(isOpen: false, completion)
         }
     }
 
@@ -320,11 +362,7 @@ private final class DatabaseBackend: @unchecked Sendable {
             guard let db = self.openIfNeeded() else { return }
             work(db)
             let entries = self.fetchAll(db: db)
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated {
-                    completion(entries)
-                }
-            }
+            self.deliver(isOpen: true) { completion(entries) }
         }
     }
 
@@ -336,39 +374,59 @@ private final class DatabaseBackend: @unchecked Sendable {
         targetLayout: String,
         conversionMode: String,
         trimTo maxEntries: Int,
-        completion: @escaping @MainActor @Sendable ([ConversionLog]) -> Void
+        completion: @escaping @MainActor @Sendable (InsertResult) -> Void
     ) {
-        enqueue(
-            { db in
-                let sql = """
-                    INSERT INTO conversion_log (timestamp, input_text, output_text, source_layout, target_layout, conversion_mode, is_correct)
-                    VALUES (?, ?, ?, ?, ?, ?, NULL);
-                    """
+        hasDispatchedWork = true
+        queue.async {
+            guard let db = self.openIfNeeded() else { return }
+            let row = self.insertRow(
+                db: db, timestamp: timestamp, inputText: inputText, outputText: outputText,
+                sourceLayout: sourceLayout, targetLayout: targetLayout, conversionMode: conversionMode)
+            if maxEntries > 0 {
+                self.trimRows(db: db, toMaxEntries: maxEntries)
+            }
+            self.deliver(isOpen: true) { completion(InsertResult(row: row)) }
+        }
+    }
 
-                var stmt: OpaquePointer?
-                guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
-                    Log.logStore.error("Failed to prepare INSERT")
-                    return
-                }
-                defer { sqlite3_finalize(stmt) }
+    private func insertRow(
+        db: OpaquePointer, timestamp: Double, inputText: String, outputText: String,
+        sourceLayout: String, targetLayout: String, conversionMode: String
+    ) -> ConversionLog? {
+        let sql = """
+            INSERT INTO conversion_log (timestamp, input_text, output_text, source_layout, target_layout, conversion_mode, is_correct)
+            VALUES (?, ?, ?, ?, ?, ?, NULL);
+            """
 
-                sqlite3_bind_double(stmt, 1, timestamp)
-                sqlite3_bind_text(stmt, 2, inputText, -1, sqliteTransient)
-                sqlite3_bind_text(stmt, 3, outputText, -1, sqliteTransient)
-                sqlite3_bind_text(stmt, 4, sourceLayout, -1, sqliteTransient)
-                sqlite3_bind_text(stmt, 5, targetLayout, -1, sqliteTransient)
-                sqlite3_bind_text(stmt, 6, conversionMode, -1, sqliteTransient)
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+            Log.logStore.error("Failed to prepare INSERT")
+            return nil
+        }
+        defer { sqlite3_finalize(stmt) }
 
-                if sqlite3_step(stmt) == SQLITE_DONE {
-                    Log.logStore.debug(
-                        "Logged conversion '\(inputText, privacy: .private)' -> '\(outputText, privacy: .private)'")
-                } else {
-                    Log.logStore.error("INSERT failed")
-                }
-                if maxEntries > 0 {
-                    self.trimRows(db: db, toMaxEntries: maxEntries)
-                }
-            }, completion: completion)
+        sqlite3_bind_double(stmt, 1, timestamp)
+        sqlite3_bind_text(stmt, 2, inputText, -1, sqliteTransient)
+        sqlite3_bind_text(stmt, 3, outputText, -1, sqliteTransient)
+        sqlite3_bind_text(stmt, 4, sourceLayout, -1, sqliteTransient)
+        sqlite3_bind_text(stmt, 5, targetLayout, -1, sqliteTransient)
+        sqlite3_bind_text(stmt, 6, conversionMode, -1, sqliteTransient)
+
+        guard sqlite3_step(stmt) == SQLITE_DONE else {
+            Log.logStore.error("INSERT failed")
+            return nil
+        }
+        Log.logStore.debug("Logged conversion '\(inputText, privacy: .private)' -> '\(outputText, privacy: .private)'")
+        return ConversionLog(
+            id: sqlite3_last_insert_rowid(db),
+            timestamp: Date(timeIntervalSince1970: timestamp),
+            inputText: inputText,
+            outputText: outputText,
+            sourceLayout: sourceLayout,
+            targetLayout: targetLayout,
+            conversionMode: conversionMode,
+            isCorrect: nil
+        )
     }
 
     func updateRating(
@@ -423,6 +481,12 @@ private final class DatabaseBackend: @unchecked Sendable {
                     Log.logStore.info("Cleared all logs")
                 }
                 sqlite3_free(errMsg)
+                // Give the freed pages back to the file system
+                var vacuumError: UnsafeMutablePointer<CChar>?
+                if sqlite3_exec(db, "VACUUM;", nil, nil, &vacuumError) != SQLITE_OK {
+                    Log.logStore.error("VACUUM failed")
+                }
+                sqlite3_free(vacuumError)
             }, completion: completion)
     }
 

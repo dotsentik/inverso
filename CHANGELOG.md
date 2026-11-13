@@ -10,10 +10,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The conversion sound is now the standard macOS system sound (Tink) instead of a bundled custom file
+- Smart line conversion converts only the wrong-layout end of a line: "Привет, как дела? ntcn" becomes "Привет, как дела? тест" instead of rewriting the whole line
+- Correctly typed words before the wrong-layout part stay as they are, checked with the system spelling dictionaries ("Открой файл сщташп" → "Открой файл config")
+- Punctuation at the start or end of a word stays as typed: "ntcn," becomes "тест," instead of "тестб", "руддщ." becomes "hello." instead of "hello/". A letter key at a word's edge still converts when the result is a real word ("[kt," → "хлеб")
+- The shortcut recorder refuses combinations that would get in the way: a key with ⇧ only, ⌘ + key alone (⌘Q, ⌘S…) and the shortcuts the conversion itself sends
+- The conversion log and the HUD show only the converted part, not the whole line before the cursor
+- Notifications about a conversion are removed from Notification Center after they are shown
 
 ### Fixed
 
 - The conversion HUD is now removed by a timer instead of the fade-out animation's completion handler, so it can no longer stay on screen (invisible) when animations do not run, e.g. with the display asleep
+- A custom shortcut no longer reaches the app in front: ⌥S no longer types "ß" over the selection before converting it
+- The shortcut works with Caps Lock on, and starts working as soon as the Accessibility permission is granted, without a restart
+- Recording a new shortcut no longer runs a conversion when the current shortcut is pressed
+- The "Switch layout" options now behave as described instead of always switching
+- A selection that cannot be converted (emoji, other scripts) no longer makes the app select and convert the text around it
+- Text that does not change (numbers, punctuation) is no longer "converted", logged and followed by a layout switch
+- The conversion log can be cleared while logging is off, and clearing removes the text from the database file
+- Lowering the log size limit trims the log without waiting for the next conversion
+- An app that does not respond no longer blocks Inverso for seconds on the first conversion
+- The ABC – QWERTZ, ABC – AZERTY and Canadian French layouts use the right built-in character tables
+- A corrupt hotkey value in the settings no longer crashes the app at launch
 
 ## [1.2.14] - 2026-10-30
 

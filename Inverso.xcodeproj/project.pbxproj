@@ -20,6 +20,7 @@
 		E10000010000000000000268 /* ConversionLogStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000268 /* ConversionLogStoreTests.swift */; };
 		E10000010000000000000108 /* ConversionLogTableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000108 /* ConversionLogTableTests.swift */; };
 		E10000010000000000000109 /* MenuShortcutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000109 /* MenuShortcutTests.swift */; };
+		E10000010000000000000120 /* HotkeyTriggerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000120 /* HotkeyTriggerTests.swift */; };
 		E10000010000000000000110 /* ConversionHUDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000110 /* ConversionHUDTests.swift */; };
 		E10000010000000000000029 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000029 /* Localizable.xcstrings */; };
 		E10000010000000000000111 /* LocalizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000111 /* LocalizationTests.swift */; };
@@ -33,6 +34,7 @@
 		E10000010000000000000302 /* ConversionPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000302 /* ConversionPreferences.swift */; };
 		E10000010000000000000206 /* LayoutScript.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000206 /* LayoutScript.swift */; };
 		E10000010000000000000207 /* TargetLayoutResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000207 /* TargetLayoutResolver.swift */; };
+		E10000010000000000000270 /* WordValidating.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000270 /* WordValidating.swift */; };
 		E10000010000000000000208 /* TextConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000208 /* TextConverter.swift */; };
 		E10000010000000000000209 /* ConversionHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000209 /* ConversionHUD.swift */; };
 		E10000010000000000000210 /* ConversionHUDContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000210 /* ConversionHUDContent.swift */; };
@@ -91,6 +93,7 @@
 		E10000010000000000000245 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000245 /* HotkeyManager.swift */; };
 		E10000010000000000000246 /* LaunchAtLoginHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000246 /* LaunchAtLoginHelper.swift */; };
 		E10000010000000000000247 /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000247 /* LocalizationManager.swift */; };
+		E10000010000000000000271 /* SpellCheckerWordValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000271 /* SpellCheckerWordValidator.swift */; };
 		E10000010000000000000248 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000248 /* Log.swift */; };
 		E10000010000000000000249 /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000249 /* LoginItemService.swift */; };
 		E10000010000000000000250 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000020000000000000250 /* SettingsManager.swift */; };
@@ -138,6 +141,7 @@
 		E10000020000000000000118 /* ConversionLogMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionLogMigrationTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000108 /* ConversionLogTableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionLogTableTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000109 /* MenuShortcutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuShortcutTests.swift; sourceTree = "<group>"; };
+		E10000020000000000000120 /* HotkeyTriggerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyTriggerTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000110 /* ConversionHUDTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionHUDTests.swift; sourceTree = "<group>"; };
 		E10000020000000000000029 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		E10000020000000000000111 /* LocalizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationTests.swift; sourceTree = "<group>"; };
@@ -151,6 +155,7 @@
 		E10000020000000000000302 /* ConversionPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionPreferences.swift; sourceTree = "<group>"; };
 		E10000020000000000000206 /* LayoutScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutScript.swift; sourceTree = "<group>"; };
 		E10000020000000000000207 /* TargetLayoutResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetLayoutResolver.swift; sourceTree = "<group>"; };
+		E10000020000000000000270 /* WordValidating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordValidating.swift; sourceTree = "<group>"; };
 		E10000020000000000000208 /* TextConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextConverter.swift; sourceTree = "<group>"; };
 		E10000020000000000000209 /* ConversionHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionHUD.swift; sourceTree = "<group>"; };
 		E10000020000000000000210 /* ConversionHUDContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionHUDContent.swift; sourceTree = "<group>"; };
@@ -209,6 +214,7 @@
 		E10000020000000000000245 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
 		E10000020000000000000246 /* LaunchAtLoginHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginHelper.swift; sourceTree = "<group>"; };
 		E10000020000000000000247 /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
+		E10000020000000000000271 /* SpellCheckerWordValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpellCheckerWordValidator.swift; sourceTree = "<group>"; };
 		E10000020000000000000248 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		E10000020000000000000249 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemService.swift; sourceTree = "<group>"; };
 		E10000020000000000000250 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
@@ -281,6 +287,7 @@
 				E10000020000000000000206 /* LayoutScript.swift */,
 				E10000020000000000000229 /* PhysicalKeys.swift */,
 				E10000020000000000000207 /* TargetLayoutResolver.swift */,
+				E10000020000000000000270 /* WordValidating.swift */,
 				E10000020000000000000208 /* TextConverter.swift */,
 			);
 			path = Core;
@@ -320,6 +327,7 @@
 				E10000020000000000000268 /* ConversionLogStoreTests.swift */,
 				E10000020000000000000108 /* ConversionLogTableTests.swift */,
 				E10000020000000000000109 /* MenuShortcutTests.swift */,
+				E10000020000000000000120 /* HotkeyTriggerTests.swift */,
 				E10000020000000000000110 /* ConversionHUDTests.swift */,
 				E10000020000000000000111 /* LocalizationTests.swift */,
 				E10000020000000000000113 /* UpdateConfigTests.swift */,
@@ -464,6 +472,7 @@
 				E10000020000000000000245 /* HotkeyManager.swift */,
 				E10000020000000000000246 /* LaunchAtLoginHelper.swift */,
 				E10000020000000000000247 /* LocalizationManager.swift */,
+				E10000020000000000000271 /* SpellCheckerWordValidator.swift */,
 				E10000020000000000000249 /* LoginItemService.swift */,
 				E10000020000000000000250 /* SettingsManager.swift */,
 			);
@@ -601,6 +610,7 @@
 				E10000010000000000000302 /* ConversionPreferences.swift in Sources */,
 				E10000010000000000000206 /* LayoutScript.swift in Sources */,
 				E10000010000000000000207 /* TargetLayoutResolver.swift in Sources */,
+				E10000010000000000000270 /* WordValidating.swift in Sources */,
 				E10000010000000000000208 /* TextConverter.swift in Sources */,
 				E10000010000000000000209 /* ConversionHUD.swift in Sources */,
 				E10000010000000000000210 /* ConversionHUDContent.swift in Sources */,
@@ -651,6 +661,7 @@
 				E10000010000000000000245 /* HotkeyManager.swift in Sources */,
 				E10000010000000000000246 /* LaunchAtLoginHelper.swift in Sources */,
 				E10000010000000000000247 /* LocalizationManager.swift in Sources */,
+				E10000010000000000000271 /* SpellCheckerWordValidator.swift in Sources */,
 				E10000010000000000000248 /* Log.swift in Sources */,
 				E10000010000000000000249 /* LoginItemService.swift in Sources */,
 				E10000010000000000000250 /* SettingsManager.swift in Sources */,
@@ -684,6 +695,7 @@
 				E10000010000000000000268 /* ConversionLogStoreTests.swift in Sources */,
 				E10000010000000000000108 /* ConversionLogTableTests.swift in Sources */,
 				E10000010000000000000109 /* MenuShortcutTests.swift in Sources */,
+				E10000010000000000000120 /* HotkeyTriggerTests.swift in Sources */,
 				E10000010000000000000110 /* ConversionHUDTests.swift in Sources */,
 				E10000010000000000000111 /* LocalizationTests.swift in Sources */,
 				E10000010000000000000113 /* UpdateConfigTests.swift in Sources */,
@@ -857,7 +869,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				ARCHS = arm64;
-				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
@@ -890,7 +901,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				ARCHS = arm64;
-				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
@@ -908,7 +918,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				ARCHS = arm64;
-				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Inverso.app/Contents/MacOS/Inverso";
 			};
@@ -927,7 +936,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				ARCHS = arm64;
-				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Inverso.app/Contents/MacOS/Inverso";
 			};

@@ -19,8 +19,14 @@ struct AXSelectedTextAccess: SelectedTextAccess {
 
     init() {
         systemWide = AXUIElementCreateSystemWide()
-        // Applies to all AX calls of this process: a hung app must not stall the main thread.
-        AXUIElementSetMessagingTimeout(systemWide, Self.messagingTimeout)
+        Self.applyMessagingTimeout()
+    }
+
+    /// Sets the timeout for all AX calls of this process: a hung app must not stall the main
+    /// thread. Called at launch, before the first AX call (secure input and focus checks run
+    /// before this type is first created).
+    static func applyMessagingTimeout() {
+        AXUIElementSetMessagingTimeout(AXUIElementCreateSystemWide(), messagingTimeout)
     }
 
     func focused(onOverlay pid: pid_t?) -> SelectedTextAccess {

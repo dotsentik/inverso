@@ -118,4 +118,60 @@ final class SettingsKeysTests: XCTestCase {
         XCTAssertTrue(reloaded.loggingEnabled)
         XCTAssertEqual(reloaded.logMaxEntries, 250)
     }
+
+    func testOutOfRangeStoredKeyCodeFallsBackToDefault() throws {
+        let suiteName = "SettingsKeysTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        for bad in [-1, 70_000, Int.max] {
+            defaults.set(bad, forKey: SettingsKeys.hotkeyKeyCode)
+            let settings = SettingsManager(defaults: defaults)
+            XCTAssertEqual(settings.hotkeyKeyCode, SettingsKeys.Defaults.hotkeyKeyCode, "stored \(bad)")
+        }
+    }
+
+    func testSetHotkeyPostsOnceAndPersistsBothParts() throws {
+        let suiteName = "SettingsKeysTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let settings = SettingsManager(defaults: defaults)
+        settings.useDoubleShift = false
+
+        // Exactly one post: a second one over-fulfills the expectation and fails the test.
+        let posted = expectation(forNotification: .hotkeySettingsChanged, object: nil)
+        posted.expectedFulfillmentCount = 1
+        posted.assertForOverFulfill = true
+
+        settings.setHotkey(keyCode: 0x31, modifiers: [.command, .shift])
+
+        wait(for: [posted], timeout: 0.1)
+        let reloaded = SettingsManager(defaults: defaults)
+        XCTAssertEqual(reloaded.hotkeyKeyCode, 0x31)
+        XCTAssertEqual(reloaded.hotkeyModifierFlags, [.command, .shift])
+    }
+
+    func testRecorderRequiresCommandOptionOrControl() {
+        XCTAssertEqual(HotkeyRecorderView.rejection(keyCode: 0x00, flags: [.shift]), .needsModifier)
+        XCTAssertEqual(HotkeyRecorderView.rejection(keyCode: 0x00, flags: [.capsLock]), .needsModifier)
+        XCTAssertEqual(HotkeyRecorderView.rejection(keyCode: 0x00, flags: [.shift, .function]), .needsModifier)
+        XCTAssertNil(HotkeyRecorderView.rejection(keyCode: 0x01, flags: [.option]))
+        XCTAssertNil(HotkeyRecorderView.rejection(keyCode: 0x01, flags: [.control, .shift]))
+    }
+
+    func testRecorderRejectsShortcutsTheConversionSends() {
+        XCTAssertEqual(HotkeyRecorderView.rejection(keyCode: 0x08, flags: [.command]), .reserved)  // ⌘C
+        XCTAssertEqual(HotkeyRecorderView.rejection(keyCode: 0x09, flags: [.command]), .reserved)  // ⌘V
+        XCTAssertEqual(HotkeyRecorderView.rejection(keyCode: 0x7B, flags: [.command, .shift]), .reserved)  // ⌘⇧←
+        XCTAssertEqual(HotkeyRecorderView.rejection(keyCode: 0x7B, flags: [.shift, .option]), .reserved)  // ⇧⌥←
+        XCTAssertEqual(HotkeyRecorderView.rejection(keyCode: 0x7C, flags: [.shift, .option]), .reserved)  // ⇧⌥→
+        XCTAssertNil(HotkeyRecorderView.rejection(keyCode: 0x08, flags: [.command, .shift]))  // ⌘⇧C is fine
+    }
+
+    func testRecorderRejectsCommandPlusKeyAlone() {
+        // The hotkey is swallowed system-wide: ⌘Q or ⌘← would stop working in every app.
+        XCTAssertEqual(HotkeyRecorderView.rejection(keyCode: 0x0C, flags: [.command]), .commandOnly)  // ⌘Q
+        XCTAssertEqual(HotkeyRecorderView.rejection(keyCode: 0x7B, flags: [.command]), .commandOnly)  // ⌘←
+        XCTAssertNil(HotkeyRecorderView.rejection(keyCode: 0x0C, flags: [.command, .option]))  // ⌥⌘Q is fine
+    }
 }

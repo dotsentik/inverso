@@ -58,14 +58,24 @@ final class AccessibilityService {
 
     // MARK: - Replacing Text
 
-    // Each method takes the focus mode resolved by `AppRuleRegistry` for this conversion.
-    // In a terminal they do nothing and return false.
+    /// How a replace attempt ended.
+    enum ReplaceOutcome: Equatable {
+        /// The converted text was written back.
+        case replaced
+        /// There was no text to read: nothing selected, or nothing came back from ⌘C.
+        case nothingSelected
+        /// Text was read but the converter returned nil; it stays as it was.
+        case notConverted
+    }
 
-    /// Converts the current selection. Returns false if nothing was selected or converted.
+    // Each method takes the focus mode resolved by `AppRuleRegistry` for this conversion.
+    // In a terminal they do nothing and return `.nothingSelected`.
+
+    /// Converts the current selection.
     func replaceSelection(
         in focusMode: AppRuleRegistry.FocusMode,
         using converter: (String) -> String?
-    ) async -> Bool {
+    ) async -> ReplaceOutcome {
         await copyConvertPaste(select: nil, focusMode: focusMode, label: "replaceSelection", converter: converter)
     }
 
@@ -74,7 +84,7 @@ final class AccessibilityService {
     func replaceLineBeforeCursor(
         in focusMode: AppRuleRegistry.FocusMode,
         using converter: (String) -> String?
-    ) async -> Bool {
+    ) async -> ReplaceOutcome {
         await copyConvertPaste(
             select: .selectToLineStart, focusMode: focusMode, label: "replaceLineBeforeCursor", converter: converter)
     }
@@ -83,7 +93,7 @@ final class AccessibilityService {
     func replaceLastWord(
         in focusMode: AppRuleRegistry.FocusMode,
         using converter: (String) -> String?
-    ) async -> Bool {
+    ) async -> ReplaceOutcome {
         await copyConvertPaste(
             select: .selectWordLeft, focusMode: focusMode, label: "replaceLastWord", converter: converter)
     }
@@ -102,10 +112,10 @@ final class AccessibilityService {
         focusMode: AppRuleRegistry.FocusMode,
         label: String,
         converter: (String) -> String?
-    ) async -> Bool {
+    ) async -> ReplaceOutcome {
         guard let strategy = TextAccessStrategy.resolve(for: focusMode) else {
             Log.focus.debug("\(label, privacy: .public): terminal has the focus, no text access")
-            return false
+            return .nothingSelected
         }
         var savedContents: PasteboardSnapshot?
         var ownChangeCount = 0
@@ -121,14 +131,14 @@ final class AccessibilityService {
             select: select, strategy: strategy, selection: selection, keystrokes: keystrokes, label: label)
         {
         case .abort:
-            return false
+            return .nothingSelected
         case .ready(let selectionToRestore):
             // With nothing selected, ⌘C in CodeMirror (Obsidian) and VS Code copies the whole
             // current line, and ⌘V would then insert the converted line at the cursor instead of
             // replacing anything. So don't copy when AX reports an empty selection.
             if await selectionIsEmpty(selection, afterSelecting: select != nil) {
                 Log.accessibility.debug("\(label, privacy: .public): AX reports an empty selection, nothing to copy")
-                return false
+                return .nothingSelected
             }
 
             let selectedText = await readSelectedText(
@@ -142,7 +152,7 @@ final class AccessibilityService {
             guard let selectedText else {
                 if select != nil { undoSelection(selectionToRestore, selection: selection, keystrokes: keystrokes) }
                 if let savedContents { restoreIfUntouched(savedContents, ownChangeCount: ownChangeCount) }
-                return false
+                return .nothingSelected
             }
 
             Log.accessibility.debug(
@@ -152,7 +162,7 @@ final class AccessibilityService {
                 Log.accessibility.debug("\(label, privacy: .public): converter returned nil")
                 if select != nil { undoSelection(selectionToRestore, selection: selection, keystrokes: keystrokes) }
                 if let savedContents { restoreIfUntouched(savedContents, ownChangeCount: ownChangeCount) }
-                return false
+                return .notConverted
             }
 
             await writeConvertedText(
@@ -164,7 +174,7 @@ final class AccessibilityService {
                 savedContents: savedContents,
                 ownChangeCount: ownChangeCount
             )
-            return true
+            return .replaced
         }
     }
 

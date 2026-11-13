@@ -693,6 +693,38 @@ final class AccessibilityServiceTests: XCTestCase {
         XCTAssertEqual(selection.replacements, ["привет"])
     }
 
+    // MARK: - Outcome
+
+    func testOutcome_SelectionNotConverted_IsNotConverted() async {
+        // The coordinator must not fall back to smart conversion here: it would select more text.
+        let app = FakeTargetApp(pasteboard: FakePasteboard())
+        let selection = FakeSelectedText(text: "😀", length: 1)
+
+        let outcome = await makeService(app, selection: selection).selectionOutcome { _ in nil }
+
+        XCTAssertEqual(outcome, .notConverted)
+        XCTAssertEqual(app.sent, [])
+    }
+
+    func testOutcome_EmptySelection_IsNothingSelected() async {
+        let app = FakeTargetApp(pasteboard: FakePasteboard())
+        let selection = FakeSelectedText(length: 0)
+
+        let outcome = await makeService(app, selection: selection).selectionOutcome { _ in "x" }
+
+        XCTAssertEqual(outcome, .nothingSelected)
+    }
+
+    func testOutcome_Replaced() async {
+        let app = FakeTargetApp(pasteboard: FakePasteboard())
+        let selection = FakeSelectedText(text: "ghbdtn", length: 6)
+        selection.replaceResult = .replaced
+
+        let outcome = await makeService(app, selection: selection).selectionOutcome { _ in "привет" }
+
+        XCTAssertEqual(outcome, .replaced)
+    }
+
     // MARK: - Empty selection reported via AX
 
     func testAXEmptySelection_DoesNotCopy() async {
@@ -837,15 +869,19 @@ private struct FocusedService {
     let focus: AppRuleRegistry.FocusMode
 
     func replaceSelection(using converter: (String) -> String?) async -> Bool {
+        await selectionOutcome(using: converter) == .replaced
+    }
+
+    func selectionOutcome(using converter: (String) -> String?) async -> AccessibilityService.ReplaceOutcome {
         await service.replaceSelection(in: focus, using: converter)
     }
 
     func replaceLastWord(using converter: (String) -> String?) async -> Bool {
-        await service.replaceLastWord(in: focus, using: converter)
+        await service.replaceLastWord(in: focus, using: converter) == .replaced
     }
 
     func replaceLineBeforeCursor(using converter: (String) -> String?) async -> Bool {
-        await service.replaceLineBeforeCursor(in: focus, using: converter)
+        await service.replaceLineBeforeCursor(in: focus, using: converter) == .replaced
     }
 
     func waitForPasteboardChange(from count: Int, timeout: Duration) async -> Bool {
