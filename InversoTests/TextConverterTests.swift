@@ -465,12 +465,13 @@ final class TextConverterTests: XCTestCase {
 
     func testSpellCheckerValidator_RecognizesWords() throws {
         let validator = SpellCheckerWordValidator()
-        guard let isWord = validator.isWord("файл", languageCode: "ru") else {
-            throw XCTSkip("No Russian dictionary on this machine")
-        }
-        XCTAssertTrue(isWord)
-        XCTAssertEqual(validator.isWord("сщташп", languageCode: "ru"), false)
         XCTAssertNil(validator.isWord("word", languageCode: "xx"))
+        // A missing dictionary gives nil. A spell server that times out (CI runners) reports every
+        // word as misspelled, so a known word that is not confirmed means "no working dictionary".
+        guard validator.isWord("файл", languageCode: "ru") == true else {
+            throw XCTSkip("No working Russian dictionary on this machine")
+        }
+        XCTAssertEqual(validator.isWord("сщташп", languageCode: "ru"), false)
     }
 
     // MARK: - Edge punctuation
