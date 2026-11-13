@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.15] - 2026-11-13
+
 ### Changed
 
 - The conversion sound is now the standard macOS system sound (Tink) instead of a bundled custom file
