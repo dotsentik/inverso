@@ -484,6 +484,19 @@ final class TextConverterTests: XCTestCase {
         XCTAssertEqual(converter.convert("руддщ, цщкдв.")?.text, "hello, world.")
     }
 
+    func testEdgePunctuation_QuestionMarkKeyMidSentenceBecomesComma() {
+        // Russian – PC types "," on Shift+/, which is "?" in U.S.; Shift+7 ("&") is "?".
+        XCTAssertEqual(converter.convert("ghbdtn? rfr ltkf&")?.text, "привет, как дела?")
+        XCTAssertEqual(converter.convert("Ghbdtn? rfr ltkf&")?.text, "Привет, как дела?")
+        XCTAssertEqual(converter.convert("Ghbdtn? rfr ltkf?")?.text, "Привет, как дела?")
+        // Before a capitalized word or at the end it is a question mark.
+        XCTAssertEqual(converter.convert("ghbdtn? Rfr ltkf")?.text, "привет? Как дела")
+        XCTAssertEqual(converter.convert("ltkf?")?.text, "дела?")
+        // The other way the typed comma stays a comma.
+        XCTAssertEqual(converter.convert("руддщ, цщкдв")?.text, "hello, world")
+        XCTAssertEqual(converter.convertLineGreedily("Ghbdtn? rfr ltkf&")?.text, "Привет, как дела?")
+    }
+
     func testEdgePunctuation_BetweenLettersConvertsByKey() throws {
         // The inner "." and "," sit between letters; the last "." is at the edge and needs the dictionary.
         XCTAssertEqual(converter.convert("k.,k.")?.text, "любл.")

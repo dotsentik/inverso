@@ -275,6 +275,8 @@ final class TextConverter {
     /// real word of the target language: "[kt," → "хлеб", "'nj" → "это", "pyf." → "знаю". When
     /// both are words, a trailing edge stays punctuation ("ntcn." → "тест.", not "тестю").
     /// Punctuation between letters ("k.,k." → "люблю") always converts by key.
+    /// Mid-sentence (before a lowercase word) a comma wins over a question mark sharing its key:
+    /// "ghbdtn? rfr" → "привет, как" (Russian – PC types "," on Shift+/), "руддщ, цщкдв" → "hello, world".
     private func restoringEdgePunctuation(original: String, converted: String, targetID: String) -> String {
         let originalChars = Array(original)
         let convertedChars = Array(converted)
@@ -282,7 +284,7 @@ final class TextConverter {
         guard originalChars.count == convertedChars.count else { return converted }
         let targetLanguage = preferences.languageCode(forLayoutID: targetID)
 
-        var result = convertedChars
+        var words: [Range<Int>] = []
         var start = 0
         while start < originalChars.count {
             guard !originalChars[start].isWhitespace else {
@@ -291,8 +293,21 @@ final class TextConverter {
             }
             var end = start
             while end < originalChars.count && !originalChars[end].isWhitespace { end += 1 }
-            restoreEdges(of: start..<end, original: originalChars, into: &result, targetLanguage: targetLanguage)
+            words.append(start..<end)
             start = end
+        }
+
+        var result = convertedChars
+        for (position, word) in words.enumerated() {
+            restoreEdges(of: word, original: originalChars, into: &result, targetLanguage: targetLanguage)
+            guard position + 1 < words.count else { continue }
+            let nextFirst = convertedChars[words[position + 1].lowerBound]
+            guard nextFirst.isLetter && nextFirst.isLowercase else { continue }
+            var index = word.upperBound - 1
+            while index > word.lowerBound && Self.sentencePunctuation.contains(originalChars[index]) {
+                if originalChars[index] == "?" && convertedChars[index] == "," { result[index] = "," }
+                index -= 1
+            }
         }
         return String(result)
     }
